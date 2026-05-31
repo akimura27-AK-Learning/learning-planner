@@ -8390,11 +8390,22 @@ function printActivePage(){
 function scrollToPhase(lv,phaseClass){
   const pane=document.getElementById('pane-'+lv);
   if(!pane)return;
-  const target=pane.querySelector('.phase-'+phaseClass);
+  // アクティブなサブパネルがあればその中だけを対象にする
+  const subPanelIds={
+    'pane-lv0':['l0-basic','l0-mid','l0-adv'],
+    'pane-lv1':['l1-basic','l1-mid','l1-adv'],
+    'pane-lv2':['l2-basic','l2-mid','l2-adv'],
+    'pane-lv3':['l3-basic','l3-mid','l3-adv'],
+    'pane-lv4':['l4-self','l4-co'],
+    'pane-lv5':['l5-self','l5-co'],
+  };
+  const subs=subPanelIds['pane-'+lv]||[];
+  const activeSub=subs.map(id=>document.getElementById(id)).find(el=>el&&el.style.display!=='none');
+  const searchRoot=activeSub||pane;
+  const target=searchRoot.querySelector('.phase-'+phaseClass);
   if(!target)return;
   const y=target.getBoundingClientRect().top+window.scrollY-80;
   window.scrollTo({top:y,behavior:'smooth'});
-  // スクロール完了後に進捗バーを更新
   setTimeout(()=>updatePhaseProgress(),400);
 }
 
@@ -8404,15 +8415,27 @@ function updatePhaseProgress(){
   const phaseOrder=['mihitosu','jikko','furikaeri'];
   const colorClass=['active-mihitosu','active-jikko','active-furikaeri'];
   const hintClass=['hint-mihitosu','hint-jikko','hint-furikaeri'];
+  const subPanelIds={
+    'lv0':['l0-basic','l0-mid','l0-adv'],
+    'lv1':['l1-basic','l1-mid','l1-adv'],
+    'lv2':['l2-basic','l2-mid','l2-adv'],
+    'lv3':['l3-basic','l3-mid','l3-adv'],
+    'lv4':['l4-self','l4-co'],
+    'lv5':['l5-self','l5-co'],
+  };
   lvIds.forEach(lv=>{
     const bar=document.getElementById('progress-'+lv);
     if(!bar)return;
     const pane=document.getElementById('pane-'+lv);
     if(!pane||!pane.classList.contains('active'))return;
+    // アクティブなサブパネルがあればその中だけを対象にする
+    const subs=(subPanelIds[lv]||[]).map(id=>document.getElementById(id)).filter(Boolean);
+    const activeSub=subs.find(el=>el.style.display!=='none');
+    const searchRoot=activeSub||pane;
     const items=bar.querySelectorAll('.phase-progress-item');
     let activeIdx=0;
     phaseOrder.forEach((ph,i)=>{
-      const phase=pane.querySelector('.phase-'+ph);
+      const phase=searchRoot.querySelector('.phase-'+ph);
       if(!phase)return;
       const rect=phase.getBoundingClientRect();
       if(rect.top<window.innerHeight*0.5)activeIdx=i;
