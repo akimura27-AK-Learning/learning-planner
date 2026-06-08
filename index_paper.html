@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Self-Regulate Forms Paper（計画表を印刷する）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --lv0bg:#F1EFE8;--lv0b:#444441;--lv0br:#D3D1C7;--lv0acc:#888780;
+  --lv1bg:#FEF8E7;--lv1b:#6B4A00;--lv1br:#F5D87A;--lv1acc:#D4A017;
+  --lv2bg:#EAF3DE;--lv2b:#27500A;--lv2br:#C0DD97;--lv2acc:#4E8B1D;
+  --lv3bg:#FAEEDA;--lv3b:#633806;--lv3br:#FAC775;--lv3acc:#D4680A;
+  --lv4bg:#FBEAF0;--lv4b:#72243E;--lv4br:#F4C0D1;--lv4acc:#C0395A;
+  --lv5bg:#EEEDFE;--lv5b:#3C3489;--lv5br:#CECBF6;--lv5acc:#5B52D9;
+  --bd:#e2e2e0;--bg:#fff;--bg2:#f7f7f5;--tx:#1a1a1a;--mu:#6b6b6b;
+  --rad:8px;--radl:14px;
+}
+
+body{
+  font-family:'Noto Sans JP',sans-serif;
+  background:#f7f7f5;
+  color:#1a1a1a;
+  min-height:100vh;
+}
+
+/* ===== HEADER ===== */
+.site-header{
+  background:#111;
+  padding:2.2rem 2rem 1.8rem;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+.site-header::before{
+  content:'';
+  position:absolute;inset:0;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 39px,
+      rgba(255,255,255,.04) 39px,
+      rgba(255,255,255,.04) 40px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 39px,
+      rgba(255,255,255,.04) 39px,
+      rgba(255,255,255,.04) 40px
+    );
+  pointer-events:none;
+}
+.header-badge{
+  display:inline-block;
+  font-size:10px;letter-spacing:.15em;text-transform:uppercase;
+  color:rgba(255,255,255,.5);
+  border:0.5px solid rgba(255,255,255,.2);
+  padding:3px 12px;border-radius:20px;
+  margin-bottom:14px;
+  font-family:'Noto Sans JP',sans-serif;
+}
+.site-title{
+  font-family:'Noto Serif JP',serif;
+  font-size:clamp(28px,5vw,46px);
+  font-weight:700;
+  color:#fff;
+  letter-spacing:-.01em;
+  line-height:1.1;
+  margin-bottom:10px;
+}
+.site-sub{
+  font-size:14px;
+  color:rgba(255,255,255,.55);
+  letter-spacing:.02em;
+  line-height:1.8;
+}
+.site-credit{
+  font-size:11px;color:rgba(255,255,255,.3);
+  margin-top:16px;letter-spacing:.04em;font-style:italic;
+}
+
+/* ===== MAIN LAYOUT ===== */
+.main{
+  max-width:960px;
+  margin:0 auto;
+  padding:2rem 1.2rem 4rem;
+}
+
+/* ===== INTRO BOX ===== */
+.intro{
+  background:#fff;
+  border:0.5px solid var(--bd);
+  border-radius:var(--radl);
+  padding:1.4rem 1.6rem;
+  margin-bottom:2rem;
+  display:flex;
+  gap:1rem;
+  align-items:flex-start;
+}
+.intro-icon{font-size:2rem;flex-shrink:0;line-height:1}
+.intro-text p{font-size:14px;line-height:1.9;color:#444;margin-bottom:.4rem}
+.intro-text p:last-child{margin-bottom:0}
+.intro-text strong{color:#111;font-weight:700}
+
+/* ===== SECTION HEADINGS ===== */
+.section-label{
+  font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--mu);margin-bottom:1rem;
+  display:flex;align-items:center;gap:8px;
+}
+.section-label::after{
+  content:'';flex:1;height:0.5px;background:var(--bd);
+}
+
+/* ===== LEVEL CARDS ===== */
+.levels-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:1rem;
+  margin-bottom:2.5rem;
+}
+
+.lv-card{
+  background:#fff;
+  border-radius:var(--radl);
+  overflow:hidden;
+  border:0.5px solid var(--bd);
+  transition:transform .18s,box-shadow .18s;
+  display:flex;
+  flex-direction:column;
+}
+.lv-card:hover{
+  transform:translateY(-3px);
+  box-shadow:0 8px 24px rgba(0,0,0,.08);
+}
+
+.lv-card-head{
+  padding:1.1rem 1.2rem .9rem;
+  display:flex;
+  align-items:flex-start;
+  gap:.9rem;
+}
+.lv-num{
+  font-family:'Noto Serif JP',serif;
+  font-size:42px;
+  font-weight:700;
+  line-height:1;
+  flex-shrink:0;
+  opacity:.9;
+}
+.lv-meta{}
+.lv-tag{
+  font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  font-weight:700;opacity:.7;margin-bottom:3px;
+}
+.lv-name{font-size:17px;font-weight:700;line-height:1.3;margin-bottom:4px}
+.lv-desc{font-size:12px;opacity:.75;line-height:1.7}
+
+.lv-card-body{
+  padding:.8rem 1.2rem 1rem;
+  background:#fff;
+  border-top:0.5px solid var(--bd);
+  flex:1;
+}
+
+.lv-features{
+  list-style:none;
+  margin-bottom:.9rem;
+}
+.lv-features li{
+  font-size:12.5px;
+  color:#555;
+  padding:3px 0;
+  display:flex;align-items:flex-start;gap:6px;
+  line-height:1.6;
+}
+.lv-features li::before{
+  content:'·';
+  font-weight:900;
+  flex-shrink:0;
+  margin-top:.05em;
+}
+
+/* ===== PDF BUTTONS ===== */
+.pdf-btns{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.pdf-btn{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:10px 14px;
+  border-radius:var(--rad);
+  font-size:13px;
+  font-weight:500;
+  text-decoration:none;
+  cursor:pointer;
+  border:0.5px solid transparent;
+  transition:all .15s;
+  color:#fff;
+  font-family:'Noto Sans JP',sans-serif;
+}
+.pdf-btn:hover{
+  filter:brightness(1.08);
+  transform:translateX(2px);
+}
+.pdf-btn-icon{
+  width:28px;height:28px;
+  border-radius:6px;
+  background:rgba(255,255,255,.2);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  font-size:14px;
+}
+.pdf-btn-text{flex:1}
+.pdf-btn-label{font-size:10px;opacity:.8;display:block;margin-top:1px}
+.pdf-btn-arrow{font-size:12px;opacity:.7;flex-shrink:0}
+
+/* Individual level color overrides */
+.lv0 .lv-card-head{background:var(--lv0bg)}
+.lv0 .lv-num,.lv0 .lv-name,.lv0 .lv-tag,.lv0 .lv-desc{color:var(--lv0b)}
+.lv0 .lv-features li::before{color:var(--lv0acc)}
+.lv0 .pdf-btn{background:var(--lv0b)}
+
+.lv1 .lv-card-head{background:var(--lv1bg)}
+.lv1 .lv-num,.lv1 .lv-name,.lv1 .lv-tag,.lv1 .lv-desc{color:var(--lv1b)}
+.lv1 .lv-features li::before{color:var(--lv1acc)}
+.lv1 .pdf-btn{background:var(--lv1b)}
+
+.lv2 .lv-card-head{background:var(--lv2bg)}
+.lv2 .lv-num,.lv2 .lv-name,.lv2 .lv-tag,.lv2 .lv-desc{color:var(--lv2b)}
+.lv2 .lv-features li::before{color:var(--lv2acc)}
+.lv2 .pdf-btn{background:var(--lv2b)}
+
+.lv3 .lv-card-head{background:var(--lv3bg)}
+.lv3 .lv-num,.lv3 .lv-name,.lv3 .lv-tag,.lv3 .lv-desc{color:var(--lv3b)}
+.lv3 .lv-features li::before{color:var(--lv3acc)}
+.lv3 .pdf-btn{background:var(--lv3b)}
+
+.lv4 .lv-card-head{background:var(--lv4bg)}
+.lv4 .lv-num,.lv4 .lv-name,.lv4 .lv-tag,.lv4 .lv-desc{color:var(--lv4b)}
+.lv4 .lv-features li::before{color:var(--lv4acc)}
+.lv4 .pdf-btn{background:var(--lv4b)}
+
+.lv5 .lv-card-head{background:var(--lv5bg)}
+.lv5 .lv-num,.lv5 .lv-name,.lv5 .lv-tag,.lv5 .lv-desc{color:var(--lv5b)}
+.lv5 .lv-features li::before{color:var(--lv5acc)}
+.lv5 .pdf-btn{background:var(--lv5b)}
+
+/* ===== VIEWER SECTION ===== */
+.viewer-section{
+  background:#fff;
+  border:0.5px solid var(--bd);
+  border-radius:var(--radl);
+  overflow:hidden;
+  margin-bottom:2rem;
+}
+.viewer-header{
+  padding:.8rem 1.2rem;
+  border-bottom:0.5px solid var(--bd);
+  display:flex;align-items:center;gap:10px;
+  background:#f7f7f5;
+  flex-wrap:wrap;gap:8px;
+}
+.viewer-title{font-size:14px;font-weight:700;color:#333}
+.viewer-tabs{
+  display:flex;gap:4px;flex-wrap:wrap;
+}
+.vtab{
+  padding:4px 12px;
+  border-radius:20px;
+  font-size:12px;font-weight:500;
+  cursor:pointer;border:0.5px solid var(--bd);
+  background:#fff;color:var(--mu);
+  transition:all .12s;
+  font-family:'Noto Sans JP',sans-serif;
+}
+.vtab:hover{border-color:#888}
+.vtab.active{background:#111;color:#fff;border-color:#111}
+.viewer-actions{margin-left:auto;display:flex;gap:6px;flex-shrink:0}
+.viewer-btn{
+  padding:5px 12px;
+  border-radius:var(--rad);
+  font-size:12px;font-weight:500;
+  cursor:pointer;border:0.5px solid var(--bd);
+  background:#fff;color:#333;
+  text-decoration:none;
+  display:inline-flex;align-items:center;gap:5px;
+  transition:all .12s;
+  font-family:'Noto Sans JP',sans-serif;
+}
+.viewer-btn:hover{background:#f0f0f0}
+.viewer-btn.primary{background:#111;color:#fff;border-color:#111}
+.viewer-btn.primary:hover{opacity:.85}
+
+.pdf-viewer-frame{
+  width:100%;
+  height:700px;
+  border:none;
+  display:block;
+  background:#f0f0f0;
+}
+.viewer-placeholder{
+  height:300px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  color:var(--mu);
+  font-size:14px;
+  line-height:1.7;
+  text-align:center;
+  padding:2rem;
+}
+.viewer-placeholder-icon{font-size:48px;opacity:.3}
+
+/* ===== PRINT GUIDE ===== */
+.print-guide{
+  background:#fff;
+  border:0.5px solid var(--bd);
+  border-radius:var(--radl);
+  padding:1.4rem 1.6rem;
+  margin-bottom:2rem;
+}
+.print-guide-title{
+  font-size:15px;font-weight:700;margin-bottom:1rem;
+  display:flex;align-items:center;gap:8px;
+}
+.guide-steps{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:.8rem;
+}
+.guide-step{
+  background:#f7f7f5;
+  border:0.5px solid var(--bd);
+  border-radius:var(--rad);
+  padding:.9rem 1rem;
+}
+.step-num{
+  font-size:10px;font-weight:700;letter-spacing:.1em;
+  color:var(--mu);text-transform:uppercase;margin-bottom:6px;
+}
+.step-text{font-size:13px;line-height:1.7;color:#333}
+
+/* ===== DIGITAL TOOL LINK ===== */
+.digital-link{
+  background:linear-gradient(135deg,#111 0%,#2a2a2a 100%);
+  border-radius:var(--radl);
+  padding:1.4rem 1.6rem;
+  display:flex;align-items:center;gap:1.2rem;
+  margin-bottom:2rem;
+  color:#fff;
+  text-decoration:none;
+  transition:transform .18s,box-shadow .18s;
+  border:none;
+  cursor:pointer;
+}
+.digital-link:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 24px rgba(0,0,0,.15);
+}
+.dl-icon{font-size:2.5rem;flex-shrink:0}
+.dl-text{}
+.dl-title{font-size:16px;font-weight:700;margin-bottom:4px}
+.dl-desc{font-size:13px;color:rgba(255,255,255,.6);line-height:1.7}
+.dl-arrow{margin-left:auto;font-size:24px;opacity:.5;flex-shrink:0}
+
+/* ===== SCREENSHOT ===== */
+.screenshot-link{
+  display:block;
+  margin:-1.2rem 0 2rem;
+  text-decoration:none;
+  border-radius:var(--radl);
+  overflow:hidden;
+  border:0.5px solid var(--bd);
+  background:#fff;
+  transition:transform .18s,box-shadow .18s;
+}
+.screenshot-link:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 24px rgba(0,0,0,.08);
+}
+.screenshot-img{
+  display:block;
+  width:100%;
+  height:auto;
+}
+.screenshot-fallback{
+  display:none;
+  align-items:center;
+  gap:1rem;
+  padding:2.5rem 1.6rem;
+  background:repeating-linear-gradient(45deg,#f7f7f5,#f7f7f5 10px,#f1f1ef 10px,#f1f1ef 20px);
+  justify-content:center;
+  text-align:center;
+}
+.screenshot-link.noimg .screenshot-img{display:none}
+.screenshot-link.noimg .screenshot-fallback{display:flex}
+.sf-icon{font-size:2.5rem;opacity:.4}
+.sf-text{font-size:13px;color:var(--mu);line-height:1.8}
+.sf-text strong{color:#333;font-family:monospace;background:#fff;padding:1px 6px;border-radius:4px;border:0.5px solid var(--bd)}
+.sf-text span{font-size:11px;opacity:.8}
+.screenshot-caption{
+  font-size:12px;
+  color:var(--mu);
+  text-align:center;
+  padding:8px;
+  background:#f7f7f5;
+  border-top:0.5px solid var(--bd);
+}
+
+/* ===== BACK LINK ===== */
+.back-link{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:13px;color:var(--mu);text-decoration:none;
+  margin-bottom:1.4rem;
+  padding:6px 14px;border:0.5px solid var(--bd);border-radius:20px;
+  background:#fff;transition:all .15s;
+}
+.back-link:hover{background:#f0f0f0;color:#333}
+
+/* ===== FOOTER ===== */
+.site-footer{
+  text-align:center;
+  padding:2rem;
+  font-size:12px;
+  color:var(--mu);
+  border-top:0.5px solid var(--bd);
+  background:#fff;
+}
+
+/* ===== MOBILE ===== */
+@media(max-width:600px){
+  .intro{flex-direction:column}
+  .levels-grid{grid-template-columns:1fr}
+  .pdf-viewer-frame{height:500px}
+  .guide-steps{grid-template-columns:1fr 1fr}
+}
+
+/* EASY-LANGUAGE TOGGLE */
+.easy-toggle-wrap{position:absolute;top:16px;right:16px;z-index:5}
+.easy-toggle{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:'Noto Sans JP',sans-serif;font-size:12px;font-weight:700;
+  color:#fff;background:rgba(255,255,255,.14);
+  border:0.5px solid rgba(255,255,255,.3);
+  padding:7px 14px;border-radius:20px;cursor:pointer;transition:all .15s;
+}
+.easy-toggle:hover{background:rgba(255,255,255,.24)}
+.easy-toggle.on{background:#ffd966;color:#5a4500;border-color:#ffd966}
+.easy-toggle .ico{font-size:14px}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="easy-toggle-wrap">
+    <button class="easy-toggle" id="easyBtn" onclick="toggleEasy()">
+      <span id="easyBtnText">やさしいことば</span>
+    </button>
+  </div>
+  <div class="header-badge">Self-Regulate Forms Paper</div>
+  <h1 class="site-title" data-normal="計画表を印刷する" data-easy="計画表を 印刷する">計画表を印刷する</h1>
+  <p class="site-sub">
+    <span data-normal="Lv.0〜Lv.5 の各ワークシートをPDFで" data-easy="レベル0からレベル5までの 計画表を">Lv.0〜Lv.5 の各ワークシートをPDFで</span><br>
+    <span data-normal="ダウンロード・印刷・配布できます" data-easy="紙に印刷して つかえます">ダウンロード・印刷・配布できます</span>
+  </p>
+  <p class="site-credit">Created by Kimura Akinori &nbsp;·&nbsp; Self-Regulate Forms v6</p>
+</header>
+
+<main class="main">
+
+  <a href="index.html" class="back-link" data-normal="← トップにもどる" data-easy="← さいしょのページに もどる">← トップにもどる</a>
+
+  <!-- Print Guide -->
+  <div class="print-guide">
+    <div class="print-guide-title" data-normal="🖨️ 印刷の手順" data-easy="🖨️ 印刷の しかた">🖨️ 印刷の手順</div>
+    <div class="guide-steps">
+      <div class="guide-step">
+        <div class="step-num">Step 1</div>
+        <div class="step-text" data-normal="下のカードからレベルを選び、「プレビュー」で内容を確認する" data-easy="下のカードから レベルを えらんで、「プレビュー」で 中身を見る">下のカードからレベルを選び、「プレビュー」で内容を確認する</div>
+      </div>
+      <div class="guide-step">
+        <div class="step-num">Step 2</div>
+        <div class="step-text" data-normal="「PDFをダウンロード」ボタンをクリックしてPDFを保存する" data-easy="「PDFをダウンロード」ボタンを おして 計画表を 取りこむ">「PDFをダウンロード」ボタンをクリックしてPDFを保存する</div>
+      </div>
+      <div class="guide-step">
+        <div class="step-num">Step 3</div>
+        <div class="step-text" data-normal="ブラウザのPDFビューアでA4横向きで印刷する（見開き／両面印刷推奨）" data-easy="A4の 横むきで 印刷する（うらおもて 両面が おすすめ）">ブラウザのPDFビューアでA4横向きで印刷する（見開き／両面印刷推奨）</div>
+      </div>
+      <div class="guide-step">
+        <div class="step-num">Step 4</div>
+        <div class="step-text" data-normal="初級・中級・上級の3種類（＋記入例）が各PDFに含まれています" data-easy="やさしい・ふつう・むずかしいの 3しゅるいと、書き方の れいが 入っています">初級・中級・上級の3種類（＋記入例）が各PDFに含まれています</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section: Level Cards -->
+  <div class="section-label" data-normal="ワークシート一覧" data-easy="計画表の 一覧">ワークシート一覧</div>
+
+  <div class="levels-grid">
+
+    <!-- Lv.0 -->
+    <div class="lv-card lv0">
+      <div class="lv-card-head">
+        <div class="lv-num">0</div>
+        <div class="lv-meta">
+          <div class="lv-tag">Lv.0</div>
+          <div class="lv-name" data-normal="一斉授業フォーム" data-easy="みんなで学ぶ シート">一斉授業フォーム</div>
+          <div class="lv-desc" data-normal="教師主導の授業で目標を意識しながら<br>学び、振り返る基本フォーム" data-easy="先生と いっしょに めあてを 決めて、<br>学んで、ふりかえる シート">教師主導の授業で目標を意識しながら<br>学び、振り返る基本フォーム</div>
+        </div>
+      </div>
+      <div class="lv-card-body">
+        <ul class="lv-features">
+          <li data-normal="見通す・実行する・振り返るの3段階" data-easy="見とおす・やってみる・ふりかえる の3つ">見通す・実行する・振り返るの3段階</li>
+          <li data-normal="初級：シンプルな目標＋振り返り" data-easy="やさしい：かんたんな めあてと ふりかえり">初級：シンプルな目標＋振り返り</li>
+          <li data-normal="中級：Be/Do/Reg の3ゴール設定" data-easy="ふつう：3つの めあてを 決める">中級：Be/Do/Reg の3ゴール設定</li>
+          <li data-normal="上級：課題分解・深掘り振り返り" data-easy="むずかしい：めあてを 分けて 深く ふりかえる">上級：課題分解・深掘り振り返り</li>
+        </ul>
+        <div class="pdf-btns">
+          <a class="pdf-btn" href="lv0_worksheets.pdf" download onclick="showViewer('lv0_worksheets.pdf','Lv.0 一斉授業フォーム')">
+            <div class="pdf-btn-icon">⬇</div>
+            <div class="pdf-btn-text">
+              <span data-normal="PDFをダウンロード" data-easy="計画表を 取りこむ">PDFをダウンロード</span>
+              <span class="pdf-btn-label" data-normal="初級・中級・上級・記入例 6枚収録" data-easy="やさしい・ふつう・むずかしい＋れい 6まい">初級・中級・上級・記入例 6枚収録</span>
+            </div>
+            <span class="pdf-btn-arrow">→</span>
+          </a>
+          <button class="pdf-btn" style="background:#f1efe8;color:#444441;border:0.5px solid #D3D1C7" onclick="showViewer('lv0_worksheets.pdf','Lv.0 一斉授業フォーム')">
+            <div class="pdf-btn-icon" style="background:rgba(68,68,65,.12)">👁</div>
+            <div class="pdf-btn-text" data-normal="プレビューで確認" data-easy="中身を 見る">プレビューで確認</div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lv.1 -->
+    <div class="lv-card lv1">
+      <div class="lv-card-head">
+        <div class="lv-num">1</div>
+        <div class="lv-meta">
+          <div class="lv-tag">Lv.1</div>
+          <div class="lv-name" data-normal="指定調整フォーム" data-easy="時間を考える シート">指定調整フォーム</div>
+          <div class="lv-desc" data-normal="先生が決めた活動を自分で時間配分しながら<br>自分のペースで進めるフォーム" data-easy="先生が 決めた べんきょうを、<br>自分で 時間を きめて 進める シート">先生が決めた活動を自分で時間配分しながら<br>自分のペースで進めるフォーム</div>
+        </div>
+      </div>
+      <div class="lv-card-body">
+        <ul class="lv-features">
+          <li data-normal="学習活動は教師が提示（時間配分は自己決定）" data-easy="べんきょうは 先生が 出す（時間は 自分で）">学習活動は教師が提示（時間配分は自己決定）</li>
+          <li data-normal="確認タイム・チェックリストで進捗管理" data-easy="とちゅうで うまく いっているか たしかめる">確認タイム・チェックリストで進捗管理</li>
+          <li data-normal="中級：Be/Do/Reg の3ゴール" data-easy="ふつう：3つの めあて">中級：Be/Do/Reg の3ゴール</li>
+          <li data-normal="上級：課題分解・ToDoメモ" data-easy="むずかしい：めあてを 分けて、やることメモ">上級：課題分解・ToDoメモ</li>
+        </ul>
+        <div class="pdf-btns">
+          <a class="pdf-btn" href="lv1_worksheets.pdf" download>
+            <div class="pdf-btn-icon">⬇</div>
+            <div class="pdf-btn-text">
+              <span data-normal="PDFをダウンロード" data-easy="計画表を 取りこむ">PDFをダウンロード</span>
+              <span class="pdf-btn-label" data-normal="初級・中級・上級・記入例 6枚収録" data-easy="やさしい・ふつう・むずかしい＋れい 6まい">初級・中級・上級・記入例 6枚収録</span>
+            </div>
+            <span class="pdf-btn-arrow">→</span>
+          </a>
+          <button class="pdf-btn" style="background:#fef8e7;color:#6B4A00;border:0.5px solid #F5D87A" onclick="showViewer('lv1_worksheets.pdf','Lv.1 指定調整フォーム')">
+            <div class="pdf-btn-icon" style="background:rgba(107,74,0,.12)">👁</div>
+            <div class="pdf-btn-text" data-normal="プレビューで確認" data-easy="中身を 見る">プレビューで確認</div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lv.2 -->
+    <div class="lv-card lv2">
+      <div class="lv-card-head">
+        <div class="lv-num">2</div>
+        <div class="lv-meta">
+          <div class="lv-tag">Lv.2</div>
+          <div class="lv-name" data-normal="選択調整フォーム" data-easy="えらんで決める シート">選択調整フォーム</div>
+          <div class="lv-desc" data-normal="学習活動・方法・環境を選択肢の中から<br>自分で選んで計画するフォーム" data-easy="やり方や ばしょを いくつかの中から<br>自分で えらんで 計画する シート">学習活動・方法・環境を選択肢の中から<br>自分で選んで計画するフォーム</div>
+        </div>
+      </div>
+      <div class="lv-card-body">
+        <ul class="lv-features">
+          <li data-normal="課題設定→情報収集→整理→まとめの4プロセス" data-easy="めあて→しらべる→せいり→まとめ の4つ">課題設定→情報収集→整理→まとめの4プロセス</li>
+          <li data-normal="活動・環境を選択肢から選択" data-easy="やり方や ばしょを えらぶ">活動・環境を選択肢から選択</li>
+          <li data-normal="中級：学習調整・気持ちの調節セクション" data-easy="ふつう：やり方や 気もちを ととのえる">中級：学習調整・気持ちの調節セクション</li>
+          <li data-normal="上級：課題分解・深い振り返り" data-easy="むずかしい：めあてを 分けて 深く ふりかえる">上級：課題分解・深い振り返り</li>
+        </ul>
+        <div class="pdf-btns">
+          <a class="pdf-btn" href="lv2_worksheets.pdf" download>
+            <div class="pdf-btn-icon">⬇</div>
+            <div class="pdf-btn-text">
+              <span data-normal="PDFをダウンロード" data-easy="計画表を 取りこむ">PDFをダウンロード</span>
+              <span class="pdf-btn-label" data-normal="初級・中級・上級・記入例 6枚収録" data-easy="やさしい・ふつう・むずかしい＋れい 6まい">初級・中級・上級・記入例 6枚収録</span>
+            </div>
+            <span class="pdf-btn-arrow">→</span>
+          </a>
+          <button class="pdf-btn" style="background:#eaf3de;color:#27500A;border:0.5px solid #C0DD97" onclick="showViewer('lv2_worksheets.pdf','Lv.2 選択調整フォーム')">
+            <div class="pdf-btn-icon" style="background:rgba(39,80,10,.12)">👁</div>
+            <div class="pdf-btn-text" data-normal="プレビューで確認" data-easy="中身を 見る">プレビューで確認</div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lv.3 -->
+    <div class="lv-card lv3">
+      <div class="lv-card-head">
+        <div class="lv-num">3</div>
+        <div class="lv-meta">
+          <div class="lv-tag">Lv.3</div>
+          <div class="lv-name" data-normal="短期調整フォーム" data-easy="自分で計画する シート">短期調整フォーム</div>
+          <div class="lv-desc" data-normal="課題のみ教師が提示し、活動・方法・<br>環境・時間配分をすべて自己決定するフォーム" data-easy="めあてだけ 先生が 出して、<br>やり方や 時間は ぜんぶ 自分で 決める シート">課題のみ教師が提示し、活動・方法・<br>環境・時間配分をすべて自己決定するフォーム</div>
+        </div>
+      </div>
+      <div class="lv-card-body">
+        <ul class="lv-features">
+          <li data-normal="活動・方法・方略・環境をすべて自己設計" data-easy="やり方も ばしょも ぜんぶ 自分で 考える">活動・方法・方略・環境をすべて自己設計</li>
+          <li data-normal="自己効力感の事前評価" data-easy="うまく できそうか 先に かんがえる">自己効力感の事前評価</li>
+          <li data-normal="中級：学習調節・気持ちの調節" data-easy="ふつう：やり方や 気もちを ととのえる">中級：学習調節・気持ちの調節</li>
+          <li data-normal="上級：課題分解・学び方の変化の振り返り" data-easy="むずかしい：めあてを 分けて、学び方を 見なおす">上級：課題分解・学び方の変化の振り返り</li>
+        </ul>
+        <div class="pdf-btns">
+          <a class="pdf-btn" href="lv3_worksheets.pdf" download>
+            <div class="pdf-btn-icon">⬇</div>
+            <div class="pdf-btn-text">
+              <span data-normal="PDFをダウンロード" data-easy="計画表を 取りこむ">PDFをダウンロード</span>
+              <span class="pdf-btn-label" data-normal="初級・中級・上級・記入例 6枚収録" data-easy="やさしい・ふつう・むずかしい＋れい 6まい">初級・中級・上級・記入例 6枚収録</span>
+            </div>
+            <span class="pdf-btn-arrow">→</span>
+          </a>
+          <button class="pdf-btn" style="background:#faeeda;color:#633806;border:0.5px solid #FAC775" onclick="showViewer('lv3_worksheets.pdf','Lv.3 短期調整フォーム')">
+            <div class="pdf-btn-icon" style="background:rgba(99,56,6,.12)">👁</div>
+            <div class="pdf-btn-text" data-normal="プレビューで確認" data-easy="中身を 見る">プレビューで確認</div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lv.4 -->
+    <div class="lv-card lv4">
+      <div class="lv-card-head">
+        <div class="lv-num">4</div>
+        <div class="lv-meta">
+          <div class="lv-tag">Lv.4</div>
+          <div class="lv-name" data-normal="長期調整フォーム" data-easy="単元ぜんたいを 計画する シート">長期調整フォーム</div>
+          <div class="lv-desc" data-normal="単元を通じて1時間ごとに計画・実行・<br>振り返りを繰り返す中長期フォーム" data-easy="何時間も つづく べんきょうを、<br>毎時間 計画して ふりかえる シート">単元を通じて1時間ごとに計画・実行・<br>振り返りを繰り返す中長期フォーム</div>
+        </div>
+      </div>
+      <div class="lv-card-body">
+        <ul class="lv-features">
+          <li data-normal="単元4時間分をまとめて管理" data-easy="4時間ぶんを まとめて 計画する">単元4時間分をまとめて管理</li>
+          <li data-normal="【自分の調整】個人での長期計画" data-easy="【自分で】ひとりで 長く 計画する">【自分の調整】個人での長期計画</li>
+          <li data-normal="【仲間との調整】グループ協働・役割分担" data-easy="【なかまと】グループで 力を 合わせる">【仲間との調整】グループ協働・役割分担</li>
+          <li data-normal="社会的に共有された調整の振り返り" data-easy="みんなで 進め方を ふりかえる">社会的に共有された調整の振り返り</li>
+        </ul>
+        <div class="pdf-btns">
+          <a class="pdf-btn" href="lv4_worksheets.pdf" download>
+            <div class="pdf-btn-icon">⬇</div>
+            <div class="pdf-btn-text">
+              <span data-normal="PDFをダウンロード" data-easy="計画表を 取りこむ">PDFをダウンロード</span>
+              <span class="pdf-btn-label" data-normal="自分の調整・仲間との調整・記入例 4枚収録" data-easy="自分で・なかまと＋れい 4まい">自分の調整・仲間との調整・記入例 4枚収録</span>
+            </div>
+            <span class="pdf-btn-arrow">→</span>
+          </a>
+          <button class="pdf-btn" style="background:#fbeaf0;color:#72243E;border:0.5px solid #F4C0D1" onclick="showViewer('lv4_worksheets.pdf','Lv.4 長期調整フォーム')">
+            <div class="pdf-btn-icon" style="background:rgba(114,36,62,.12)">👁</div>
+            <div class="pdf-btn-text" data-normal="プレビューで確認" data-easy="中身を 見る">プレビューで確認</div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lv.5 -->
+    <div class="lv-card lv5">
+      <div class="lv-card-head">
+        <div class="lv-num">5</div>
+        <div class="lv-meta">
+          <div class="lv-tag">Lv.5</div>
+          <div class="lv-name" data-normal="自律調整フォーム" data-easy="自分で 見つけて 進める シート">自律調整フォーム</div>
+          <div class="lv-desc" data-normal="自ら課題を見いだし、目的をもって<br>計画・実行・調整し学び方を振り返るフォーム" data-easy="自分で めあてを 見つけて、<br>計画して すすめて ふりかえる シート">自ら課題を見いだし、目的をもって<br>計画・実行・調整し学び方を振り返るフォーム</div>
+        </div>
+      </div>
+      <div class="lv-card-body">
+        <ul class="lv-features">
+          <li data-normal="課題も自ら見いだす（完全自己決定）" data-easy="めあても 自分で 見つける">課題も自ら見いだす（完全自己決定）</li>
+          <li data-normal="目的・理由の明確化" data-easy="なぜ やるのかを はっきりさせる">目的・理由の明確化</li>
+          <li data-normal="【自分の調整】高度な個人自律学習" data-easy="【自分で】ひとりで すすんで 学ぶ">【自分の調整】高度な個人自律学習</li>
+          <li data-normal="【仲間との調整】協働での自律的探究" data-easy="【なかまと】みんなで すすんで しらべる">【仲間との調整】協働での自律的探究</li>
+        </ul>
+        <div class="pdf-btns">
+          <a class="pdf-btn" href="lv5_worksheets.pdf" download>
+            <div class="pdf-btn-icon">⬇</div>
+            <div class="pdf-btn-text">
+              <span data-normal="PDFをダウンロード" data-easy="計画表を 取りこむ">PDFをダウンロード</span>
+              <span class="pdf-btn-label" data-normal="自分の調整・仲間との調整・記入例 4枚収録" data-easy="自分で・なかまと＋れい 4まい">自分の調整・仲間との調整・記入例 4枚収録</span>
+            </div>
+            <span class="pdf-btn-arrow">→</span>
+          </a>
+          <button class="pdf-btn" style="background:#eeedfe;color:#3C3489;border:0.5px solid #CECBF6" onclick="showViewer('lv5_worksheets.pdf','Lv.5 自律調整フォーム')">
+            <div class="pdf-btn-icon" style="background:rgba(60,52,137,.12)">👁</div>
+            <div class="pdf-btn-text" data-normal="プレビューで確認" data-easy="中身を 見る">プレビューで確認</div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /levels-grid -->
+
+  <!-- PDF Viewer -->
+  <div class="viewer-section" id="viewer-section" style="display:none">
+    <div class="viewer-header">
+      <div class="viewer-title" id="viewer-label">— プレビュー —</div>
+      <div class="viewer-tabs" id="viewer-tabs"></div>
+      <div class="viewer-actions">
+        <a class="viewer-btn primary" id="viewer-dl-btn" href="#" download>⬇ ダウンロード</a>
+        <button class="viewer-btn" onclick="closeViewer()">✕ 閉じる</button>
+      </div>
+    </div>
+    <iframe class="pdf-viewer-frame" id="pdf-iframe" src=""></iframe>
+  </div>
+
+  <!-- Level selection guide mini -->
+  <div class="section-label" data-normal="レベル選択の目安" data-easy="どの レベルを えらぶ？">レベル選択の目安</div>
+  <div style="background:#fff;border:0.5px solid var(--bd);border-radius:var(--radl);overflow:hidden;margin-bottom:2rem">
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead>
+        <tr style="background:#f7f7f5;border-bottom:0.5px solid var(--bd)">
+          <th style="padding:10px 14px;text-align:left;font-weight:700;width:90px" data-normal="レベル" data-easy="レベル">レベル</th>
+          <th style="padding:10px 14px;text-align:left;font-weight:700" data-normal="何を自分で決めるか" data-easy="自分で 決めること">何を自分で決めるか</th>
+          <th style="padding:10px 14px;text-align:left;font-weight:700;color:var(--mu)" data-normal="おすすめの場面" data-easy="こんな ときに">おすすめの場面</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:0.5px solid var(--bd)">
+          <td style="padding:9px 14px"><span style="font-weight:700;color:var(--lv0b);background:var(--lv0bg);padding:2px 8px;border-radius:4px">Lv.0</span></td>
+          <td style="padding:9px 14px" data-normal="目標と振り返りの内容" data-easy="めあてと ふりかえり">目標と振り返りの内容</td>
+          <td style="padding:9px 14px;color:var(--mu)" data-normal="通常の一斉授業・SRL導入期" data-easy="いつもの じゅぎょう・はじめの ころ">通常の一斉授業・SRL導入期</td>
+        </tr>
+        <tr style="border-bottom:0.5px solid var(--bd)">
+          <td style="padding:9px 14px"><span style="font-weight:700;color:var(--lv1b);background:var(--lv1bg);padding:2px 8px;border-radius:4px">Lv.1</span></td>
+          <td style="padding:9px 14px" data-normal="時間配分（活動は教師指定）" data-easy="時間の つかい方">時間配分（活動は教師指定）</td>
+          <td style="padding:9px 14px;color:var(--mu)" data-normal="自由進度学習・導入期" data-easy="自分の ペースで 学ぶ はじめの ころ">自由進度学習・導入期</td>
+        </tr>
+        <tr style="border-bottom:0.5px solid var(--bd)">
+          <td style="padding:9px 14px"><span style="font-weight:700;color:var(--lv2b);background:var(--lv2bg);padding:2px 8px;border-radius:4px">Lv.2</span></td>
+          <td style="padding:9px 14px" data-normal="活動・方法・環境（選択肢から選択）" data-easy="やり方・ばしょ（えらぶ）">活動・方法・環境（選択肢から選択）</td>
+          <td style="padding:9px 14px;color:var(--mu)" data-normal="選択制の探究・単元学習" data-easy="えらんで しらべる べんきょう">選択制の探究・単元学習</td>
+        </tr>
+        <tr style="border-bottom:0.5px solid var(--bd)">
+          <td style="padding:9px 14px"><span style="font-weight:700;color:var(--lv3b);background:var(--lv3bg);padding:2px 8px;border-radius:4px">Lv.3</span></td>
+          <td style="padding:9px 14px" data-normal="活動・方法・環境・時間（すべて自己設計）" data-easy="やり方・ばしょ・時間（ぜんぶ 自分で）">活動・方法・環境・時間（すべて自己設計）</td>
+          <td style="padding:9px 14px;color:var(--mu)" data-normal="完全自由進度・探究学習" data-easy="ぜんぶ 自分の ペースで しらべる">完全自由進度・探究学習</td>
+        </tr>
+        <tr style="border-bottom:0.5px solid var(--bd)">
+          <td style="padding:9px 14px"><span style="font-weight:700;color:var(--lv4b);background:var(--lv4bg);padding:2px 8px;border-radius:4px">Lv.4</span></td>
+          <td style="padding:9px 14px" data-normal="単元全体の計画・実行・調整（個人・グループ）" data-easy="長い べんきょう ぜんたい（ひとり・グループ）">単元全体の計画・実行・調整（個人・グループ）</td>
+          <td style="padding:9px 14px;color:var(--mu)" data-normal="単元を通した長期探究" data-easy="長い あいだ しらべる べんきょう">単元を通した長期探究</td>
+        </tr>
+        <tr>
+          <td style="padding:9px 14px"><span style="font-weight:700;color:var(--lv5b);background:var(--lv5bg);padding:2px 8px;border-radius:4px">Lv.5</span></td>
+          <td style="padding:9px 14px" data-normal="課題の発見から計画・実行・調整まですべて" data-easy="めあて さがしから ぜんぶ 自分で">課題の発見から計画・実行・調整まですべて</td>
+          <td style="padding:9px 14px;color:var(--mu)" data-normal="自律的・協働的探究学習" data-easy="自分や みんなで すすんで しらべる">自律的・協働的探究学習</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</main>
+
+<footer class="site-footer">
+  <span data-normal="Self-Regulate Forms v6 &nbsp;·&nbsp; Created by Kimura Akinori &nbsp;·&nbsp; 印刷用ワークシートポータル" data-easy="Self-Regulate Forms v6 &nbsp;·&nbsp; Created by Kimura Akinori &nbsp;·&nbsp; 計画表を 印刷する ページ">Self-Regulate Forms v6 &nbsp;·&nbsp; Created by Kimura Akinori &nbsp;·&nbsp; 印刷用ワークシートポータル</span>
+</footer>
+
+<script>
+let easyOn = false;
+function toggleEasy(){
+  easyOn = !easyOn;
+  document.querySelectorAll('[data-normal]').forEach(el=>{
+    el.innerHTML = easyOn ? el.getAttribute('data-easy') : el.getAttribute('data-normal');
+  });
+  const btn = document.getElementById('easyBtn');
+  const txt = document.getElementById('easyBtnText');
+  btn.classList.toggle('on', easyOn);
+  txt.textContent = easyOn ? 'もとにもどす' : 'やさしいことば';
+}
+
+const PDF_DATA = {
+  'lv0_worksheets.pdf': { label:'Lv.0 一斉授業フォーム', color:'#444441' },
+  'lv1_worksheets.pdf': { label:'Lv.1 指定調整フォーム', color:'#6B4A00' },
+  'lv2_worksheets.pdf': { label:'Lv.2 選択調整フォーム', color:'#27500A' },
+  'lv3_worksheets.pdf': { label:'Lv.3 短期調整フォーム', color:'#633806' },
+  'lv4_worksheets.pdf': { label:'Lv.4 長期調整フォーム', color:'#72243E' },
+  'lv5_worksheets.pdf': { label:'Lv.5 自律調整フォーム', color:'#3C3489' },
+};
+
+let currentPdf = null;
+
+function showViewer(pdf, label){
+  currentPdf = pdf;
+  const section = document.getElementById('viewer-section');
+  const iframe = document.getElementById('pdf-iframe');
+  const dlBtn = document.getElementById('viewer-dl-btn');
+  const labelEl = document.getElementById('viewer-label');
+
+  // Update viewer tabs
+  const tabsEl = document.getElementById('viewer-tabs');
+  tabsEl.innerHTML = Object.entries(PDF_DATA).map(([file, data]) =>
+    `<button class="vtab${file===pdf?' active':''}" onclick="showViewer('${file}','${data.label}')" style="${file===pdf?'background:'+data.color+';color:#fff;border-color:'+data.color:''}">${data.label.split(' ')[0]}</button>`
+  ).join('');
+
+  labelEl.textContent = label;
+  iframe.src = pdf + '#toolbar=1&navpanes=0&zoom=page-fit';
+  dlBtn.href = pdf;
+  dlBtn.download = pdf;
+
+  section.style.display = 'block';
+  section.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function closeViewer(){
+  const section = document.getElementById('viewer-section');
+  section.style.display = 'none';
+  document.getElementById('pdf-iframe').src = '';
+  currentPdf = null;
+}
+</script>
+</body>
+</html>
