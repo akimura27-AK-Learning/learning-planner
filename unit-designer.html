@@ -3,28 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>調整方略つき 指導案デザイナー（作成：木村明憲）</title>
+<title>調整方略つき 単元構想デザイナー（作成：木村明憲）</title>
 <style>
   :root{
-    --ink:#15201d;        /* 文字（深い緑墨） */
-    --ink-soft:#46544f;
-    --paper:#f7f5ee;      /* 用紙 */
+    --ink:#241516;        /* 文字（深い赤墨） */
+    --ink-soft:#5a4648;
+    --paper:#faf4f2;      /* 用紙（ほんのり赤み） */
     --panel:#ffffff;
-    --line:#d9d6c8;       /* 罫線 */
-    --teal:#0f6e63;       /* 主色：信頼の青緑 */
-    --teal-deep:#0a4e46;
-    --teal-wash:#e6efed;
-    --amber:#c8761b;      /* アクセント：琥珀 */
-    --amber-wash:#f6ead8;
+    --line:#e3d2cd;       /* 罫線 */
+    --teal:#b3232a;       /* 主色：芯のある赤 */
+    --teal-deep:#7e1419;
+    --teal-wash:#fbe7e6;
+    --amber:#d98324;      /* アクセント：橙金 */
+    --amber-wash:#fbecd6;
     /* 3層の色分け */
-    --i-col:#0f6e63;      /* 自己調整 I */
-    --you-col:#7a5cc0;    /* 共調整 You */
-    --we-col:#c8761b;     /* 社会的共有 We */
-    --i-wash:#e6efed;
-    --you-wash:#ece7f6;
-    --we-wash:#f6ead8;
+    --i-col:#b3232a;      /* 自己調整 I（赤＝主役） */
+    --you-col:#1f7a8c;    /* 共調整 You（対比の青緑） */
+    --we-col:#d98324;     /* 社会的共有 We（橙金） */
+    --i-wash:#fbe7e6;
+    --you-wash:#dff0f2;
+    --we-wash:#fbecd6;
     --radius:10px;
-    --shadow:0 1px 2px rgba(20,32,29,.06),0 8px 24px rgba(20,32,29,.06);
+    --shadow:0 1px 2px rgba(36,21,22,.06),0 8px 24px rgba(36,21,22,.07);
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -122,8 +122,60 @@
   }
   .phase-min{font-size:.8rem;color:var(--ink-soft);}
   .develop-cell textarea{min-height:88px;}
+
+  /* ---- 単元計画：次(stage)ブロック ---- */
+  .stage-block{margin-bottom:18px;border-left:5px solid var(--teal);}
+  .stage-head{
+    display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;
+    padding-bottom:10px;border-bottom:1px solid var(--line);
+  }
+  .stage-no{
+    font-weight:800;font-size:.86rem;padding:3px 12px;border-radius:6px;
+    background:var(--teal-wash);color:var(--teal-deep);white-space:nowrap;
+  }
+  .stage-name-input{
+    flex:1;min-width:140px;font-weight:700;font-size:.95rem;
+    border:1px solid var(--line);border-radius:8px;padding:7px 10px;background:var(--paper);
+  }
+  /* 学習過程セレクト */
+  .process-wrap{font-size:.78rem;color:var(--ink-soft);font-weight:700;display:flex;align-items:center;gap:6px;white-space:nowrap;}
+  .process-sel{
+    width:auto;font-weight:700;font-size:.82rem;padding:5px 8px;border-radius:7px;cursor:pointer;
+    background:#fff;
+  }
+  .stage-del{
+    font-size:.74rem;color:#a23;background:none;border:1px solid #d9b3b3;
+    border-radius:6px;padding:4px 11px;cursor:pointer;font-family:inherit;white-space:nowrap;
+  }
+  .stage-del:hover{background:#f8e9e9;}
+  .add-period{
+    margin-top:2px;font-size:.84rem;font-weight:700;color:var(--teal);
+    background:none;border:1px dashed var(--teal);border-radius:8px;
+    padding:8px 16px;cursor:pointer;font-family:inherit;
+  }
+  .add-period:hover{background:var(--teal-wash);}
+  .add-ji{
+    display:block;width:100%;font-size:.9rem;font-weight:800;color:#fff;background:var(--teal);
+    border:none;border-radius:10px;padding:12px 16px;cursor:pointer;font-family:inherit;
+    box-shadow:var(--shadow);transition:.15s;
+  }
+  .add-ji:hover{background:var(--teal-deep);}
+  /* 目標・評価の小枠 */
+  .period-sub{margin-bottom:12px;}
+  .period-sub label{font-size:.8rem;}
+  .goal-area{min-height:44px;background:#fff;}
+  .eval-area{min-height:44px;background:#fff;}
+  /* 時(period)の見出し入力 */
+  .period-label{flex:none;}
+  .plabel-input{
+    width:96px;font-weight:800;font-size:.82rem;color:var(--teal-deep);
+    background:var(--teal-wash);border:1px solid transparent;
+    padding:3px 10px;border-radius:6px;text-align:center;
+  }
+  .plabel-input:focus{background:#fff;border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-wash);}
+
   /* 指導案読み込みエリア */
-  .import-card{background:#fbfaf4;border-style:dashed;}
+  .import-card{background:#fbf6f4;border-style:dashed;}
   .import-card summary{cursor:pointer;font-size:.95rem;list-style:none;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
   .import-card summary::-webkit-details-marker{display:none;}
   .import-card summary::before{content:"▸";color:var(--teal);font-weight:800;}
@@ -144,10 +196,17 @@
   .imp-opt-d{font-size:.78rem;color:var(--ink-soft);margin-bottom:10px;line-height:1.6;}
   /* 活動枠 */
   .act-slot{
-    border:1px solid var(--line);border-left:3px solid var(--teal);
+    border:1px solid var(--line);border-left:4px solid var(--teal);
     border-radius:9px;padding:13px 14px;margin-bottom:12px;background:var(--paper);
   }
-  .act-slot-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+  /* 学習過程ごとの左ボーダー色 */
+  .act-slot.proc-課題設定{border-left-color:#b3232a;}
+  .act-slot.proc-情報収集{border-left-color:#1f7a8c;}
+  .act-slot.proc-整理分析{border-left-color:#3a7d44;}
+  .act-slot.proc-まとめ表現{border-left-color:#d98324;}
+  .act-slot.proc-振り返り{border-left-color:#7a5cc0;}
+  .act-slot-head{display:flex;align-items:center;gap:10px;justify-content:flex-start;margin-bottom:8px;flex-wrap:wrap;}
+  .act-slot-head .act-del{margin-left:auto;}
   .act-no{font-weight:800;font-size:.82rem;color:var(--teal-deep);
     background:var(--teal-wash);padding:2px 11px;border-radius:6px;}
   .act-del{font-size:.74rem;color:#a23;background:none;border:1px solid #d9b3b3;
@@ -163,6 +222,32 @@
   .pv-act{padding:4px 0;}
   .pv-act + .pv-act{border-top:1px dashed #bbb;margin-top:6px;padding-top:8px;}
   .pv-act-no{font-weight:700;font-size:.74rem;color:#555;margin-bottom:2px;}
+  /* プレビュー：単元構想シート */
+  .pv-meta-table th{background:#f7f0ee!important;white-space:nowrap;}
+  .pv-meta-table td{font-size:.82rem;}
+  .pv-unit-table th,.pv-unit-table td{vertical-align:top;}
+  .pv-stage-th{
+    background:var(--teal-wash)!important;color:var(--teal-deep);
+    font-weight:800;font-size:.84rem;text-align:left!important;
+  }
+  .pv-period-th{background:#f7f0ee!important;white-space:nowrap;font-weight:700;text-align:center!important;}
+  .pv-strat-cell{font-size:.78rem;}
+  .pv-proc{
+    display:inline-block;margin-top:5px;font-size:.64rem;font-weight:700;padding:1px 6px;
+    border-radius:4px;color:#fff;white-space:nowrap;line-height:1.5;letter-spacing:0;
+  }
+  .pv-proc.proc-課題設定{background:#b3232a;}
+  .pv-proc.proc-情報収集{background:#1f7a8c;}
+  .pv-proc.proc-整理分析{background:#3a7d44;}
+  .pv-proc.proc-まとめ表現{background:#d98324;}
+  .pv-proc.proc-振り返り{background:#7a5cc0;}
+  .pv-goal,.pv-eval{font-size:.78rem;margin:2px 0;}
+  .pv-act-body{margin:4px 0;}
+  .pv-tag{
+    display:inline-block;font-size:.66rem;font-weight:800;padding:0 6px;border-radius:4px;margin-right:5px;
+    background:var(--teal-wash);color:var(--teal-deep);
+  }
+  .pv-tag.eval{background:var(--amber-wash);color:#9a5b12;}
   /* 方略チップ（埋め込み済み） */
   .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
   .chip{
@@ -171,9 +256,9 @@
   }
   .chip .x{cursor:pointer;font-weight:800;opacity:.6;}
   .chip .x:hover{opacity:1;}
-  .chip.layer-I{background:var(--i-wash);border-color:var(--i-col);color:#0a4e46;}
-  .chip.layer-You{background:var(--you-wash);border-color:var(--you-col);color:#4a3a78;}
-  .chip.layer-We{background:var(--we-wash);border-color:var(--we-col);color:#8a4e10;}
+  .chip.layer-I{background:var(--i-wash);border-color:var(--i-col);color:#7e1419;}
+  .chip.layer-You{background:var(--you-wash);border-color:var(--you-col);color:#155764;}
+  .chip.layer-We{background:var(--we-wash);border-color:var(--we-col);color:#9a5b12;}
   .chip .dot{width:8px;height:8px;border-radius:50%;flex:none;}
   .chip.layer-I .dot{background:var(--i-col);}
   .chip.layer-You .dot{background:var(--you-col);}
@@ -220,7 +305,7 @@
     color:var(--ink);transition:.15s;line-height:1.2;
   }
   .lvl-btn small{display:block;font-weight:400;font-size:.68rem;color:var(--ink-soft);margin-top:1px;}
-  .lvl-btn.active{border-color:var(--amber);background:var(--amber-wash);color:#8a4e10;}
+  .lvl-btn.active{border-color:var(--amber);background:var(--amber-wash);color:#9a5b12;}
   .lvl-btn.active small{color:#a8702f;}
   /* 方略行のレベルバッジ */
   .lv-badge{flex:none;width:18px;height:18px;border-radius:5px;font-size:.66rem;font-weight:800;
@@ -242,9 +327,9 @@
   .phase-tab .t{font-weight:800;font-size:.86rem;}
   .phase-tab .s{font-size:.68rem;color:var(--ink-soft);margin-top:1px;}
   .phase-tab.active{border-color:var(--teal);background:var(--teal-wash);color:var(--teal-deep);}
-  .phase-tab[data-layer=I].active{border-color:var(--i-col);background:var(--i-wash);color:#0a4e46;}
-  .phase-tab[data-layer=You].active{border-color:var(--you-col);background:var(--you-wash);color:#4a3a78;}
-  .phase-tab[data-layer=We].active{border-color:var(--we-col);background:var(--we-wash);color:#8a4e10;}
+  .phase-tab[data-layer=I].active{border-color:var(--i-col);background:var(--i-wash);color:#7e1419;}
+  .phase-tab[data-layer=You].active{border-color:var(--you-col);background:var(--you-wash);color:#155764;}
+  .phase-tab[data-layer=We].active{border-color:var(--we-col);background:var(--we-wash);color:#9a5b12;}
   /* プロセス見出し */
   .phase-group-head{font-weight:800;font-size:.95rem;color:#fff;background:var(--teal);
     margin:18px 0 4px;padding:5px 12px;border-radius:7px;letter-spacing:.04em;}
@@ -253,9 +338,9 @@
     padding:2px 10px;background:var(--teal-wash);border-radius:6px;display:inline-block;}
   /* 層バッジ */
   .layer-badge{font-size:.66rem;font-weight:800;padding:1px 6px;border-radius:5px;flex:none;margin-top:2px;}
-  .layer-badge.I{background:var(--i-wash);color:#0a4e46;}
-  .layer-badge.You{background:var(--you-wash);color:#4a3a78;}
-  .layer-badge.We{background:var(--we-wash);color:#8a4e10;}
+  .layer-badge.I{background:var(--i-wash);color:#7e1419;}
+  .layer-badge.You{background:var(--you-wash);color:#155764;}
+  .layer-badge.We{background:var(--we-wash);color:#9a5b12;}
   .picker-sub{font-size:.78rem;color:var(--ink-soft);margin:4px 0 12px;}
   .strat-cat{font-weight:800;font-size:.82rem;color:var(--teal-deep);margin:14px 0 6px;
     border-bottom:1px solid var(--line);padding-bottom:3px;}
@@ -324,17 +409,19 @@
   .ai-input textarea{min-height:42px;}
   .typing{font-size:.8rem;color:var(--ink-soft);font-style:italic;align-self:flex-start;}
   /* ---- プレビュー ---- */
-  .preview-sheet{background:#fff;border:1px solid var(--line);border-radius:8px;padding:28px;}
+  .preview-sheet{background:#fff;border:1px solid var(--line);border-radius:8px;padding:28px;overflow-x:auto;}
   .preview-sheet h1{font-size:1.3rem;margin:0 0 4px;text-align:center;}
   .preview-sheet .meta-line{text-align:center;font-size:.85rem;color:var(--ink-soft);margin-bottom:18px;}
-  .pv-table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:10px;}
-  .pv-table th,.pv-table td{border:1px solid #999;padding:8px 9px;vertical-align:top;text-align:left;}
-  .pv-table th{background:#eee;white-space:nowrap;}
+  .pv-table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:10px;table-layout:fixed;}
+  .pv-table th,.pv-table td{border:1px solid #999;padding:8px 9px;vertical-align:top;text-align:left;
+    overflow-wrap:break-word;word-break:break-word;}
+  .pv-table th{background:#eee;}
+  .pv-meta-table th{white-space:nowrap;}
   .pv-strat{font-size:.74rem;margin-top:6px;}
   .pv-strat .lbl{font-weight:700;display:inline-block;border-radius:4px;padding:0 5px;margin-right:4px;}
-  .lbl.I{background:var(--i-wash);color:#0a4e46;}
-  .lbl.You{background:var(--you-wash);color:#4a3a78;}
-  .lbl.We{background:var(--we-wash);color:#8a4e10;}
+  .lbl.I{background:var(--i-wash);color:#7e1419;}
+  .lbl.You{background:var(--you-wash);color:#155764;}
+  .lbl.We{background:var(--we-wash);color:#9a5b12;}
   /* ---- 設定 / APIキー ---- */
   .api-note{font-size:.8rem;color:var(--ink-soft);background:var(--amber-wash);
     border-left:3px solid var(--amber);padding:10px 13px;border-radius:6px;margin-bottom:12px;}
@@ -376,7 +463,7 @@
 
 <header class="app">
   <div class="head-in">
-    <div class="brand">調整方略つき 指導案デザイナー
+    <div class="brand">調整方略つき 単元構想デザイナー
       <small>SELF / CO / SOCIALLY-SHARED REGULATION ／ 作成：木村明憲</small>
     </div>
     <nav class="stepper" id="stepper"></nav>
@@ -384,38 +471,38 @@
 </header>
 
 <main>
-  <!-- 画面1：基本情報 -->
+  <!-- 画面1：単元の基本情報 -->
   <section class="screen active" data-screen="0">
-    <h2 class="screen-title"><span class="eyebrow">STEP 1</span>授業の基本情報</h2>
-    <p class="lead">教科・単元・本時の目標を入力します。ここで入れた内容は、後のAI相談と展開表に引き継がれます。</p>
+    <h2 class="screen-title"><span class="eyebrow">STEP 1</span>単元の基本情報</h2>
+    <p class="lead">教科・単元・単元の目標を入力します。ここで入れた内容は、後のAI相談と単元計画表に引き継がれます。1単元をいくつかの「次（つぐ）」に分け、各時に学習活動と調整方略（I / You / We）を埋め込んでいきます。</p>
     <div class="card">
       <div class="row-3">
-        <div class="field"><label>教科</label><input type="text" data-bind="subject" placeholder="例）社会科"></div>
+        <div class="field"><label>教科・領域</label><input type="text" data-bind="subject" placeholder="例）社会科"></div>
         <div class="field"><label>学年</label><input type="text" data-bind="grade" placeholder="例）中学2年"></div>
-        <div class="field"><label>時数 <span class="hint">本時／全体</span></label><input type="text" data-bind="hours" placeholder="例）3/5時"></div>
+        <div class="field"><label>総時数 <span class="hint">単元全体</span></label><input type="text" data-bind="hours" placeholder="例）全6時間"></div>
       </div>
       <div class="field"><label>単元名</label><input type="text" data-bind="unit" placeholder="例）日本の諸地域 ―近畿地方―"></div>
-      <div class="field"><label>単元の目標 <span class="hint">単元全体で目指す姿</span></label><textarea data-bind="unitGoal" placeholder="例）地域の特色を多面的に捉え、課題と関連づけて説明できる。"></textarea></div>
-      <div class="field"><label>本時の目標 <span class="hint">この1時間のねらい</span></label><textarea data-bind="lessonGoal" placeholder="例）近畿地方の人口集中の要因を、資料をもとに考察し説明できる。"></textarea></div>
+      <div class="field"><label>単元の目標 <span class="hint">単元全体で目指す姿</span></label><textarea data-bind="unitGoal" placeholder="例）近畿地方の地域的特色を多面的・多角的に捉え、課題と関連づけて説明できる。"></textarea></div>
+      <div class="field"><label>評価規準 <span class="hint">知識・技能／思考・判断・表現／主体的に学習に取り組む態度</span></label><textarea data-bind="assessment" placeholder="例）【知】地域の特色を理解している。【思】資料から要因を考察し説明できる。【主】学習を振り返り調整しようとしている。"></textarea></div>
       <div class="row">
         <div class="field"><label>児童・生徒数</label><input type="number" data-bind="students" placeholder="例）32"></div>
-        <div class="field"><label>本時の時間 <span class="hint">分</span></label><input type="number" data-bind="minutes" value="50"></div>
+        <div class="field"><label>1時間の時間 <span class="hint">分</span></label><input type="number" data-bind="minutes" value="50"></div>
       </div>
     </div>
     <div class="nav-row">
       <span></span>
-      <button class="btn btn-primary" onclick="go(1)">次へ：展開を組む →</button>
+      <button class="btn btn-primary" onclick="go(1)">次へ：単元計画を組む →</button>
     </div>
   </section>
 
-  <!-- 画面2：展開表＋方略埋め込み -->
+  <!-- 画面2：単元計画表＋方略埋め込み -->
   <section class="screen" data-screen="1">
-    <h2 class="screen-title"><span class="eyebrow">STEP 2</span>本時の展開と方略の埋め込み</h2>
-    <p class="lead">導入・展開・まとめの各段階に、学習活動と調整方略を入れていきます。「＋方略を追加」から3層（I/You/We）の方略を選べます。AIに相談しながら埋めることもできます。</p>
+    <h2 class="screen-title"><span class="eyebrow">STEP 2</span>単元計画と方略の埋め込み</h2>
+    <p class="lead">単元を「次（つぐ）」のまとまりに分け、各次の中に「時（1コマ）」を並べます。各時に学習活動と調整方略を入れていきます。「＋方略を追加」から3層（I=自己調整 / You=共調整 / We=社会的に共有された調整）の方略を選べます。単元の流れ（見通す→実行する→振り返る）を意識して配置しましょう。AIに相談しながら埋めることもできます。</p>
 
     <div class="card import-card no-print">
       <details id="importBox">
-        <summary><b>既存の指導案（Word / PDF）を読み込む</b><span class="imp-hint">手元の学習指導案を取り込んで、各段階の活動に振り分けられます</span></summary>
+        <summary><b>既存の単元計画・指導案（Word / PDF）を読み込む</b><span class="imp-hint">手元の計画を取り込んで、各時の活動に振り分けられます</span></summary>
         <div class="import-body">
           <div class="import-row">
             <label class="file-btn">
@@ -429,8 +516,8 @@
             <div class="import-actions" style="margin-top:12px;">
               <div class="imp-opt">
                 <div class="imp-opt-t">方法A：AIで自動振り分け</div>
-                <div class="imp-opt-d">読み取った内容を、導入・展開・まとめの活動枠にAIが整理して入れます（要・AI設定）。</div>
-                <button class="btn btn-amber" id="aiSortBtn" onclick="aiSortImport()">AIで各段階に振り分ける</button>
+                <div class="imp-opt-d">読み取った内容を、単元の各時（1時間ずつ）の活動にAIが整理して入れます（要・AI設定）。</div>
+                <button class="btn btn-amber" id="aiSortBtn" onclick="aiSortImport()">AIで各時に振り分ける</button>
                 <span id="aiSortStatus" class="imp-status"></span>
               </div>
               <div class="imp-opt">
@@ -448,6 +535,7 @@
     </div>
 
     <div id="phases"></div>
+    <button class="add-ji" onclick="addStage()" style="margin-bottom:8px;">＋ 次（つぐ）を追加する</button>
     <div class="nav-row">
       <button class="btn btn-ghost" onclick="go(0)">← 戻る</button>
       <button class="btn btn-primary" onclick="go(2)">次へ：AI相談 →</button>
@@ -456,13 +544,13 @@
 
   <!-- 画面3：AI相談＋バランス -->
   <section class="screen" data-screen="2">
-    <h2 class="screen-title"><span class="eyebrow">STEP 3</span>AIと相談してブラッシュアップ</h2>
-    <p class="lead">まず学習活動そのものを具体的にし、活動が固まってから調整方略を入れていきます。下のタブで相談のモードを切り替えられます。</p>
+    <h2 class="screen-title"><span class="eyebrow">STEP 3</span>AIと相談して単元を構想する</h2>
+    <p class="lead">まず単元全体の流れと各時の学習活動を具体的にし、活動が固まってから調整方略を入れていきます。下のタブで相談のモードを切り替えられます。</p>
 
     <div class="mode-tabs no-print">
       <button class="mode-tab active" data-mode="activity" onclick="setMode('activity')">
         <span class="mode-n">1</span>
-        <span><b>学習活動を具体化</b><small>各段階で何をするかを練る</small></span>
+        <span><b>単元の流れ・学習活動を具体化</b><small>各時で何をするかを練る</small></span>
       </button>
       <span class="mode-arrow">→</span>
       <button class="mode-tab" data-mode="strategy" onclick="setMode('strategy')">
@@ -472,39 +560,39 @@
     </div>
 
     <div class="card no-print" id="balanceCard" style="display:none;">
-      <strong style="font-size:.9rem;">3層のバランス（埋め込み済み方略数）</strong>
+      <strong style="font-size:.9rem;">3層のバランス（単元全体の埋め込み済み方略数）</strong>
       <div class="balance" id="balance"></div>
     </div>
 
     <div class="ai-dock">
       <div class="ai-dock-head">
         <span class="spark">◆</span>
-        <div><h3 id="aiDockTitle">学習活動アドバイザー</h3><small id="aiDockSub">Claude が活動を具体化する手助けをします</small></div>
+        <div><h3 id="aiDockTitle">単元構想アドバイザー</h3><small id="aiDockSub">Claude が単元の流れと活動を具体化する手助けをします</small></div>
       </div>
       <div class="ai-log" id="aiLog">
-        <div class="msg sys" id="aiSeed">右下の入力欄から相談を始めてください。例「導入で生徒が課題を自分ごとに感じる活動を考えたい」</div>
+        <div class="msg sys" id="aiSeed">右下の入力欄から相談を始めてください。例「この単元を見通す・実行する・振り返るの流れで何時間に分けるか一緒に考えたい」</div>
       </div>
       <div class="ai-input">
-        <textarea id="aiInput" placeholder="例）展開で資料を比べて考察する活動を具体的にしたい" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAI();}"></textarea>
+        <textarea id="aiInput" placeholder="例）第2次で資料を比べて考察する時間を具体的にしたい" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAI();}"></textarea>
         <button class="btn btn-amber" onclick="sendAI()">送信</button>
       </div>
     </div>
 
     <div class="nav-row" style="margin-top:18px;">
-      <button class="btn btn-ghost" onclick="go(1)">← 展開へ戻る</button>
-      <button class="btn btn-primary" onclick="go(3)">完成：指導案を見る →</button>
+      <button class="btn btn-ghost" onclick="go(1)">← 単元計画へ戻る</button>
+      <button class="btn btn-primary" onclick="go(3)">完成：単元構想シートを見る →</button>
     </div>
   </section>
 
   <!-- 画面4：プレビュー -->
   <section class="screen" data-screen="3">
-    <h2 class="screen-title"><span class="eyebrow">STEP 4</span>本時の指導案</h2>
-    <p class="lead no-print">Wordファイルでの保存、印刷／PDF保存ができます。修正は前の画面に戻って行えます。</p>
+    <h2 class="screen-title"><span class="eyebrow">STEP 4</span>単元構想シート</h2>
+    <p class="lead no-print">印刷・PDF保存のほか、Word（Wordで開いて編集できる形式）でもダウンロードできます。修正は前の画面に戻って行えます。</p>
     <div class="nav-row no-print" style="margin-bottom:14px;">
       <button class="btn btn-ghost" onclick="go(2)">← 相談へ戻る</button>
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
         <button class="btn btn-ghost" onclick="downloadJSON()">データを保存(JSON)</button>
-        <button class="btn btn-amber" id="docxBtn" onclick="downloadDocx()">Wordで保存(.docx)</button>
+        <button class="btn btn-amber" onclick="downloadWord()">Wordで保存</button>
         <button class="btn btn-primary" onclick="window.print()">印刷 / PDF</button>
       </div>
     </div>
@@ -535,7 +623,7 @@
           <li><b>console.anthropic.com</b> を開き、Anthropicアカウントでログインします（なければ新規登録）。<br><a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">→ キー発行ページを開く</a></li>
           <li>支払い方法（クレジットカード）の登録が必要です。使った分だけの従量課金です。</li>
           <li>左メニューの <b>Settings → API keys</b> を開き、<b>Create Key</b> を押します。</li>
-          <li>名前（例：指導案ツール）を付けて作成し、表示された <b>sk-ant-… で始まる文字列</b>をコピーします。<br><span class="warn">※キーは作成時の一度しか表示されません。必ずその場でコピーしてください。</span></li>
+          <li>名前（例：単元構想ツール）を付けて作成し、表示された <b>sk-ant-… で始まる文字列</b>をコピーします。<br><span class="warn">※キーは作成時の一度しか表示されません。必ずその場でコピーしてください。</span></li>
           <li>下の入力欄に貼り付けます。</li>
         </ol>
       </div>
@@ -610,7 +698,6 @@
 <!-- ファイル解析ライブラリ（利用者のブラウザでCDNから読み込み） -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/docx@9.0.2/build/index.umd.js"></script>
 <script>
   if(window.pdfjsLib){
     pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -622,18 +709,29 @@
    データ構造
    ============================================================ */
 const state = {
-  meta:{subject:"",grade:"",hours:"",unit:"",unitGoal:"",lessonGoal:"",students:"",minutes:"50"},
-  // 展開：3段階。各段階に活動文と、埋め込まれた方略配列
-  phases:[
-    {id:"intro",   name:"導入", min:10, activities:[{text:"",strategies:[]}]},
-    {id:"develop", name:"展開", min:30, activities:[{text:"",strategies:[]},{text:"",strategies:[]}]},
-    {id:"summary", name:"まとめ", min:10, activities:[{text:"",strategies:[]}]},
+  meta:{subject:"",grade:"",hours:"",unit:"",unitGoal:"",assessment:"",students:"",minutes:"50"},
+  // 単元計画：複数の「次(stage)」。各次が複数の「時(period=1コマ)」を持つ。
+  // 各時は学習活動文(text)と、埋め込まれた方略配列(strategies)を持つ。
+  stages:[
+    {id:"s1", name:"第1次", periods:[
+      {label:"第1時", process:"課題設定", goal:"", text:"", evalText:"", strategies:[]}
+    ]},
+    {id:"s2", name:"第2次", periods:[
+      {label:"第2時", process:"情報収集", goal:"", text:"", evalText:"", strategies:[]},
+      {label:"第3時", process:"整理・分析", goal:"", text:"", evalText:"", strategies:[]}
+    ]},
+    {id:"s3", name:"第3次", periods:[
+      {label:"第4時", process:"まとめ・表現", goal:"", text:"", evalText:"", strategies:[]}
+    ]},
   ],
   ai:[],            // 相談履歴 {role,content}
   provider:"claude",
   keys:{claude:"",gemini:""},
   models:{claude:"",gemini:""}
 };
+
+// 次のidを発番するためのカウンタ
+let stageSeq=4;
 
 /* 方略ライブラリ：調整方略リスト(PDF)の構造を3層に整理して内蔵。
    layer: I=自己調整 / You=共調整 / We=社会的共有
@@ -648,8 +746,16 @@ const PROC_BY_PHASE={
   "実行する":["推進","確認","調節"],
   "振り返る":["評価","帰属","適用"]
 };
-// 各段階のデフォルトで開くフェーズ
-const PHASE_BY_PID={intro:"見通す",develop:"実行する",summary:"振り返る"};
+// 学習過程の選択肢
+const PROCESS_OPTIONS=["課題設定","情報収集","整理・分析","まとめ・表現","振り返り"];
+// 学習過程に応じて、方略ピッカーで最初に表示するフェーズを決める
+const PHASE_BY_PROCESS={
+  "課題設定":"見通す",
+  "情報収集":"実行する",
+  "整理・分析":"実行する",
+  "まとめ・表現":"実行する",
+  "振り返り":"振り返る"
+};
 // 上級表示でのサブプロセス表示順（PDFの並びに準拠）
 const SUBPROC_ORDER={
   "課題":["課題理解","課題興味"],
@@ -883,12 +989,12 @@ const STRATEGIES = {
   We:STRATEGY_LIST.filter(s=>s.layer==="We")
 };
 
-const STEPS=["基本情報","展開を組む","AI相談","指導案","設定"];
+const STEPS=["単元の基本情報","単元計画を組む","AI相談","単元構想シート","設定"];
 
 /* ============================================================
    初期化・画面遷移
    ============================================================ */
-let current=0, currentLayer="I", pickerPhaseId=null, pickerActIdx=0, pickerChecked=new Set();
+let current=0, currentLayer="I", pickerChecked=new Set();
 
 function buildStepper(){
   const s=document.getElementById("stepper");
@@ -921,12 +1027,20 @@ function go(n){
 /* 入力の保存／復元 */
 function saveInputs(){
   document.querySelectorAll("[data-bind]").forEach(el=>{state.meta[el.dataset.bind]=el.value;});
-  state.phases.forEach(p=>{
-    const m=document.querySelector(`input[data-min="${p.id}"]`);
-    if(m)p.min=m.value;
-    p.activities.forEach((a,ai)=>{
-      const t=document.querySelector(`textarea[data-act="${p.id}"][data-ai="${ai}"]`);
-      if(t)a.text=t.value;
+  state.stages.forEach(st=>{
+    const nm=document.querySelector(`input[data-stage-name="${st.id}"]`);
+    if(nm)st.name=nm.value;
+    st.periods.forEach((pd,pi)=>{
+      const lb=document.querySelector(`input[data-plabel="${st.id}"][data-pi="${pi}"]`);
+      if(lb)pd.label=lb.value;
+      const pr=document.querySelector(`select[data-pprocess="${st.id}"][data-pi="${pi}"]`);
+      if(pr)pd.process=pr.value;
+      const gl=document.querySelector(`textarea[data-pgoal="${st.id}"][data-pi="${pi}"]`);
+      if(gl)pd.goal=gl.value;
+      const t=document.querySelector(`textarea[data-act="${st.id}"][data-pi="${pi}"]`);
+      if(t)pd.text=t.value;
+      const ev=document.querySelector(`textarea[data-peval="${st.id}"][data-pi="${pi}"]`);
+      if(ev)pd.evalText=ev.value;
     });
   });
   const k=document.getElementById("apiKey"); if(k)state.keys[state.provider]=k.value.trim();
@@ -939,76 +1053,120 @@ function restoreInputs(){
 /* ============================================================
    展開表の描画
    ============================================================ */
+/* ============================================================
+   単元計画表の描画（次 → 時）
+   ============================================================ */
 function renderPhases(){
   const wrap=document.getElementById("phases");
   wrap.innerHTML="";
-  state.phases.forEach(p=>{
+  let periodCounter=0;
+  state.stages.forEach((st,si)=>{
     const block=document.createElement("div");
-    block.className="card phase-block";
-    let acts="";
-    p.activities.forEach((a,ai)=>{
-      const multi=p.activities.length>1;
-      acts+=`
-      <div class="act-slot">
+    block.className="card stage-block";
+    let periods="";
+    st.periods.forEach((pd,pi)=>{
+      periodCounter++;
+      const procSel=PROCESS_OPTIONS.map(p=>`<option value="${p}" ${pd.process===p?"selected":""}>${p}</option>`).join("");
+      periods+=`
+      <div class="act-slot proc-${(pd.process||"").replace(/[・]/g,"")}">
         <div class="act-slot-head">
-          <span class="act-no">${multi?("活動 "+(ai+1)):"学習活動"}</span>
-          ${multi?`<button class="act-del" title="この活動を削除" onclick="removeActivity('${p.id}',${ai})">削除</button>`:""}
+          <span class="period-label">
+            <input type="text" data-plabel="${st.id}" data-pi="${pi}" value="${escAttr(pd.label||("第"+periodCounter+"時"))}" class="plabel-input" placeholder="第○時">
+          </span>
+          <span class="process-wrap">学習過程
+            <select data-pprocess="${st.id}" data-pi="${pi}" class="process-sel" onchange="onProcessChange('${st.id}',${pi},this.value)">${procSel}</select>
+          </span>
+          ${st.periods.length>1?`<button class="act-del" title="この時を削除" onclick="removePeriod('${st.id}',${pi})">削除</button>`:""}
+        </div>
+        <div class="field period-sub">
+          <label>目標 <span class="hint">この時間のねらい</span></label>
+          <textarea data-pgoal="${st.id}" data-pi="${pi}" class="goal-area" placeholder="例）資料から近畿地方の特色について課題を見いだし、学習の見通しをもつ。">${esc(pd.goal||"")}</textarea>
         </div>
         <div class="field develop-cell">
-          <label class="sr-label">学習活動・指導上の留意点</label>
-          <textarea data-act="${p.id}" data-ai="${ai}" placeholder="この活動で生徒が行うこと・指導上の留意点を書きます">${a.text||""}</textarea>
+          <label>学習活動・指導上の留意点</label>
+          <textarea data-act="${st.id}" data-pi="${pi}" placeholder="この時間に児童・生徒が行うこと・指導上の留意点を書きます">${esc(pd.text||"")}</textarea>
         </div>
-        <div class="chips" data-chips="${p.id}" data-chips-ai="${ai}"></div>
-        <button class="add-strat" onclick="openPicker('${p.id}',${ai})">＋ 方略を追加（I / You / We）</button>
+        <div class="field period-sub">
+          <label>評価 <span class="hint">評価規準・評価方法</span></label>
+          <textarea data-peval="${st.id}" data-pi="${pi}" class="eval-area" placeholder="例）【思】資料を関連づけて課題を見いだしている。（ワークシート）">${esc(pd.evalText||"")}</textarea>
+        </div>
+        <div class="chips" data-chips="${st.id}" data-chips-pi="${pi}"></div>
+        <button class="add-strat" onclick="openPicker('${st.id}',${pi})">＋ 方略を追加（I / You / We）</button>
       </div>`;
     });
     block.innerHTML=`
-      <div class="phase-head">
-        <span class="phase-tag">${p.name}</span>
-        <span class="phase-min">目安
-          <input type="number" data-min="${p.id}" value="${p.min}" style="width:62px;display:inline-block;padding:3px 6px;"> 分</span>
+      <div class="stage-head">
+        <span class="stage-no">第${si+1}次</span>
+        <input type="text" data-stage-name="${st.id}" value="${escAttr(st.name||"")}" class="stage-name-input" placeholder="例）地域をつかむ">
+        ${state.stages.length>1?`<button class="stage-del" title="この次を削除" onclick="removeStage('${st.id}')">次を削除</button>`:""}
       </div>
-      <div class="act-list">${acts}</div>
-      <button class="add-activity" onclick="addActivity('${p.id}')">＋ 学習活動の枠を増やす</button>
+      <div class="act-list">${periods}</div>
+      <button class="add-period" onclick="addPeriod('${st.id}')">＋ この次に「時（1コマ）」を追加</button>
     `;
     wrap.appendChild(block);
   });
   renderAllChips();
 }
 
-function addActivity(pid){
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function escAttr(s){return esc(s).replace(/"/g,"&quot;");}
+
+/* 次の追加・削除 */
+function addStage(){
   saveInputs();
-  const p=state.phases.find(x=>x.id===pid);
-  p.activities.push({text:"",strategies:[]});
+  const id="s"+(stageSeq++);
+  state.stages.push({id,name:"第"+(state.stages.length+1)+"次",periods:[{label:"",process:"課題設定",goal:"",text:"",evalText:"",strategies:[]}]});
   renderPhases();
 }
-function removeActivity(pid,ai){
+function removeStage(sid){
   saveInputs();
-  const p=state.phases.find(x=>x.id===pid);
-  if(p.activities.length<=1)return;
-  p.activities.splice(ai,1);
+  if(state.stages.length<=1)return;
+  state.stages=state.stages.filter(s=>s.id!==sid);
+  renderPhases();
+}
+function onProcessChange(sid,pi,val){
+  saveInputs();
+  const st=state.stages.find(s=>s.id===sid);
+  if(st&&st.periods[pi])st.periods[pi].process=val;
+  renderPhases();
+}
+
+/* 時（コマ）の追加・削除 */
+function addPeriod(sid){
+  saveInputs();
+  const st=state.stages.find(s=>s.id===sid);
+  if(!st)return;
+  st.periods.push({label:"",process:"情報収集",goal:"",text:"",evalText:"",strategies:[]});
+  renderPhases();
+}
+function removePeriod(sid,pi){
+  saveInputs();
+  const st=state.stages.find(s=>s.id===sid);
+  if(!st||st.periods.length<=1)return;
+  st.periods.splice(pi,1);
   renderPhases();
 }
 
 function renderAllChips(){
-  state.phases.forEach(p=>{
-    p.activities.forEach((a,ai)=>{
-      const c=document.querySelector(`[data-chips="${p.id}"][data-chips-ai="${ai}"]`);
+  state.stages.forEach(st=>{
+    st.periods.forEach((pd,pi)=>{
+      const c=document.querySelector(`[data-chips="${st.id}"][data-chips-pi="${pi}"]`);
       if(!c)return;
       c.innerHTML="";
-      a.strategies.forEach((s,i)=>{
+      pd.strategies.forEach((s,i)=>{
         const chip=document.createElement("span");
         chip.className="chip layer-"+s.layer;
-        chip.innerHTML=`<span class="dot"></span><b>${s.layer}</b> ${s.text}
-          <span class="x" onclick="removeStrat('${p.id}',${ai},${i})">×</span>`;
+        chip.innerHTML=`<span class="dot"></span><b>${s.layer}</b> ${esc(s.text)}
+          <span class="x" onclick="removeStrat('${st.id}',${pi},${i})">×</span>`;
         c.appendChild(chip);
       });
     });
   });
 }
-function removeStrat(pid,ai,idx){
-  const p=state.phases.find(x=>x.id===pid);
-  p.activities[ai].strategies.splice(idx,1);
+function removeStrat(sid,pi,idx){
+  const st=state.stages.find(s=>s.id===sid);
+  if(!st)return;
+  st.periods[pi].strategies.splice(idx,1);
   renderAllChips();
 }
 
@@ -1017,13 +1175,15 @@ function removeStrat(pid,ai,idx){
    ============================================================ */
 let currentPickerLayer="I";
 let currentPickerLevel=1; // 1=初級 2=中級 3=上級（累積）
-function openPicker(pid,ai){
+let pickerStageId=null, pickerPeriodIdx=0;
+function openPicker(sid,pi){
   saveInputs();
-  pickerPhaseId=pid; pickerActIdx=ai; pickerChecked=new Set();
+  pickerStageId=sid; pickerPeriodIdx=pi; pickerChecked=new Set();
   currentPickerLevel=1; // 開くたびに初級から
   document.querySelectorAll(".lvl-btn").forEach(b=>b.classList.toggle("active",+b.dataset.lv===1));
-  const p=state.phases.find(x=>x.id===pid);
-  const label=p.activities.length>1?(p.name+" 活動"+(ai+1)):p.name;
+  const st=state.stages.find(x=>x.id===sid);
+  const pd=st?st.periods[pi]:null;
+  const label=st?(st.name+" "+(pd&&pd.label?pd.label:("第"+(pi+1)+"時"))):"";
   document.getElementById("pickerPhase").textContent="― "+label+" に追加";
   setPickerLayer("I");
   document.getElementById("pickerBg").classList.add("open");
@@ -1142,7 +1302,9 @@ function setPickerLayer(layer){
 }
 
 function scrollPickerToDefaultPhase(){
-  const ph=PHASE_BY_PID[pickerPhaseId];
+  const st=state.stages.find(x=>x.id===pickerStageId);
+  const pd=st?st.periods[pickerPeriodIdx]:null;
+  const ph=pd?PHASE_BY_PROCESS[pd.process]:null;
   if(!ph)return;
   const list=document.getElementById("stratList");
   const target=list.querySelector(`.phase-group-head[data-phase="${ph}"]`);
@@ -1154,8 +1316,9 @@ function scrollPickerToDefaultPhase(){
 }
 function toggleCheck(key,on){on?pickerChecked.add(key):pickerChecked.delete(key);}
 function commitPicker(){
-  const p=state.phases.find(x=>x.id===pickerPhaseId);
-  const slot=p.activities[pickerActIdx];
+  const st=state.stages.find(x=>x.id===pickerStageId);
+  if(!st)return;
+  const slot=st.periods[pickerPeriodIdx];
   pickerChecked.forEach(key=>{
     const s=STRATEGY_LIST[+key];
     if(!s)return;
@@ -1166,11 +1329,11 @@ function commitPicker(){
   renderAllChips();closePicker();
 }
 
-/* 外部（AI）からの方略追加：段階の最初の活動枠に入れる（ai省略時は0） */
-function addStrategyToPhase(pid,layer,text,cat,ai){
-  const p=state.phases.find(x=>x.id===pid);if(!p)return;
-  const idx=(ai!=null&&p.activities[ai])?ai:0;
-  const slot=p.activities[idx];
+/* 外部（AI）からの方略追加：指定した次の最初の時(コマ)に入れる（pi省略時は0） */
+function addStrategyToPhase(sid,layer,text,cat,pi){
+  const st=state.stages.find(x=>x.id===sid);if(!st)return;
+  const idx=(pi!=null&&st.periods[pi])?pi:0;
+  const slot=st.periods[idx];
   if(!slot.strategies.some(x=>x.layer===layer&&x.text===text)){
     slot.strategies.push({layer,text,cat:cat||"AI提案"});
     renderAllChips();
@@ -1182,7 +1345,7 @@ function addStrategyToPhase(pid,layer,text,cat,ai){
    ============================================================ */
 function renderBalance(){
   const counts={I:0,You:0,We:0};
-  state.phases.forEach(p=>p.activities.forEach(a=>a.strategies.forEach(s=>counts[s.layer]++)));
+  state.stages.forEach(st=>st.periods.forEach(pd=>pd.strategies.forEach(s=>counts[s.layer]++)));
   const labels={I:"自己調整 I",You:"共調整 You",We:"社会的共有 We"};
   const b=document.getElementById("balance");
   b.innerHTML="";
@@ -1198,20 +1361,39 @@ function renderBalance(){
    ============================================================ */
 function lessonContext(){
   const m=state.meta;
-  let ctx=`【教科】${m.subject}　【学年】${m.grade}　【単元】${m.unit}\n`;
-  ctx+=`【単元の目標】${m.unitGoal}\n【本時の目標】${m.lessonGoal}\n`;
-  ctx+=`【人数】${m.students}　【本時】${m.minutes}分\n\n本時の展開：\n`;
-  state.phases.forEach(p=>{
-    ctx+=`■${p.name}（${p.min}分）\n`;
-    p.activities.forEach((a,ai)=>{
-      const label=p.activities.length>1?`  活動${ai+1}：`:`  活動：`;
-      ctx+=`${label}${a.text||"（未記入）"}\n`;
-      if(a.strategies.length){
-        a.strategies.forEach(s=>ctx+=`    ・[${s.layer}] ${s.text}\n`);
+  let ctx=`【教科】${m.subject}　【学年】${m.grade}　【単元】${m.unit}　【総時数】${m.hours}\n`;
+  ctx+=`【単元の目標】${m.unitGoal}\n`;
+  if(m.assessment)ctx+=`【評価規準】${m.assessment}\n`;
+  ctx+=`【人数】${m.students}　【1時間】${m.minutes}分\n\n単元計画（次→時）：\n`;
+  state.stages.forEach((st,si)=>{
+    ctx+=`■第${si+1}次「${st.name||""}」\n`;
+    st.periods.forEach((pd,pi)=>{
+      ctx+=`  ${pd.label||("第"+(pi+1)+"時")}（学習過程:${pd.process||"未設定"}）\n`;
+      if(pd.goal)ctx+=`    目標：${pd.goal}\n`;
+      ctx+=`    学習活動：${pd.text||"（未記入）"}\n`;
+      if(pd.evalText)ctx+=`    評価：${pd.evalText}\n`;
+      if(pd.strategies.length){
+        pd.strategies.forEach(s=>ctx+=`    ・[${s.layer}] ${s.text}\n`);
       }else ctx+="    （方略未設定）\n";
     });
   });
   return ctx;
+}
+
+/* AI提案の phase 値（stage識別子）→ 実際の stage を解決する。
+   AIには各次のidと番号を伝えるので "s1" や "第1次" 等で来る想定。柔軟に拾う。 */
+function resolveStage(phaseVal){
+  if(phaseVal==null)return state.stages[0];
+  const v=String(phaseVal).trim();
+  let st=state.stages.find(s=>s.id===v);
+  if(st)return st;
+  const num=v.match(/(\d+)/);
+  if(num){
+    const idx=parseInt(num[1],10)-1;
+    if(state.stages[idx])return state.stages[idx];
+  }
+  st=state.stages.find(s=>s.name&&s.name.includes(v));
+  return st||state.stages[0];
 }
 
 function appendMsg(role,text){
@@ -1228,64 +1410,67 @@ function setMode(mode){
   document.querySelectorAll(".mode-tab").forEach(t=>t.classList.toggle("active",t.dataset.mode===mode));
   const isAct=mode==="activity";
   const aiName={claude:"Claude",gemini:"Gemini"}[state.provider]||"AI";
-  document.getElementById("aiDockTitle").textContent=isAct?"学習活動アドバイザー":"調整方略アドバイザー";
+  document.getElementById("aiDockTitle").textContent=isAct?"単元構想アドバイザー":"調整方略アドバイザー";
   document.getElementById("aiDockSub").textContent=isAct
-    ?aiName+" が各段階の学習活動を具体化する手助けをします"
-    :aiName+" が活動に合う I / You / We の方略を提案します";
+    ?aiName+" が単元の流れと各時の学習活動を具体化する手助けをします"
+    :aiName+" が各時に合う I / You / We の方略を提案します";
   document.getElementById("balanceCard").style.display=isAct?"none":"block";
   document.getElementById("aiInput").placeholder=isAct
-    ?"例）展開で資料を比べて考察する活動を具体的にしたい"
-    :"例）展開の場面に共調整(You)の方略を足したい";
+    ?"例）第2次で資料を比べて考察する時間を具体的にしたい"
+    :"例）第2次に共調整(You)の方略を足したい";
   const seed=document.getElementById("aiSeed");
   const noKey=!(state.keys[state.provider]||"").trim();
   if(seed)seed.textContent=noKey
     ?"AI相談を使うには準備が必要です。画面右上の⚙ボタンを押し、手順に従ってAPIキーを設定してください。"
     :(isAct
-      ?aiName+" の方から指導案を見て問いかけます。気軽に答えていってください。"
-      :"活動が固まったら方略を入れます。例「導入で課題への興味を高める方略を提案して」");
+      ?aiName+" の方から単元構想を見て問いかけます。気軽に答えていってください。"
+      :"各時の活動が固まったら方略を入れます。例「第1次で課題への興味を高める方略を提案して」");
 
   // 活動モードに初めて入ったら、AIから口火を切る（キーがある時のみ）
   if(isAct && !kickedOffActivity && !noKey){
     kickedOffActivity=true;
-    sendAI("（システム：これは対話の開始です。教師の指導案にまだ挨拶していません。まず一言挨拶し、指導案全体をざっと見た所感を述べ、最初に一緒に詰めたい段階を一つ選んで教師に問いかけてください。）");
+    sendAI("（システム：これは対話の開始です。教師の単元構想にまだ挨拶していません。まず一言挨拶し、単元計画全体をざっと見た所感を述べ、最初に一緒に詰めたい次(つぐ)を一つ選んで教師に問いかけてください。）");
   }
 }
 let kickedOffActivity=false;
 
-const SYS_ACTIVITY=`あなたは授業デザインに伴走する教育アドバイザーです。教師が作成中の本時の指導案を読み、各段階(導入・展開・まとめ)の「学習活動」を一緒に具体化していきます。
-児童・生徒が実際に何をするか(発問、資料、グループ形態、思考の流れ、時間の目安など)が目に浮かぶレベルを目指します。この段階では調整方略の話は持ち出さず、活動内容そのものに集中します。
+const SYS_ACTIVITY=`あなたは単元の構想に伴走する教育アドバイザーです。教師が作成中の1単元の計画を読み、単元全体の流れ(見通す→実行する→振り返る)と、各「次(つぐ)」「時(1コマ)」の学習活動を一緒に具体化していきます。
+児童・生徒が各時間に実際に何をするか(問い、資料、活動形態、思考の流れ、時間配分など)が目に浮かぶレベルを目指します。この段階では調整方略の話は持ち出さず、活動内容そのものに集中します。
 
 【対話のしかた】あなたは受け身で待つのではなく、こちらから問いかけ・打診してください。
-- 指導案の中で未記入・あいまい・もっと具体化できそうな点を見つけ、教師に問いかける（例「導入はまだ活動が決まっていませんね。生徒が最初に出会う問いはどんなものにしますか？」）。
-- 一度に問うのは1〜2点まで。教師が答えやすいよう、具体的な選択肢や例を添えて打診する（例「資料を配る／写真を見せる／体験から入る、のどれが近いですか？」）。
+- 単元の中で未記入・あいまい・もっと具体化できそうな点を見つけ、教師に問いかける（例「第1次はまだ活動が決まっていませんね。児童が単元の最初に出会う問いはどんなものにしますか？」）。
+- 一度に問うのは1〜2点まで。教師が答えやすいよう、具体的な選択肢や例を添えて打診する。
 - 教師の答えを受けたら、それを活動文の形に落とし込んで提案し、続けて次に詰めるべき点を必ず問いかけて終わる。
-- 全段階が十分に具体化できたら、「方略を入れる段階に進めそうです」と打診する。
+- 単元全体の時数配分や、次ごとのねらい(見通す/実行する/振り返る)のバランスにも目を配ってください。
+- 全体が十分に具体化できたら、「方略を入れる段階に進めそうです」と打診する。
 
+各次には識別子(id)が付いています。提案するときは、どの次に対する活動かを id で指定してください。
 日本語で簡潔に、温かく対話します。具体的な活動文を提案できるときは本文の最後に次のJSONを付けてください(まだ提案段階でなければ付けない)：
 \`\`\`json
-{"activities":[{"phase":"intro|develop|summary","text":"その段階の学習活動文(80字程度、生徒の動きが分かる具体的な記述)"}]}
+{"activities":[{"stage":"次のid(例 s1)","text":"その時間の学習活動文(80字程度、児童・生徒の動きが分かる具体的な記述)"}]}
 \`\`\`
-phaseは導入=intro, 展開=develop, まとめ=summary です。必ず最後は教師への問いかけで締めくくってください。`;
+必ず最後は教師への問いかけで締めくくってください。`;
 
-const SYS_STRATEGY=`あなたは自己調整学習(SRL)に詳しい教育アドバイザーです。教師が作成中の本時の指導案を読み、調整方略を充実させる手助けをします。
+const SYS_STRATEGY=`あなたは自己調整学習(SRL)に詳しい教育アドバイザーです。教師が作成中の1単元の計画を読み、各時に調整方略を充実させる手助けをします。
 方略は3層に分かれます：自己調整(I=個人で調整)、共調整(You=他者やAIと一時的に調整を共有)、社会的に共有された調整(We=集団で相互に調整)。
-すでに具体化された学習活動に合わせて方略を提案してください。日本語で簡潔に答え、具体的な方略を提案するときは必ず本文の最後に次のJSONを付けてください(提案がなければ付けない)：
+単元全体として、見通す段階・実行する段階・振り返る段階に方略がバランスよく配置されるよう意識してください。すでに具体化された学習活動に合わせて方略を提案します。
+各次には識別子(id)が付いています。提案するときは stage に次のidを指定してください。
+日本語で簡潔に答え、具体的な方略を提案するときは必ず本文の最後に次のJSONを付けてください(提案がなければ付けない)：
 \`\`\`json
-{"suggestions":[{"phase":"intro|develop|summary","layer":"I|You|We","text":"方略文(40字程度)"}]}
-\`\`\`
-phaseは導入=intro, 展開=develop, まとめ=summary です。`;
+{"suggestions":[{"stage":"次のid(例 s2)","layer":"I|You|We","text":"方略文(40字程度)"}]}
+\`\`\``;
 
 /* ============================================================
    AIプロバイダ（Claude / Gemini）
    ============================================================ */
 const PROVIDERS={
   claude:{
-    label:"Anthropic (Claude)", keyPrefix:"sk-ant-", defaultModel:"claude-sonnet-4-20250514",
+    label:"Anthropic (Claude)", keyPrefix:"sk-ant-", defaultModel:"claude-sonnet-4-5-20250929",
     consoleUrl:"https://console.anthropic.com/settings/keys",
     help:'キーは <b>console.anthropic.com</b> の Settings → API keys で発行。sk-ant- で始まります。'
   },
   gemini:{
-    label:"Google (Gemini)", keyPrefix:"AIza", defaultModel:"gemini-3.5-flash",
+    label:"Google (Gemini)", keyPrefix:"AIza", defaultModel:"gemini-2.5-flash",
     consoleUrl:"https://aistudio.google.com/apikey",
     help:'キーは <b>aistudio.google.com/apikey</b>（Google AI Studio）で「Create API key」から取得。無料枠があります。'
   }
@@ -1355,11 +1540,11 @@ async function callLLM(system,msgs){
 async function testConnection(){
   saveInputs();
   const tr=document.getElementById("testResult");
-  tr.style.color="#46544f"; tr.textContent="接続を確認しています…";
+  tr.style.color="#5a4648"; tr.textContent="接続を確認しています…";
   try{
     const txt=await callLLM("あなたはテスト応答を返します。短く答えてください。",
       [{role:"user",content:"「接続OK」とだけ返してください。"}]);
-    if(txt&&txt.trim()){tr.style.color="#0f6e63";tr.textContent="✓ 接続できました（"+PROVIDERS[state.provider].label+"）";}
+    if(txt&&txt.trim()){tr.style.color="#1f7a3a";tr.textContent="✓ 接続できました（"+PROVIDERS[state.provider].label+"）";}
     else{tr.style.color="#a23";tr.textContent="応答が空でした。モデル名を確認してください。";}
   }catch(err){
     tr.style.color="#a23";tr.textContent="✕ "+(err&&err.message?err.message:"接続に失敗しました");
@@ -1383,8 +1568,9 @@ async function sendAI(kickoff){
 
   const system=aiMode==="activity"?SYS_ACTIVITY:SYS_STRATEGY;
   const history=state.ai.map(m=>({role:m.role,content:m.content}));
-  const userMsg=`現在の指導案:\n${lessonContext()}\n\n相談内容: ${q}`;
-  const phaseName={intro:"導入",develop:"展開",summary:"まとめ"};
+  const stageGuide=state.stages.map((s,i)=>`${s.id}=第${i+1}次「${s.name||""}」`).join("、");
+  const userMsg=`現在の単元構想:\n${lessonContext()}\n\n【次のid対応】${stageGuide}\n\n相談内容: ${q}`;
+  const stageName=sid=>{const st=resolveStage(sid);const i=state.stages.indexOf(st);return st?`第${i+1}次「${st.name||""}」`:sid;};
 
   try{
     const txt0=await callLLM(system,[...history,{role:"user",content:userMsg}]);
@@ -1404,11 +1590,12 @@ async function sendAI(kickoff){
       state.ai.push({role:"user",content:userMsg});
       state.ai.push({role:"assistant",content:txt});
       activities.forEach(a=>{
+        const sid=a.stage!=null?a.stage:a.phase; // 後方互換
         const card=document.createElement("div");card.className="ai-activity";
-        card.innerHTML=`<span class="ph">${phaseName[a.phase]||a.phase} の学習活動</span><br>${a.text}<br>
-          <button class="apply">この活動を反映 / 追記</button>`;
+        card.innerHTML=`<span class="ph">${stageName(sid)} の学習活動</span><br>${esc(a.text)}<br>
+          <button class="apply">この時に反映 / 追記</button>`;
         card.querySelector(".apply").onclick=()=>{
-          applyActivity(a.phase,a.text);
+          applyActivity(sid,a.text);
           card.querySelector(".apply").textContent="✓ 反映しました";
           card.querySelector(".apply").disabled=true;
         };
@@ -1426,12 +1613,14 @@ async function sendAI(kickoff){
       state.ai.push({role:"user",content:userMsg});
       state.ai.push({role:"assistant",content:txt});
       suggestions.forEach(s=>{
+        const sid=s.stage!=null?s.stage:s.phase; // 後方互換
         const card=document.createElement("div");card.className="ai-suggest";
-        card.innerHTML=`<b>[${s.layer}]</b> ${s.text}<br>
-          <small>→ 「${phaseName[s.phase]||s.phase}」へ</small><br>
-          <button class="add">＋ 展開に追加</button>`;
+        card.innerHTML=`<b>[${s.layer}]</b> ${esc(s.text)}<br>
+          <small>→ 「${stageName(sid)}」へ</small><br>
+          <button class="add">＋ 単元計画に追加</button>`;
         card.querySelector(".add").onclick=()=>{
-          addStrategyToPhase(s.phase,s.layer,s.text,"AI提案");
+          const st=resolveStage(sid);
+          addStrategyToPhase(st.id,s.layer,s.text,"AI提案");
           renderBalance();
           card.querySelector(".add").textContent="✓ 追加しました";
           card.querySelector(".add").disabled=true;
@@ -1446,13 +1635,13 @@ async function sendAI(kickoff){
   }
 }
 
-/* AI提案の学習活動を該当段階へ反映：空の活動枠があれば埋め、なければ新しい枠を追加 */
-function applyActivity(pid,text){
+/* AI提案の学習活動を該当の次へ反映：空の時(コマ)があれば埋め、なければ新しい時を追加 */
+function applyActivity(sid,text){
   saveInputs();
-  const p=state.phases.find(x=>x.id===pid);if(!p)return;
-  const empty=p.activities.find(a=>!a.text||!a.text.trim());
+  const st=resolveStage(sid);if(!st)return;
+  const empty=st.periods.find(p=>!p.text||!p.text.trim());
   if(empty){empty.text=text;}
-  else{p.activities.push({text,strategies:[]});}
+  else{st.periods.push({label:"",process:"情報収集",goal:"",text,evalText:"",strategies:[]});}
   renderPhases();
 }
 
@@ -1462,33 +1651,47 @@ function applyActivity(pid,text){
 function renderPreview(){
   const m=state.meta;
   const stratHtml=strs=>strs.length
-    ? `<div class="pv-strat">`+strs.map(s=>`<span class="lbl ${s.layer}">${s.layer}</span>${s.text}`).join("<br>")+`</div>`
+    ? `<div class="pv-strat">`+strs.map(s=>`<span class="lbl ${s.layer}">${s.layer}</span>${esc(s.text)}`).join("<br>")+`</div>`
     : "";
-  const phaseCell=p=>{
-    const filled=p.activities.filter(a=>(a.text&&a.text.trim())||a.strategies.length);
-    if(!filled.length)return "―";
-    const multi=filled.length>1;
-    return filled.map((a,i)=>{
-      const head=multi?`<div class="pv-act-no">活動${i+1}</div>`:"";
-      const body=(a.text||"").replace(/\n/g,"<br>")||"―";
-      return `<div class="pv-act">${head}<div>${body}</div>${stratHtml(a.strategies)}</div>`;
-    }).join("");
-  };
-  let rows=state.phases.map(p=>`
-    <tr>
-      <th>${p.name}<br><span style="font-weight:400;">${p.min}分</span></th>
-      <td>${phaseCell(p)}</td>
-    </tr>`).join("");
+  // 各時を1行ずつ。次の見出し行＋その配下の時の行を出す。
+  let periodNo=0;
+  let rows="";
+  state.stages.forEach((st,si)=>{
+    rows+=`<tr class="pv-stage-row">
+      <th colspan="3" class="pv-stage-th">第${si+1}次　${esc(st.name||"")}</th>
+    </tr>`;
+    st.periods.forEach((pd,pi)=>{
+      periodNo++;
+      const body=(pd.text&&pd.text.trim())?esc(pd.text).replace(/\n/g,"<br>"):"―";
+      const goal=(pd.goal&&pd.goal.trim())?`<div class="pv-goal"><span class="pv-tag">目標</span>${esc(pd.goal).replace(/\n/g,"<br>")}</div>`:"";
+      const evalT=(pd.evalText&&pd.evalText.trim())?`<div class="pv-eval"><span class="pv-tag eval">評価</span>${esc(pd.evalText).replace(/\n/g,"<br>")}</div>`:"";
+      const proc=pd.process?`<div class="pv-proc proc-${(pd.process||"").replace(/[・]/g,"")}">${esc(pd.process)}</div>`:"";
+      rows+=`<tr>
+        <th class="pv-period-th">${esc(pd.label||("第"+periodNo+"時"))}${proc}</th>
+        <td>${goal}<div class="pv-act-body">${body}</div>${evalT}</td>
+        <td class="pv-strat-cell">${pd.strategies.length?stratHtml(pd.strategies):"―"}</td>
+      </tr>`;
+    });
+  });
   document.getElementById("preview").innerHTML=`
-    <h1>本時の指導案</h1>
-    <div class="meta-line">${m.subject||""}　${m.grade||""}　${m.unit?("単元「"+m.unit+"」"):""}　${m.hours?("("+m.hours+")"):""}</div>
-    <table class="pv-table">
-      <tr><th>単元の目標</th><td>${m.unitGoal||"―"}</td></tr>
-      <tr><th>本時の目標</th><td>${m.lessonGoal||"―"}</td></tr>
-      <tr><th>人数 / 時間</th><td>${m.students||"―"}人 / ${m.minutes||"―"}分</td></tr>
+    <h1>単元構想シート</h1>
+    <table class="pv-table pv-meta-table">
+      <tr>
+        <th style="width:110px;">教科・領域</th><td>${esc(m.subject||"―")}</td>
+        <th style="width:90px;">学年</th><td>${esc(m.grade||"―")}</td>
+        <th style="width:90px;">総時数</th><td>${esc(m.hours||"―")}</td>
+      </tr>
+      <tr><th>単元名</th><td colspan="5">${esc(m.unit||"―")}</td></tr>
+      <tr><th>単元の目標</th><td colspan="5">${esc(m.unitGoal||"―")}</td></tr>
+      <tr><th>評価規準</th><td colspan="5">${m.assessment?esc(m.assessment).replace(/\n/g,"<br>"):"―"}</td></tr>
+      <tr><th>人数 / 1時間</th><td colspan="5">${esc(m.students||"―")}人 / ${esc(m.minutes||"―")}分</td></tr>
     </table>
-    <table class="pv-table">
-      <tr><th style="width:90px;">段階</th><th>学習活動・調整方略（<span class="lbl I">I</span>自己 <span class="lbl You">You</span>共 <span class="lbl We">We</span>社会的共有）</th></tr>
+    <table class="pv-table pv-unit-table">
+      <tr>
+        <th style="width:104px;">時 / 学習過程</th>
+        <th>目標・学習活動・評価</th>
+        <th style="width:34%;">調整方略（<span class="lbl I">I</span>自己 <span class="lbl You">You</span>共 <span class="lbl We">We</span>社会的共有）</th>
+      </tr>
       ${rows}
     </table>`;
 }
@@ -1503,7 +1706,7 @@ async function handleImportFile(ev){
   if(!file)return;
   const status=document.getElementById("importStatus");
   const result=document.getElementById("importResult");
-  status.style.color="#46544f";
+  status.style.color="#5a4648";
   status.textContent="読み込み中…（"+file.name+"）";
   try{
     let text="";
@@ -1554,7 +1757,7 @@ async function handleImportFile(ev){
     importedText=text;
     document.getElementById("importText").value=text;
     result.style.display="block";
-    status.style.color="#0f6e63";
+    status.style.color="#1f7a3a";
     status.textContent="✓ 読み込みました（"+file.name+"）。下で振り分け方法を選べます。";
   }catch(err){
     status.style.color="#a23";
@@ -1563,7 +1766,7 @@ async function handleImportFile(ev){
   ev.target.value=""; // 同じファイルを選び直せるように
 }
 
-/* AIで導入・展開・まとめの活動枠へ振り分け */
+/* AIで単元を「次（見通す/実行する/振り返る）→時」に振り分け */
 async function aiSortImport(){
   const text=document.getElementById("importText").value.trim();
   const st=document.getElementById("aiSortStatus");
@@ -1573,38 +1776,48 @@ async function aiSortImport(){
     st.textContent="AI設定が未完了です。⚙設定でAPIキーを入れてください。";
     return;
   }
-  st.style.color="#46544f";st.textContent="AIが振り分けています…";
+  st.style.color="#5a4648";st.textContent="AIが振り分けています…";
   const btn=document.getElementById("aiSortBtn");btn.disabled=true;
   saveInputs();
 
-  const system=`あなたは学習指導案を読み取り、本時の展開を構造化するアシスタントです。
-渡された指導案テキストから、本時の展開を「導入」「展開」「まとめ」の3段階に整理してください。
-展開は複数の学習活動に分かれることが多いので、活動ごとに分けてください。
-指導上の留意点があれば各活動に含めてかまいません。調整方略の話は加えず、書かれている学習活動の内容だけを忠実に抜き出します。
+  const system=`あなたは学習指導案・単元計画を読み取り、1単元の構成を構造化するアシスタントです。
+渡されたテキストから、単元を時間ごと(1時間=1コマ)に分けてください。
+各時について、次の情報を抜き出します：
+- label：短い見出し（例「第1時」）
+- process：その時間の学習過程。必ず次のいずれか一つを選ぶ →「課題設定」「情報収集」「整理・分析」「まとめ・表現」「振り返り」
+- goal：その時間の目標（書かれていなければ空文字）
+- text：学習活動・指導上の留意点
+- eval：評価（評価規準・方法。書かれていなければ空文字）
+調整方略の話は加えず、書かれている内容を忠実に抜き出します。
 出力は次のJSONのみとし、前後に文章を付けないでください：
-{"intro":["導入の活動文"],"develop":["展開の活動1","展開の活動2"],"summary":["まとめの活動文"]}
-該当が無い段階は空配列にします。`;
+{"periods":[{"label":"第1時","process":"課題設定","goal":"目標文","text":"学習活動文","eval":"評価文"}]}`;
 
   try{
-    const raw=await callLLM(system,[{role:"user",content:"次の指導案を振り分けてください:\n\n"+text}]);
+    const raw=await callLLM(system,[{role:"user",content:"次のテキストを単元構成に振り分けてください:\n\n"+text}]);
     let obj=null;
     const m=raw.match(/\{[\s\S]*\}/);
     if(m){try{obj=JSON.parse(m[0]);}catch(e){}}
     if(!obj) throw new Error("AIの応答を解釈できませんでした。もう一度試すか、手作業で貼ってください。");
 
-    const map={intro:"intro",develop:"develop",summary:"summary"};
-    Object.keys(map).forEach(key=>{
-      const arr=Array.isArray(obj[key])?obj[key]:[];
-      const phase=state.phases.find(p=>p.id===key);
-      if(!phase)return;
-      const acts=arr.map(t=>String(t).trim()).filter(Boolean);
-      if(acts.length){
-        phase.activities=acts.map(t=>({text:t,strategies:[]}));
-      }
-    });
+    const arr=Array.isArray(obj.periods)?obj.periods:[];
+    const periods=arr.map(o=>{
+      if(typeof o==="string")return {label:"",process:"情報収集",goal:"",text:o.trim(),evalText:"",strategies:[]};
+      const proc=PROCESS_OPTIONS.includes(o.process)?o.process:"情報収集";
+      return {
+        label:(o.label||"").toString().trim(),
+        process:proc,
+        goal:(o.goal||"").toString().trim(),
+        text:(o.text||"").toString().trim(),
+        evalText:(o.eval||o.evalText||"").toString().trim(),
+        strategies:[]
+      };
+    }).filter(p=>p.text);
+    if(periods.length){
+      state.stages=[{id:"s"+(stageSeq++),name:"第1次",periods}];
+    }
     renderPhases();
-    st.style.color="#0f6e63";
-    st.textContent="✓ 各段階に振り分けました。下の展開欄で確認・修正できます。";
+    st.style.color="#1f7a3a";
+    st.textContent="✓ 単元の各時に振り分けました。下の計画欄で確認・修正できます。";
   }catch(err){
     st.style.color="#a23";
     st.textContent="✕ "+(err&&err.message?err.message:"振り分けに失敗しました");
@@ -1624,131 +1837,94 @@ function downloadJSON(){
   const blob=new Blob([JSON.stringify(out,null,2)],{type:"application/json"});
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
-  a.download=(state.meta.unit||"指導案")+".json";
+  a.download=(state.meta.unit||"単元構想")+"_単元構想.json";
   a.click();
 }
 
 /* ============================================================
    Word(.docx)出力
+   ブラウザだけで動くよう、Wordが解釈できるHTML(Office名前空間付き)を
+   .docxとして書き出します。罫線・背景色・表組みはインラインstyleで保持。
    ============================================================ */
-async function downloadDocx(){
+function downloadWord(){
   saveInputs();
-  if(typeof docx==="undefined"){
-    alert("Word出力ライブラリを読み込めませんでした。ネット接続を確認して、ページを再読み込みしてください。");
-    return;
-  }
-  const btn=document.getElementById("docxBtn");
-  const old=btn.textContent; btn.disabled=true; btn.textContent="作成中…";
-  try{
-    const {Document,Packer,Paragraph,TextRun,Table,TableRow,TableCell,WidthType,HeadingLevel,AlignmentType,BorderStyle,ShadingType}=docx;
-    const m=state.meta;
+  const m=state.meta;
+  const E=s=>String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  const NL=s=>E(s).replace(/\n/g,"<br>");
+  const layerColor={I:"#b3232a",You:"#1f7a8c",We:"#d98324"};
+  const procColor={"課題設定":"#b3232a","情報収集":"#1f7a8c","整理・分析":"#3a7d44","まとめ・表現":"#d98324","振り返り":"#7a5cc0"};
+  const cellB="border:0.75pt solid #888888;padding:5px 7px;vertical-align:top;font-size:10.5pt;";
+  const thBg="background:#f0e7e4;font-weight:bold;";
 
-    const layerName={I:"自己調整(I)",You:"共調整(You)",We:"社会的に共有された調整(We)"};
-    const layerColor={I:"0F6E63",You:"7A5CC0",We:"C8761B"};
+  // メタ情報の表
+  const meta=`
+  <table style="border-collapse:collapse;width:100%;margin-bottom:10pt;">
+    <tr>
+      <td style="${cellB}${thBg}width:14%;">教科・領域</td><td style="${cellB}width:19%;">${E(m.subject||"―")}</td>
+      <td style="${cellB}${thBg}width:11%;">学年</td><td style="${cellB}width:19%;">${E(m.grade||"―")}</td>
+      <td style="${cellB}${thBg}width:11%;">総時数</td><td style="${cellB}width:auto;">${E(m.hours||"―")}</td>
+    </tr>
+    <tr><td style="${cellB}${thBg}">単元名</td><td style="${cellB}" colspan="5">${E(m.unit||"―")}</td></tr>
+    <tr><td style="${cellB}${thBg}">単元の目標</td><td style="${cellB}" colspan="5">${NL(m.unitGoal||"―")}</td></tr>
+    <tr><td style="${cellB}${thBg}">評価規準</td><td style="${cellB}" colspan="5">${NL(m.assessment||"―")}</td></tr>
+    <tr><td style="${cellB}${thBg}">人数 / 1時間</td><td style="${cellB}" colspan="5">${E(m.students||"―")}人 / ${E(m.minutes||"―")}分</td></tr>
+  </table>`;
 
-    // セル共通：枠線
-    const cellBorders={
-      top:{style:BorderStyle.SINGLE,size:6,color:"888888"},
-      bottom:{style:BorderStyle.SINGLE,size:6,color:"888888"},
-      left:{style:BorderStyle.SINGLE,size:6,color:"888888"},
-      right:{style:BorderStyle.SINGLE,size:6,color:"888888"}
-    };
-    const txtCell=(text,opts={})=>new TableCell({
-      borders:cellBorders,
-      width:opts.width?{size:opts.width,type:WidthType.PERCENTAGE}:undefined,
-      shading:opts.shade?{type:ShadingType.CLEAR,fill:opts.shade}:undefined,
-      children:(Array.isArray(text)?text:[text]).map(t=>
-        typeof t==="string"?new Paragraph({children:[new TextRun({text:t,bold:!!opts.bold})]}):t)
+  // 単元計画の表
+  let periodNo=0, body="";
+  state.stages.forEach((st,si)=>{
+    body+=`<tr><td style="${cellB}background:#fbe7e6;font-weight:bold;color:#7e1419;" colspan="3">第${si+1}次　${E(st.name||"")}</td></tr>`;
+    st.periods.forEach((pd)=>{
+      periodNo++;
+      const pc=procColor[pd.process]||"#888";
+      const procBadge=pd.process?`<div style="margin-top:3pt;"><span style="background:${pc};color:#ffffff;font-size:8pt;font-weight:bold;padding:1pt 5pt;">${E(pd.process)}</span></div>`:"";
+      const goal=(pd.goal&&pd.goal.trim())?`<div style="margin-bottom:3pt;"><b style="color:#7e1419;">［目標］</b>${NL(pd.goal)}</div>`:"";
+      const evalT=(pd.evalText&&pd.evalText.trim())?`<div style="margin-top:3pt;"><b style="color:#9a5b12;">［評価］</b>${NL(pd.evalText)}</div>`:"";
+      const actBody=(pd.text&&pd.text.trim())?NL(pd.text):"―";
+      const strat=pd.strategies.length
+        ? pd.strategies.map(s=>`<div><span style="color:${layerColor[s.layer]||"#333"};font-weight:bold;">[${s.layer}]</span> ${E(s.text)}</div>`).join("")
+        : "―";
+      body+=`<tr>
+        <td style="${cellB}background:#f7f0ee;text-align:center;width:14%;">${E(pd.label||("第"+periodNo+"時"))}${procBadge}</td>
+        <td style="${cellB}width:52%;">${goal}<div>${actBody}</div>${evalT}</td>
+        <td style="${cellB}width:34%;font-size:9.5pt;">${strat}</td>
+      </tr>`;
     });
+  });
+  const unitTable=`
+  <table style="border-collapse:collapse;width:100%;">
+    <tr>
+      <td style="${cellB}${thBg}text-align:center;">時 / 学習過程</td>
+      <td style="${cellB}${thBg}text-align:center;">目標・学習活動・評価</td>
+      <td style="${cellB}${thBg}text-align:center;">調整方略（<span style="color:#b3232a;">I</span>自己 / <span style="color:#1f7a8c;">You</span>共 / <span style="color:#d98324;">We</span>社会的共有）</td>
+    </tr>
+    ${body}
+  </table>`;
 
-    // 見出し行セル
-    const headCell=(t,w)=>txtCell(t,{bold:true,shade:"EEEEEE",width:w});
+  // Wordが横向きで開くよう @page を指定
+  const html=`<!DOCTYPE html>
+  <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+  <head><meta charset="utf-8">
+  <title>単元構想シート</title>
+  <!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View></w:WordDocument></xml><![endif]-->
+  <style>
+    @page{size:842pt 595pt;mso-page-orientation:landscape;margin:1.6cm;}
+    body{font-family:'Yu Gothic','Hiragino Kaku Gothic ProN','MS PGothic',sans-serif;font-size:10.5pt;color:#222;}
+    h1{font-size:16pt;text-align:center;margin:0 0 10pt;}
+  </style></head>
+  <body>
+    <h1>単元構想シート</h1>
+    ${meta}
+    ${unitTable}
+  </body></html>`;
 
-    // 基本情報テーブル
-    const infoTable=new Table({
-      width:{size:100,type:WidthType.PERCENTAGE},
-      rows:[
-        new TableRow({children:[headCell("教科・学年",22),txtCell(`${m.subject||"―"}　${m.grade||""}`,{width:78})]}),
-        new TableRow({children:[headCell("単元名",22),txtCell(m.unit||"―",{width:78})]}),
-        new TableRow({children:[headCell("単元の目標",22),txtCell(m.unitGoal||"―",{width:78})]}),
-        new TableRow({children:[headCell("本時の目標",22),txtCell(m.lessonGoal||"―",{width:78})]}),
-        new TableRow({children:[headCell("人数 / 時間",22),txtCell(`${m.students||"―"}人 / 本時${m.minutes||"―"}分${m.hours?("（"+m.hours+"）"):""}`,{width:78})]}),
-      ]
-    });
-
-    // 展開テーブル
-    const devRows=[
-      new TableRow({children:[headCell("段階",14),headCell("学習活動・調整方略",86)]})
-    ];
-    state.phases.forEach(p=>{
-      // 段階セルの中身
-      const stageCell=txtCell([
-        new Paragraph({children:[new TextRun({text:p.name,bold:true})]}),
-        new Paragraph({children:[new TextRun({text:p.min+"分",size:18,color:"666666"})]})
-      ],{width:14,shade:"F4F4EF"});
-
-      // 活動セルの中身（活動ごとに活動文＋方略）
-      const actParas=[];
-      const filled=p.activities.filter(a=>(a.text&&a.text.trim())||a.strategies.length);
-      if(!filled.length){
-        actParas.push(new Paragraph({children:[new TextRun("―")]}));
-      }
-      filled.forEach((a,i)=>{
-        if(filled.length>1){
-          actParas.push(new Paragraph({children:[new TextRun({text:"【活動"+(i+1)+"】",bold:true,color:"0A4E46"})]}));
-        }
-        (a.text||"").split("\n").forEach(line=>{
-          actParas.push(new Paragraph({children:[new TextRun(line||"")]}));
-        });
-        a.strategies.forEach(s=>{
-          actParas.push(new Paragraph({
-            spacing:{before:20},
-            children:[
-              new TextRun({text:"◆"+layerName[s.layer]+" ",bold:true,color:layerColor[s.layer],size:18}),
-              new TextRun({text:s.text,size:18})
-            ]
-          }));
-        });
-        if(i<filled.length-1) actParas.push(new Paragraph({children:[new TextRun("")]}));
-      });
-
-      devRows.push(new TableRow({children:[stageCell,txtCell(actParas,{width:86})]}));
-    });
-    const devTable=new Table({width:{size:100,type:WidthType.PERCENTAGE},rows:devRows});
-
-    const doc=new Document({
-      creator:"木村明憲",
-      title:(m.unit||"指導案")+" 本時の指導案",
-      sections:[{
-        properties:{page:{size:{orientation:"landscape"}}},
-        children:[
-          new Paragraph({alignment:AlignmentType.CENTER,
-            children:[new TextRun({text:"本時の指導案",bold:true,size:32})]}),
-          new Paragraph({alignment:AlignmentType.CENTER,spacing:{after:160},
-            children:[new TextRun({text:[m.subject,m.grade,m.unit&&("単元「"+m.unit+"」")].filter(Boolean).join("　"),size:20,color:"555555"})]}),
-          infoTable,
-          new Paragraph({spacing:{before:200,after:80},
-            children:[new TextRun({text:"本時の展開",bold:true,size:24})]}),
-          new Paragraph({spacing:{after:80},
-            children:[new TextRun({text:"◆ 調整方略の層：自己調整(I)／共調整(You)／社会的に共有された調整(We)",size:16,color:"666666"})]}),
-          devTable,
-          new Paragraph({spacing:{before:240},alignment:AlignmentType.RIGHT,
-            children:[new TextRun({text:"作成：木村明憲",size:16,color:"888888"})]}),
-        ]
-      }]
-    });
-
-    const blob=await Packer.toBlob(doc);
-    const a=document.createElement("a");
-    a.href=URL.createObjectURL(blob);
-    a.download=(m.unit||"指導案")+"_本時の指導案.docx";
-    a.click();
-    setTimeout(()=>URL.revokeObjectURL(a.href),2000);
-  }catch(err){
-    alert("Word出力でエラーが発生しました："+(err&&err.message?err.message:err));
-  }finally{
-    btn.disabled=false; btn.textContent=old;
-  }
+  // BOM付きUTF-8でWordの文字化けを防ぐ
+  const blob=new Blob(["\ufeff",html],{type:"application/msword"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=(state.meta.unit||"単元構想")+"_単元構想.doc";
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 
 /* 起動 */
