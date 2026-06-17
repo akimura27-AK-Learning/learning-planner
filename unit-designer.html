@@ -78,6 +78,10 @@
     text-transform:uppercase;
   }
   .lead{color:var(--ink-soft);margin:0 0 22px;font-size:.92rem;}
+  .note-reflect{
+    background:var(--teal-wash);border-left:4px solid var(--teal);
+    border-radius:8px;padding:11px 14px;margin:-8px 0 22px;color:var(--ink);
+  }
   .card{
     background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
     box-shadow:var(--shadow);padding:22px;margin-bottom:18px;
@@ -137,6 +141,16 @@
     flex:1;min-width:140px;font-weight:700;font-size:.95rem;
     border:1px solid var(--line);border-radius:8px;padding:7px 10px;background:var(--paper);
   }
+  /* 次の過程区分セレクト（見通す/実行する/振り返る） */
+  .stage-phase-wrap{flex:none;}
+  .stage-phase-sel{
+    width:auto;font-weight:800;font-size:.84rem;padding:5px 10px;border-radius:7px;cursor:pointer;
+    color:#fff;border:none;
+  }
+  .stage-phase-sel.phase-見通す{background:#b3232a;}
+  .stage-phase-sel.phase-実行する{background:#1f7a8c;}
+  .stage-phase-sel.phase-振り返る{background:#d98324;}
+  .stage-phase-sel option{color:#222;background:#fff;}
   /* 学習過程セレクト */
   .process-wrap{font-size:.78rem;color:var(--ink-soft);font-weight:700;display:flex;align-items:center;gap:6px;white-space:nowrap;}
   .process-sel{
@@ -230,10 +244,17 @@
     background:var(--teal-wash)!important;color:var(--teal-deep);
     font-weight:800;font-size:.84rem;text-align:left!important;
   }
+  .pv-phase{
+    display:inline-block;font-size:.72rem;font-weight:800;padding:1px 9px;border-radius:5px;
+    color:#fff;margin-left:8px;vertical-align:1px;
+  }
+  .pv-phase.phase-見通す{background:#b3232a;}
+  .pv-phase.phase-実行する{background:#1f7a8c;}
+  .pv-phase.phase-振り返る{background:#d98324;}
   .pv-period-th{background:#f7f0ee!important;white-space:nowrap;font-weight:700;text-align:center!important;}
   .pv-strat-cell{font-size:.78rem;}
   .pv-proc{
-    display:inline-block;margin-top:5px;font-size:.64rem;font-weight:700;padding:1px 6px;
+    display:block;margin:6px auto 0;width:fit-content;font-size:.64rem;font-weight:700;padding:1px 7px;
     border-radius:4px;color:#fff;white-space:nowrap;line-height:1.5;letter-spacing:0;
   }
   .pv-proc.proc-課題設定{background:#b3232a;}
@@ -362,7 +383,7 @@
   .mode-tab b{font-size:.92rem;}
   .mode-tab .mode-n{
     width:24px;height:24px;flex:none;border-radius:50%;display:grid;place-items:center;
-    font-weight:800;font-size:.82rem;background:var(--line);color:var(--ink);
+    font-weight:800;font-size:1rem;line-height:1;background:var(--line);color:var(--ink);
   }
   .mode-tab[data-mode=activity].active{border-color:var(--teal);background:var(--teal-wash);}
   .mode-tab[data-mode=activity].active .mode-n{background:var(--teal);color:#fff;}
@@ -545,16 +566,17 @@
   <!-- 画面3：AI相談＋バランス -->
   <section class="screen" data-screen="2">
     <h2 class="screen-title"><span class="eyebrow">STEP 3</span>AIと相談して単元を構想する</h2>
-    <p class="lead">まず単元全体の流れと各時の学習活動を具体的にし、活動が固まってから調整方略を入れていきます。下のタブで相談のモードを切り替えられます。</p>
+    <p class="lead">まず単元全体の流れと各時の学習活動を「①単元の流れ・学習活動を具体化」で具体的にし、活動が固まってから「②調整方略を入れる」で調整方略を入れていきます。下のタブで相談のモードを切り替えられます。</p>
+    <p class="lead note-reflect">AIが具体的な学習活動や調整方略を提案すると、回答の下に「この時に反映 / 追記」や「＋ 単元計画に追加」ボタンが付き、押すだけで単元構想に反映できます（コピー＆ペーストは不要です）。反映した内容は「単元計画を組む」の画面で確認・修正できます。</p>
 
     <div class="mode-tabs no-print">
       <button class="mode-tab active" data-mode="activity" onclick="setMode('activity')">
-        <span class="mode-n">1</span>
+        <span class="mode-n">①</span>
         <span><b>単元の流れ・学習活動を具体化</b><small>各時で何をするかを練る</small></span>
       </button>
       <span class="mode-arrow">→</span>
       <button class="mode-tab" data-mode="strategy" onclick="setMode('strategy')">
-        <span class="mode-n">2</span>
+        <span class="mode-n">②</span>
         <span><b>調整方略を入れる</b><small>I / You / We を埋め込む</small></span>
       </button>
     </div>
@@ -713,14 +735,14 @@ const state = {
   // 単元計画：複数の「次(stage)」。各次が複数の「時(period=1コマ)」を持つ。
   // 各時は学習活動文(text)と、埋め込まれた方略配列(strategies)を持つ。
   stages:[
-    {id:"s1", name:"第1次", periods:[
+    {id:"s1", name:"", phase:"見通す", periods:[
       {label:"第1時", process:"課題設定", goal:"", text:"", evalText:"", strategies:[]}
     ]},
-    {id:"s2", name:"第2次", periods:[
+    {id:"s2", name:"", phase:"実行する", periods:[
       {label:"第2時", process:"情報収集", goal:"", text:"", evalText:"", strategies:[]},
       {label:"第3時", process:"整理・分析", goal:"", text:"", evalText:"", strategies:[]}
     ]},
-    {id:"s3", name:"第3次", periods:[
+    {id:"s3", name:"", phase:"振り返る", periods:[
       {label:"第4時", process:"まとめ・表現", goal:"", text:"", evalText:"", strategies:[]}
     ]},
   ],
@@ -748,6 +770,36 @@ const PROC_BY_PHASE={
 };
 // 学習過程の選択肢
 const PROCESS_OPTIONS=["課題設定","情報収集","整理・分析","まとめ・表現","振り返り"];
+// 各時の記入欄に出す、学習過程別の記入例（プレースホルダ）
+const PROCESS_EXAMPLES={
+  "課題設定":{
+    goal:"例）資料から地域の特色に気づき、単元を貫く問いをもつ。",
+    act:"例）写真や統計を見て気づきを出し合い、「なぜ〜だろう」という学習問題をつくる。一人ひとりが追究したいことをノートに書く。",
+    eval:"例）【思】資料を関連づけて課題を見いだしている。（ワークシート）"
+  },
+  "情報収集":{
+    goal:"例）問いを解決するために必要な情報を、資料から集める。",
+    act:"例）教科書・地図・統計などから必要な情報を集め、出典とともに記録する。班で分担して調べる。",
+    eval:"例）【知】資料から必要な情報を読み取り、適切に集めている。（ノート）"
+  },
+  "整理・分析":{
+    goal:"例）集めた情報を比較・関連づけ、問いに対する考えをまとめる。",
+    act:"例）集めた情報を表や図に整理し、共通点や要因を話し合って考察する。考えの根拠を明らかにする。",
+    eval:"例）【思】情報を関連づけて要因を考察し、説明している。（発言・記述）"
+  },
+  "まとめ・表現":{
+    goal:"例）考えたことを根拠とともに表現し、伝え合う。",
+    act:"例）考えをスライドや新聞にまとめ、発表し合う。友達の発表と比べて自分の考えを見直す。",
+    eval:"例）【思】根拠を示して自分の考えを表現している。（成果物・発表）"
+  },
+  "振り返り":{
+    goal:"例）単元の学びを振り返り、学び方や次の課題を見いだす。",
+    act:"例）学習前後の考えの変化を振り返り、うまくいった学び方や次に生かしたいことを書く。",
+    eval:"例）【主】学習を振り返り、学び方を調整しようとしている。（振り返り記述）"
+  }
+};
+// 次(stage)の過程区分
+const STAGE_PHASE_OPTIONS=["見通す","実行する","振り返る"];
 // 学習過程に応じて、方略ピッカーで最初に表示するフェーズを決める
 const PHASE_BY_PROCESS={
   "課題設定":"見通す",
@@ -1030,6 +1082,8 @@ function saveInputs(){
   state.stages.forEach(st=>{
     const nm=document.querySelector(`input[data-stage-name="${st.id}"]`);
     if(nm)st.name=nm.value;
+    const ph=document.querySelector(`select[data-stage-phase="${st.id}"]`);
+    if(ph)st.phase=ph.value;
     st.periods.forEach((pd,pi)=>{
       const lb=document.querySelector(`input[data-plabel="${st.id}"][data-pi="${pi}"]`);
       if(lb)pd.label=lb.value;
@@ -1067,6 +1121,7 @@ function renderPhases(){
     st.periods.forEach((pd,pi)=>{
       periodCounter++;
       const procSel=PROCESS_OPTIONS.map(p=>`<option value="${p}" ${pd.process===p?"selected":""}>${p}</option>`).join("");
+      const ex=PROCESS_EXAMPLES[pd.process]||PROCESS_EXAMPLES["課題設定"];
       periods+=`
       <div class="act-slot proc-${(pd.process||"").replace(/[・]/g,"")}">
         <div class="act-slot-head">
@@ -1080,24 +1135,30 @@ function renderPhases(){
         </div>
         <div class="field period-sub">
           <label>目標 <span class="hint">この時間のねらい</span></label>
-          <textarea data-pgoal="${st.id}" data-pi="${pi}" class="goal-area" placeholder="例）資料から近畿地方の特色について課題を見いだし、学習の見通しをもつ。">${esc(pd.goal||"")}</textarea>
+          <textarea data-pgoal="${st.id}" data-pi="${pi}" class="goal-area" placeholder="${escAttr(ex.goal)}">${esc(pd.goal||"")}</textarea>
         </div>
         <div class="field develop-cell">
           <label>学習活動・指導上の留意点</label>
-          <textarea data-act="${st.id}" data-pi="${pi}" placeholder="この時間に児童・生徒が行うこと・指導上の留意点を書きます">${esc(pd.text||"")}</textarea>
+          <textarea data-act="${st.id}" data-pi="${pi}" placeholder="${escAttr(ex.act)}">${esc(pd.text||"")}</textarea>
         </div>
         <div class="field period-sub">
           <label>評価 <span class="hint">評価規準・評価方法</span></label>
-          <textarea data-peval="${st.id}" data-pi="${pi}" class="eval-area" placeholder="例）【思】資料を関連づけて課題を見いだしている。（ワークシート）">${esc(pd.evalText||"")}</textarea>
+          <textarea data-peval="${st.id}" data-pi="${pi}" class="eval-area" placeholder="${escAttr(ex.eval)}">${esc(pd.evalText||"")}</textarea>
         </div>
         <div class="chips" data-chips="${st.id}" data-chips-pi="${pi}"></div>
         <button class="add-strat" onclick="openPicker('${st.id}',${pi})">＋ 方略を追加（I / You / We）</button>
       </div>`;
     });
+    const namePh={"見通す":"例）地域をつかむ・学習計画を立てる","実行する":"例）資料を集めて調べる・整理して考える","振り返る":"例）成果をまとめ学びを振り返る"}[st.phase]||"例）地域をつかむ";
     block.innerHTML=`
       <div class="stage-head">
         <span class="stage-no">第${si+1}次</span>
-        <input type="text" data-stage-name="${st.id}" value="${escAttr(st.name||"")}" class="stage-name-input" placeholder="例）地域をつかむ">
+        <span class="stage-phase-wrap">
+          <select data-stage-phase="${st.id}" class="stage-phase-sel phase-${st.phase||""}" onchange="onStagePhaseChange('${st.id}',this.value)">
+            ${STAGE_PHASE_OPTIONS.map(p=>`<option value="${p}" ${st.phase===p?"selected":""}>${p}</option>`).join("")}
+          </select>
+        </span>
+        <input type="text" data-stage-name="${st.id}" value="${escAttr(st.name||"")}" class="stage-name-input" placeholder="${namePh}">
         ${state.stages.length>1?`<button class="stage-del" title="この次を削除" onclick="removeStage('${st.id}')">次を削除</button>`:""}
       </div>
       <div class="act-list">${periods}</div>
@@ -1115,13 +1176,21 @@ function escAttr(s){return esc(s).replace(/"/g,"&quot;");}
 function addStage(){
   saveInputs();
   const id="s"+(stageSeq++);
-  state.stages.push({id,name:"第"+(state.stages.length+1)+"次",periods:[{label:"",process:"課題設定",goal:"",text:"",evalText:"",strategies:[]}]});
+  // 追加位置に応じて妥当な過程区分の初期値を選ぶ
+  const defPhase=state.stages.length===0?"見通す":"実行する";
+  state.stages.push({id,name:"",phase:defPhase,periods:[{label:"",process:"課題設定",goal:"",text:"",evalText:"",strategies:[]}]});
   renderPhases();
 }
 function removeStage(sid){
   saveInputs();
   if(state.stages.length<=1)return;
   state.stages=state.stages.filter(s=>s.id!==sid);
+  renderPhases();
+}
+function onStagePhaseChange(sid,val){
+  saveInputs();
+  const st=state.stages.find(s=>s.id===sid);
+  if(st)st.phase=val;
   renderPhases();
 }
 function onProcessChange(sid,pi,val){
@@ -1366,7 +1435,7 @@ function lessonContext(){
   if(m.assessment)ctx+=`【評価規準】${m.assessment}\n`;
   ctx+=`【人数】${m.students}　【1時間】${m.minutes}分\n\n単元計画（次→時）：\n`;
   state.stages.forEach((st,si)=>{
-    ctx+=`■第${si+1}次「${st.name||""}」\n`;
+    ctx+=`■第${si+1}次「${st.name||""}」（${st.phase||""}）\n`;
     st.periods.forEach((pd,pi)=>{
       ctx+=`  ${pd.label||("第"+(pi+1)+"時")}（学習過程:${pd.process||"未設定"}）\n`;
       if(pd.goal)ctx+=`    目標：${pd.goal}\n`;
@@ -1568,7 +1637,7 @@ async function sendAI(kickoff){
 
   const system=aiMode==="activity"?SYS_ACTIVITY:SYS_STRATEGY;
   const history=state.ai.map(m=>({role:m.role,content:m.content}));
-  const stageGuide=state.stages.map((s,i)=>`${s.id}=第${i+1}次「${s.name||""}」`).join("、");
+  const stageGuide=state.stages.map((s,i)=>`${s.id}=第${i+1}次「${s.name||""}」(${s.phase||""})`).join("、");
   const userMsg=`現在の単元構想:\n${lessonContext()}\n\n【次のid対応】${stageGuide}\n\n相談内容: ${q}`;
   const stageName=sid=>{const st=resolveStage(sid);const i=state.stages.indexOf(st);return st?`第${i+1}次「${st.name||""}」`:sid;};
 
@@ -1658,7 +1727,7 @@ function renderPreview(){
   let rows="";
   state.stages.forEach((st,si)=>{
     rows+=`<tr class="pv-stage-row">
-      <th colspan="3" class="pv-stage-th">第${si+1}次　${esc(st.name||"")}</th>
+      <th colspan="3" class="pv-stage-th">第${si+1}次　${esc(st.name||"")}${st.phase?`<span class="pv-phase phase-${esc(st.phase)}">${esc(st.phase)}</span>`:""}</th>
     </tr>`;
     st.periods.forEach((pd,pi)=>{
       periodNo++;
@@ -1813,7 +1882,7 @@ async function aiSortImport(){
       };
     }).filter(p=>p.text);
     if(periods.length){
-      state.stages=[{id:"s"+(stageSeq++),name:"第1次",periods}];
+      state.stages=[{id:"s"+(stageSeq++),name:"第1次",phase:"見通す",periods}];
     }
     renderPhases();
     st.style.color="#1f7a3a";
@@ -1871,9 +1940,11 @@ function downloadWord(){
   </table>`;
 
   // 単元計画の表
+  const phaseColor={"見通す":"#b3232a","実行する":"#1f7a8c","振り返る":"#d98324"};
   let periodNo=0, body="";
   state.stages.forEach((st,si)=>{
-    body+=`<tr><td style="${cellB}background:#fbe7e6;font-weight:bold;color:#7e1419;" colspan="3">第${si+1}次　${E(st.name||"")}</td></tr>`;
+    const phBadge=st.phase?`<span style="background:${phaseColor[st.phase]||"#888"};color:#ffffff;font-size:8.5pt;font-weight:bold;padding:1pt 6pt;margin-left:6pt;">${E(st.phase)}</span>`:"";
+    body+=`<tr><td style="${cellB}background:#fbe7e6;font-weight:bold;color:#7e1419;" colspan="3">第${si+1}次　${E(st.name||"")}${phBadge}</td></tr>`;
     st.periods.forEach((pd)=>{
       periodNo++;
       const pc=procColor[pd.process]||"#888";

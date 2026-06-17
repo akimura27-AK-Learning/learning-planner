@@ -122,6 +122,22 @@
   }
   .phase-min{font-size:.8rem;color:var(--ink-soft);}
   .develop-cell textarea{min-height:88px;}
+  /* 本時のめあて */
+  .mearai-card{background:#fffaf0;border-left:4px solid var(--amber);}
+  .mearai-card label{color:#8a4e10;}
+  /* 活動枠の各記入欄 */
+  .sub-field{margin-bottom:10px;}
+  .sub-label{display:block;font-weight:700;font-size:.8rem;margin-bottom:4px;color:var(--ink);}
+  .main-label{color:var(--teal-deep);font-size:.85rem;}
+  .sub-field textarea{min-height:54px;}
+  .add-eval{margin-top:4px;font-size:.8rem;color:var(--amber);background:none;
+    border:1px dashed var(--amber);border-radius:7px;padding:6px 12px;cursor:pointer;font-family:inherit;}
+  .add-eval:hover{background:var(--amber-wash);}
+  .eval-field{background:#fffaf0;border:1px solid #f0d9b5;border-radius:8px;padding:10px 12px;margin-top:6px;}
+  .eval-field .sub-label{color:#8a4e10;display:flex;justify-content:space-between;align-items:center;}
+  .mini-del{font-size:.72rem;color:#a23;background:none;border:1px solid #d9b3b3;
+    border-radius:5px;padding:2px 8px;cursor:pointer;font-family:inherit;font-weight:400;}
+  .mini-del:hover{background:#f8e9e9;}
   /* 指導案読み込みエリア */
   .import-card{background:#fbfaf4;border-style:dashed;}
   .import-card summary{cursor:pointer;font-size:.95rem;list-style:none;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
@@ -163,6 +179,11 @@
   .pv-act{padding:4px 0;}
   .pv-act + .pv-act{border-top:1px dashed #bbb;margin-top:6px;padding-top:8px;}
   .pv-act-no{font-weight:700;font-size:.74rem;color:#555;margin-bottom:2px;}
+  .pv-f{margin:4px 0;font-size:.8rem;}
+  .pv-f-l{display:block;font-weight:700;color:#3a5a54;font-size:.72rem;margin-bottom:1px;}
+  .pv-f-v{display:block;}
+  .pv-eval .pv-f-l{color:#8a4e10;}
+  .pv-eval{background:#fffaf0;border-radius:5px;padding:3px 6px;margin-top:4px;}
   /* 方略チップ（埋め込み済み） */
   .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
   .chip{
@@ -327,9 +348,18 @@
   .preview-sheet{background:#fff;border:1px solid var(--line);border-radius:8px;padding:28px;}
   .preview-sheet h1{font-size:1.3rem;margin:0 0 4px;text-align:center;}
   .preview-sheet .meta-line{text-align:center;font-size:.85rem;color:var(--ink-soft);margin-bottom:18px;}
-  .pv-table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:10px;}
-  .pv-table th,.pv-table td{border:1px solid #999;padding:8px 9px;vertical-align:top;text-align:left;}
-  .pv-table th{background:#eee;white-space:nowrap;}
+  .pv-table{width:100%;border-collapse:collapse;font-size:.78rem;margin-top:10px;}
+  .pv-table th,.pv-table td{border:1px solid #999;padding:6px 7px;vertical-align:top;text-align:left;
+    overflow-wrap:break-word;word-break:normal;line-break:strict;}
+  .pv-table th{background:#eee;font-size:.76rem;}
+  .pv-table:not(.pv-develop) th{width:130px;white-space:nowrap;}
+  .pv-develop{table-layout:fixed;}
+  .pv-develop .c-stage{width:13%;}
+  .pv-develop .c-left{width:43.5%;}
+  .pv-develop .c-right{width:43.5%;}
+  .pv-stage{text-align:center;font-weight:700;background:#f4f4ef;}
+  .pv-min{font-weight:400;font-size:.72rem;color:#666;}
+  .pv-left,.pv-right{font-size:.76rem;}
   .pv-strat{font-size:.74rem;margin-top:6px;}
   .pv-strat .lbl{font-weight:700;display:inline-block;border-radius:4px;padding:0 5px;margin-right:4px;}
   .lbl.I{background:var(--i-wash);color:#0a4e46;}
@@ -366,9 +396,15 @@
   .bal-card.I .num{color:var(--i-col);} .bal-card.You .num{color:var(--you-col);} .bal-card.We .num{color:var(--we-col);}
   .bal-card .lab{font-size:.74rem;color:var(--ink-soft);}
   @media print{
+    @page{size:A4 landscape;margin:10mm;}
     header.app,.nav-row,.ai-dock,.no-print{display:none!important;}
-    body{background:#fff;} main{padding:0;}
-    .preview-sheet{border:none;box-shadow:none;}
+    body{background:#fff;} main{padding:0;max-width:none;}
+    .preview-sheet{border:none;box-shadow:none;padding:0;}
+    .pv-table{font-size:9pt;}
+    .pv-develop{width:100%;}
+    .pv-table th,.pv-table td{padding:4px 5px;}
+    .pv-left,.pv-right,.pv-stage{font-size:9pt;}
+    tr{break-inside:avoid;}
   }
 </style>
 </head>
@@ -447,6 +483,13 @@
       </details>
     </div>
 
+    <div class="card mearai-card">
+      <div class="field" style="margin-bottom:0;">
+        <label>本時のめあて <span class="hint">この時間に児童・生徒に示すめあて（板書する言葉）</span></label>
+        <textarea data-bind="mearai" placeholder="例）近畿地方に人口が集まる理由を、資料から考えて説明しよう。" style="min-height:56px;"></textarea>
+      </div>
+    </div>
+
     <div id="phases"></div>
     <div class="nav-row">
       <button class="btn btn-ghost" onclick="go(0)">← 戻る</button>
@@ -457,7 +500,7 @@
   <!-- 画面3：AI相談＋バランス -->
   <section class="screen" data-screen="2">
     <h2 class="screen-title"><span class="eyebrow">STEP 3</span>AIと相談してブラッシュアップ</h2>
-    <p class="lead">まず学習活動そのものを具体的にし、活動が固まってから調整方略を入れていきます。下のタブで相談のモードを切り替えられます。</p>
+    <p class="lead">まず学習活動そのものを具体的にし、活動が固まってから調整方略を入れていきます。下のタブで相談のモードを切り替えられます。AIが具体的な学習活動や調整方略を提案すると、「＋ 指導案に追加」ボタンが付き、単元構想に反映できます。</p>
 
     <div class="mode-tabs no-print">
       <button class="mode-tab active" data-mode="activity" onclick="setMode('activity')">
@@ -621,13 +664,16 @@
 /* ============================================================
    データ構造
    ============================================================ */
+function newActivity(){
+  return {text:"",teach:"",reaction:"",support:"",strategies:[],eval:null};
+}
 const state = {
-  meta:{subject:"",grade:"",hours:"",unit:"",unitGoal:"",lessonGoal:"",students:"",minutes:"50"},
-  // 展開：3段階。各段階に活動文と、埋め込まれた方略配列
+  meta:{subject:"",grade:"",hours:"",unit:"",unitGoal:"",lessonGoal:"",mearai:"",students:"",minutes:"50"},
+  // 展開：3段階。各段階に活動枠の配列（活動・教師の指導・予想反応・支援・方略・評価(任意)）
   phases:[
-    {id:"intro",   name:"導入", min:10, activities:[{text:"",strategies:[]}]},
-    {id:"develop", name:"展開", min:30, activities:[{text:"",strategies:[]},{text:"",strategies:[]}]},
-    {id:"summary", name:"まとめ", min:10, activities:[{text:"",strategies:[]}]},
+    {id:"intro",   name:"導入", min:10, activities:[newActivity()]},
+    {id:"develop", name:"展開", min:30, activities:[newActivity(),newActivity()]},
+    {id:"summary", name:"まとめ", min:10, activities:[newActivity()]},
   ],
   ai:[],            // 相談履歴 {role,content}
   provider:"claude",
@@ -927,6 +973,14 @@ function saveInputs(){
     p.activities.forEach((a,ai)=>{
       const t=document.querySelector(`textarea[data-act="${p.id}"][data-ai="${ai}"]`);
       if(t)a.text=t.value;
+      const tc=document.querySelector(`textarea[data-teach="${p.id}"][data-ai="${ai}"]`);
+      if(tc)a.teach=tc.value;
+      const rc=document.querySelector(`textarea[data-reaction="${p.id}"][data-ai="${ai}"]`);
+      if(rc)a.reaction=rc.value;
+      const sc=document.querySelector(`textarea[data-support="${p.id}"][data-ai="${ai}"]`);
+      if(sc)a.support=sc.value;
+      const ec=document.querySelector(`textarea[data-eval="${p.id}"][data-ai="${ai}"]`);
+      if(ec)a.eval=ec.value;
     });
   });
   const k=document.getElementById("apiKey"); if(k)state.keys[state.provider]=k.value.trim();
@@ -948,6 +1002,14 @@ function renderPhases(){
     let acts="";
     p.activities.forEach((a,ai)=>{
       const multi=p.activities.length>1;
+      const evalBlock = (a.eval!==null && a.eval!==undefined)
+        ? `<div class="field sub-field eval-field">
+             <label class="sub-label">評価・評価方法
+               <button class="mini-del" title="評価欄を削除" onclick="removeEval('${p.id}',${ai})">×削除</button>
+             </label>
+             <textarea data-eval="${p.id}" data-ai="${ai}" placeholder="例）資料から要因を関連づけて説明できているか（ワークシートの記述で評価）">${a.eval||""}</textarea>
+           </div>`
+        : `<button class="add-eval" onclick="addEval('${p.id}',${ai})">＋ 評価・評価方法を追加</button>`;
       acts+=`
       <div class="act-slot">
         <div class="act-slot-head">
@@ -955,11 +1017,27 @@ function renderPhases(){
           ${multi?`<button class="act-del" title="この活動を削除" onclick="removeActivity('${p.id}',${ai})">削除</button>`:""}
         </div>
         <div class="field develop-cell">
-          <label class="sr-label">学習活動・指導上の留意点</label>
-          <textarea data-act="${p.id}" data-ai="${ai}" placeholder="この活動で生徒が行うこと・指導上の留意点を書きます">${a.text||""}</textarea>
+          <label class="sub-label main-label">学習活動</label>
+          <textarea data-act="${p.id}" data-ai="${ai}" placeholder="この活動で児童・生徒が行うことを書きます">${a.text||""}</textarea>
         </div>
-        <div class="chips" data-chips="${p.id}" data-chips-ai="${ai}"></div>
-        <button class="add-strat" onclick="openPicker('${p.id}',${ai})">＋ 方略を追加（I / You / We）</button>
+        <div class="field sub-field">
+          <label class="sub-label">教師の指導（発問・指示など）</label>
+          <textarea data-teach="${p.id}" data-ai="${ai}" placeholder="例）「なぜ人口が集まるのだろう」と問いかける">${a.teach||""}</textarea>
+        </div>
+        <div class="field sub-field">
+          <label class="sub-label">予想される学習者の反応</label>
+          <textarea data-reaction="${p.id}" data-ai="${ai}" placeholder="例）交通の便がよいから、仕事が多いから、などと答える">${a.reaction||""}</textarea>
+        </div>
+        <div class="field sub-field">
+          <label class="sub-label">学習者に対する支援及び留意点</label>
+          <textarea data-support="${p.id}" data-ai="${ai}" placeholder="例）資料の見方に迷う生徒には着目する項目を助言する">${a.support||""}</textarea>
+        </div>
+        <div class="field sub-field">
+          <label class="sub-label">調整方略</label>
+          <div class="chips" data-chips="${p.id}" data-chips-ai="${ai}"></div>
+          <button class="add-strat" onclick="openPicker('${p.id}',${ai})">＋ 方略を追加（I / You / We）</button>
+        </div>
+        ${evalBlock}
       </div>`;
     });
     block.innerHTML=`
@@ -979,7 +1057,19 @@ function renderPhases(){
 function addActivity(pid){
   saveInputs();
   const p=state.phases.find(x=>x.id===pid);
-  p.activities.push({text:"",strategies:[]});
+  p.activities.push(newActivity());
+  renderPhases();
+}
+function addEval(pid,ai){
+  saveInputs();
+  const p=state.phases.find(x=>x.id===pid);
+  p.activities[ai].eval="";
+  renderPhases();
+}
+function removeEval(pid,ai){
+  saveInputs();
+  const p=state.phases.find(x=>x.id===pid);
+  p.activities[ai].eval=null;
   renderPhases();
 }
 function removeActivity(pid,ai){
@@ -1200,15 +1290,20 @@ function lessonContext(){
   const m=state.meta;
   let ctx=`【教科】${m.subject}　【学年】${m.grade}　【単元】${m.unit}\n`;
   ctx+=`【単元の目標】${m.unitGoal}\n【本時の目標】${m.lessonGoal}\n`;
+  if(m.mearai)ctx+=`【本時のめあて】${m.mearai}\n`;
   ctx+=`【人数】${m.students}　【本時】${m.minutes}分\n\n本時の展開：\n`;
   state.phases.forEach(p=>{
     ctx+=`■${p.name}（${p.min}分）\n`;
     p.activities.forEach((a,ai)=>{
       const label=p.activities.length>1?`  活動${ai+1}：`:`  活動：`;
       ctx+=`${label}${a.text||"（未記入）"}\n`;
+      if(a.teach)ctx+=`    教師の指導：${a.teach}\n`;
+      if(a.reaction)ctx+=`    予想される反応：${a.reaction}\n`;
+      if(a.support)ctx+=`    支援・留意点：${a.support}\n`;
       if(a.strategies.length){
         a.strategies.forEach(s=>ctx+=`    ・[${s.layer}] ${s.text}\n`);
       }else ctx+="    （方略未設定）\n";
+      if(a.eval)ctx+=`    評価・評価方法：${a.eval}\n`;
     });
   });
   return ctx;
@@ -1406,10 +1501,10 @@ async function sendAI(kickoff){
       activities.forEach(a=>{
         const card=document.createElement("div");card.className="ai-activity";
         card.innerHTML=`<span class="ph">${phaseName[a.phase]||a.phase} の学習活動</span><br>${a.text}<br>
-          <button class="apply">この活動を反映 / 追記</button>`;
+          <button class="apply">＋ 指導案に追加</button>`;
         card.querySelector(".apply").onclick=()=>{
           applyActivity(a.phase,a.text);
-          card.querySelector(".apply").textContent="✓ 反映しました";
+          card.querySelector(".apply").textContent="✓ 追加しました";
           card.querySelector(".apply").disabled=true;
         };
         document.getElementById("aiLog").appendChild(card);
@@ -1429,7 +1524,7 @@ async function sendAI(kickoff){
         const card=document.createElement("div");card.className="ai-suggest";
         card.innerHTML=`<b>[${s.layer}]</b> ${s.text}<br>
           <small>→ 「${phaseName[s.phase]||s.phase}」へ</small><br>
-          <button class="add">＋ 展開に追加</button>`;
+          <button class="add">＋ 指導案に追加</button>`;
         card.querySelector(".add").onclick=()=>{
           addStrategyToPhase(s.phase,s.layer,s.text,"AI提案");
           renderBalance();
@@ -1452,7 +1547,7 @@ function applyActivity(pid,text){
   const p=state.phases.find(x=>x.id===pid);if(!p)return;
   const empty=p.activities.find(a=>!a.text||!a.text.trim());
   if(empty){empty.text=text;}
-  else{p.activities.push({text,strategies:[]});}
+  else{const na=newActivity();na.text=text;p.activities.push(na);}
   renderPhases();
 }
 
@@ -1464,31 +1559,54 @@ function renderPreview(){
   const stratHtml=strs=>strs.length
     ? `<div class="pv-strat">`+strs.map(s=>`<span class="lbl ${s.layer}">${s.layer}</span>${s.text}`).join("<br>")+`</div>`
     : "";
-  const phaseCell=p=>{
-    const filled=p.activities.filter(a=>(a.text&&a.text.trim())||a.strategies.length);
-    if(!filled.length)return "―";
-    const multi=filled.length>1;
-    return filled.map((a,i)=>{
-      const head=multi?`<div class="pv-act-no">活動${i+1}</div>`:"";
-      const body=(a.text||"").replace(/\n/g,"<br>")||"―";
-      return `<div class="pv-act">${head}<div>${body}</div>${stratHtml(a.strategies)}</div>`;
-    }).join("");
-  };
-  let rows=state.phases.map(p=>`
-    <tr>
-      <th>${p.name}<br><span style="font-weight:400;">${p.min}分</span></th>
-      <td>${phaseCell(p)}</td>
-    </tr>`).join("");
+  const esc=t=>(t||"").replace(/\n/g,"<br>");
+  const fieldBlock=(label,val,cls)=> (val&&val.trim())
+    ? `<div class="pv-f ${cls||""}"><span class="pv-f-l">${label}</span><span class="pv-f-v">${esc(val)}</span></div>` : "";
+
+  // 各段階を、活動ごとの行に展開（段階セルは最初の行で縦結合）
+  let rows="";
+  state.phases.forEach(p=>{
+    const filled=p.activities.filter(a=>(a.text&&a.text.trim())||a.teach||a.reaction||a.support||a.strategies.length||(a.eval&&a.eval.trim()));
+    const list=filled.length?filled:[null];
+    list.forEach((a,i)=>{
+      const stageTd = (i===0)
+        ? `<td class="pv-stage" rowspan="${list.length}">${p.name}<br><span class="pv-min">${p.min}分</span></td>` : "";
+      if(!a){
+        rows+=`<tr>${stageTd}<td class="pv-left">―</td><td class="pv-right">―</td></tr>`;
+        return;
+      }
+      const no = filled.length>1 ? `<div class="pv-act-no">活動${i+1}</div>` : "";
+      // 左：学習活動・教師の指導・予想される反応
+      const left = no
+        + fieldBlock("学習活動",a.text)
+        + fieldBlock("教師の指導",a.teach)
+        + fieldBlock("予想される反応",a.reaction);
+      // 右：支援・留意点・調整方略（＋評価があれば右下に）
+      const stratB = a.strategies.length
+        ? `<div class="pv-f"><span class="pv-f-l">調整方略</span><span class="pv-f-v">${stratHtml(a.strategies)}</span></div>` : "";
+      const evB = (a.eval&&a.eval.trim())
+        ? `<div class="pv-f pv-eval"><span class="pv-f-l">評価・評価方法</span><span class="pv-f-v">${esc(a.eval)}</span></div>` : "";
+      const right = fieldBlock("支援及び留意点",a.support) + stratB + evB || "―";
+      rows+=`<tr>${stageTd}<td class="pv-left">${left||"―"}</td><td class="pv-right">${right}</td></tr>`;
+    });
+  });
+
   document.getElementById("preview").innerHTML=`
     <h1>本時の指導案</h1>
     <div class="meta-line">${m.subject||""}　${m.grade||""}　${m.unit?("単元「"+m.unit+"」"):""}　${m.hours?("("+m.hours+")"):""}</div>
     <table class="pv-table">
       <tr><th>単元の目標</th><td>${m.unitGoal||"―"}</td></tr>
       <tr><th>本時の目標</th><td>${m.lessonGoal||"―"}</td></tr>
+      ${m.mearai?`<tr><th>本時のめあて</th><td>${esc(m.mearai)}</td></tr>`:""}
       <tr><th>人数 / 時間</th><td>${m.students||"―"}人 / ${m.minutes||"―"}分</td></tr>
     </table>
-    <table class="pv-table">
-      <tr><th style="width:90px;">段階</th><th>学習活動・調整方略（<span class="lbl I">I</span>自己 <span class="lbl You">You</span>共 <span class="lbl We">We</span>社会的共有）</th></tr>
+    <table class="pv-table pv-develop">
+      <colgroup><col class="c-stage"><col class="c-left"><col class="c-right"></colgroup>
+      <tr>
+        <th>段階</th>
+        <th>学習活動／教師の指導／予想される学習者の反応</th>
+        <th>支援及び留意点／調整方略（<span class="lbl I">I</span><span class="lbl You">You</span><span class="lbl We">We</span>）</th>
+      </tr>
       ${rows}
     </table>`;
 }
@@ -1599,7 +1717,7 @@ async function aiSortImport(){
       if(!phase)return;
       const acts=arr.map(t=>String(t).trim()).filter(Boolean);
       if(acts.length){
-        phase.activities=acts.map(t=>({text:t,strategies:[]}));
+        phase.activities=acts.map(t=>{const na=newActivity();na.text=t;return na;});
       }
     });
     renderPhases();
@@ -1655,8 +1773,9 @@ async function downloadDocx(){
     };
     const txtCell=(text,opts={})=>new TableCell({
       borders:cellBorders,
-      width:opts.width?{size:opts.width,type:WidthType.PERCENTAGE}:undefined,
+      width:opts.width?{size:opts.width,type:WidthType.DXA}:undefined,
       shading:opts.shade?{type:ShadingType.CLEAR,fill:opts.shade}:undefined,
+      margins:{top:80,bottom:80,left:120,right:120},
       children:(Array.isArray(text)?text:[text]).map(t=>
         typeof t==="string"?new Paragraph({children:[new TextRun({text:t,bold:!!opts.bold})]}):t)
     });
@@ -1664,63 +1783,109 @@ async function downloadDocx(){
     // 見出し行セル
     const headCell=(t,w)=>txtCell(t,{bold:true,shade:"EEEEEE",width:w});
 
+    // ランドスケープA4の内容幅 ≒ 12960 DXA
+    const CW=12960;
+    const infoLabelW=2880, infoValW=CW-infoLabelW;        // 基本情報：ラベル/値
+    const stageW=1800, actW=CW-stageW;                    // 展開：段階/活動
+
     // 基本情報テーブル
     const infoTable=new Table({
-      width:{size:100,type:WidthType.PERCENTAGE},
+      width:{size:CW,type:WidthType.DXA},
+      columnWidths:[infoLabelW,infoValW],
       rows:[
-        new TableRow({children:[headCell("教科・学年",22),txtCell(`${m.subject||"―"}　${m.grade||""}`,{width:78})]}),
-        new TableRow({children:[headCell("単元名",22),txtCell(m.unit||"―",{width:78})]}),
-        new TableRow({children:[headCell("単元の目標",22),txtCell(m.unitGoal||"―",{width:78})]}),
-        new TableRow({children:[headCell("本時の目標",22),txtCell(m.lessonGoal||"―",{width:78})]}),
-        new TableRow({children:[headCell("人数 / 時間",22),txtCell(`${m.students||"―"}人 / 本時${m.minutes||"―"}分${m.hours?("（"+m.hours+"）"):""}`,{width:78})]}),
+        new TableRow({children:[headCell("教科・学年",infoLabelW),txtCell(`${m.subject||"―"}　${m.grade||""}`,{width:infoValW})]}),
+        new TableRow({children:[headCell("単元名",infoLabelW),txtCell(m.unit||"―",{width:infoValW})]}),
+        new TableRow({children:[headCell("単元の目標",infoLabelW),txtCell(m.unitGoal||"―",{width:infoValW})]}),
+        new TableRow({children:[headCell("本時の目標",infoLabelW),txtCell(m.lessonGoal||"―",{width:infoValW})]}),
+        ...(m.mearai&&m.mearai.trim()?[new TableRow({children:[headCell("本時のめあて",infoLabelW),txtCell(m.mearai,{width:infoValW})]})]:[]),
+        new TableRow({children:[headCell("人数 / 時間",infoLabelW),txtCell(`${m.students||"―"}人 / 本時${m.minutes||"―"}分${m.hours?("（"+m.hours+"）"):""}`,{width:infoValW})]}),
       ]
     });
 
-    // 展開テーブル
+    // 展開テーブル（段階／左：学習活動・教師の指導・予想反応／右：支援・調整方略）
+    const leftW=Math.round((CW-stageW)*0.5);
+    const rightW=CW-stageW-leftW;
     const devRows=[
-      new TableRow({children:[headCell("段階",14),headCell("学習活動・調整方略",86)]})
+      new TableRow({tableHeader:true,children:[
+        headCell("段階",stageW),
+        headCell("学習活動／教師の指導／予想される学習者の反応",leftW),
+        headCell("支援及び留意点／調整方略",rightW)
+      ]})
     ];
+    const mkLabeled=(label,val,color)=>{
+      const ps=[];
+      if(!val||!val.trim())return ps;
+      val.split("\n").forEach((line,li)=>{
+        ps.push(new Paragraph({spacing:{before:li===0?40:0},children:[
+          ...(li===0?[new TextRun({text:label+"：",bold:true,size:19,color:color||"3A5A54"})]:[]),
+          new TextRun({text:line||"",size:19})
+        ]}));
+      });
+      return ps;
+    };
     state.phases.forEach(p=>{
-      // 段階セルの中身
-      const stageCell=txtCell([
-        new Paragraph({children:[new TextRun({text:p.name,bold:true})]}),
-        new Paragraph({children:[new TextRun({text:p.min+"分",size:18,color:"666666"})]})
-      ],{width:14,shade:"F4F4EF"});
-
-      // 活動セルの中身（活動ごとに活動文＋方略）
-      const actParas=[];
-      const filled=p.activities.filter(a=>(a.text&&a.text.trim())||a.strategies.length);
-      if(!filled.length){
-        actParas.push(new Paragraph({children:[new TextRun("―")]}));
-      }
-      filled.forEach((a,i)=>{
-        if(filled.length>1){
-          actParas.push(new Paragraph({children:[new TextRun({text:"【活動"+(i+1)+"】",bold:true,color:"0A4E46"})]}));
-        }
-        (a.text||"").split("\n").forEach(line=>{
-          actParas.push(new Paragraph({children:[new TextRun(line||"")]}));
-        });
-        a.strategies.forEach(s=>{
-          actParas.push(new Paragraph({
-            spacing:{before:20},
+      const has=a=>(a.text&&a.text.trim())||a.teach||a.reaction||a.support||a.strategies.length||(a.eval&&a.eval.trim());
+      const filled=p.activities.filter(has);
+      const list=filled.length?filled:[null];
+      list.forEach((a,i)=>{
+        const cells=[];
+        // 段階セル（最初の行のみ、rowSpanで縦結合）
+        if(i===0){
+          cells.push(new TableCell({
+            borders:cellBorders,width:{size:stageW,type:WidthType.DXA},
+            shading:{type:ShadingType.CLEAR,fill:"F4F4EF"},
+            margins:{top:80,bottom:80,left:120,right:120},
+            rowSpan:list.length,
+            verticalAlign:"center",
             children:[
-              new TextRun({text:"◆"+layerName[s.layer]+" ",bold:true,color:layerColor[s.layer],size:18}),
-              new TextRun({text:s.text,size:18})
+              new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({text:p.name,bold:true})]}),
+              new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({text:p.min+"分",size:18,color:"666666"})]})
             ]
           }));
-        });
-        if(i<filled.length-1) actParas.push(new Paragraph({children:[new TextRun("")]}));
-      });
+        }
+        if(!a){
+          cells.push(txtCell("―",{width:leftW}));
+          cells.push(txtCell("―",{width:rightW}));
+          devRows.push(new TableRow({children:cells}));
+          return;
+        }
+        // 左列
+        const leftParas=[];
+        if(filled.length>1) leftParas.push(new Paragraph({children:[new TextRun({text:"【活動"+(i+1)+"】",bold:true,color:"0A4E46"})]}));
+        leftParas.push(...mkLabeled("学習活動",a.text));
+        leftParas.push(...mkLabeled("教師の指導",a.teach));
+        leftParas.push(...mkLabeled("予想される反応",a.reaction));
+        if(!leftParas.length) leftParas.push(new Paragraph({children:[new TextRun("―")]}));
+        // 右列
+        const rightParas=[];
+        rightParas.push(...mkLabeled("支援及び留意点",a.support));
+        if(a.strategies.length){
+          rightParas.push(new Paragraph({spacing:{before:40},children:[new TextRun({text:"調整方略：",bold:true,size:19,color:"3A5A54"})]}));
+          a.strategies.forEach(s=>{
+            rightParas.push(new Paragraph({children:[
+              new TextRun({text:"　◆"+layerName[s.layer]+" ",bold:true,color:layerColor[s.layer],size:18}),
+              new TextRun({text:s.text,size:18})
+            ]}));
+          });
+        }
+        rightParas.push(...mkLabeled("評価・評価方法",a.eval,"8A4E10"));
+        if(!rightParas.length) rightParas.push(new Paragraph({children:[new TextRun("―")]}));
 
-      devRows.push(new TableRow({children:[stageCell,txtCell(actParas,{width:86})]}));
+        cells.push(txtCell(leftParas,{width:leftW}));
+        cells.push(txtCell(rightParas,{width:rightW}));
+        devRows.push(new TableRow({children:cells}));
+      });
     });
-    const devTable=new Table({width:{size:100,type:WidthType.PERCENTAGE},rows:devRows});
+    const devTable=new Table({width:{size:CW,type:WidthType.DXA},columnWidths:[stageW,leftW,rightW],rows:devRows});
 
     const doc=new Document({
       creator:"木村明憲",
       title:(m.unit||"指導案")+" 本時の指導案",
       sections:[{
-        properties:{page:{size:{orientation:"landscape"}}},
+        properties:{page:{
+          size:{width:11906,height:16838,orientation:docx.PageOrientation?docx.PageOrientation.LANDSCAPE:"landscape"},
+          margin:{top:1440,right:1440,bottom:1440,left:1440}
+        }},
         children:[
           new Paragraph({alignment:AlignmentType.CENTER,
             children:[new TextRun({text:"本時の指導案",bold:true,size:32})]}),
