@@ -360,6 +360,9 @@
   .pv-stage{text-align:center;font-weight:700;background:#f4f4ef;}
   .pv-min{font-weight:400;font-size:.72rem;color:#666;}
   .pv-left,.pv-right{font-size:.76rem;}
+  .pv-mearai{background:#fffaf0;font-weight:600;text-align:center;}
+  .pv-mearai-l{display:inline-block;font-weight:800;font-size:.7rem;color:#8a4e10;
+    background:#f6ead8;border-radius:4px;padding:1px 8px;margin-right:8px;}
   .pv-strat{font-size:.74rem;margin-top:6px;}
   .pv-strat .lbl{font-weight:700;display:inline-block;border-radius:4px;padding:0 5px;margin-right:4px;}
   .lbl.I{background:var(--i-wash);color:#0a4e46;}
@@ -484,9 +487,17 @@
     </div>
 
     <div class="card mearai-card">
-      <div class="field" style="margin-bottom:0;">
+      <div class="field" style="margin-bottom:10px;">
         <label>本時のめあて <span class="hint">この時間に児童・生徒に示すめあて（板書する言葉）</span></label>
         <textarea data-bind="mearai" placeholder="例）近畿地方に人口が集まる理由を、資料から考えて説明しよう。" style="min-height:56px;"></textarea>
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <label>めあてを置く段階 <span class="hint">指導案では、この段階の中に枠で表示されます</span></label>
+        <select data-bind="mearaiPhase" style="max-width:220px;">
+          <option value="intro">導入</option>
+          <option value="develop">展開</option>
+          <option value="summary">まとめ</option>
+        </select>
       </div>
     </div>
 
@@ -528,7 +539,7 @@
         <div class="msg sys" id="aiSeed">右下の入力欄から相談を始めてください。例「導入で生徒が課題を自分ごとに感じる活動を考えたい」</div>
       </div>
       <div class="ai-input">
-        <textarea id="aiInput" placeholder="例）展開で資料を比べて考察する活動を具体的にしたい" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAI();}"></textarea>
+        <textarea id="aiInput" placeholder="例）展開で資料を比べて考察する活動を具体的にしたい" onkeydown="if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing&&event.keyCode!==229){event.preventDefault();sendAI();}"></textarea>
         <button class="btn btn-amber" onclick="sendAI()">送信</button>
       </div>
     </div>
@@ -668,7 +679,7 @@ function newActivity(){
   return {text:"",teach:"",reaction:"",support:"",strategies:[],eval:null};
 }
 const state = {
-  meta:{subject:"",grade:"",hours:"",unit:"",unitGoal:"",lessonGoal:"",mearai:"",students:"",minutes:"50"},
+  meta:{subject:"",grade:"",hours:"",unit:"",unitGoal:"",lessonGoal:"",mearai:"",mearaiPhase:"intro",students:"",minutes:"50"},
   // 展開：3段階。各段階に活動枠の配列（活動・教師の指導・予想反応・支援・方略・評価(任意)）
   phases:[
     {id:"intro",   name:"導入", min:10, activities:[newActivity()]},
@@ -1290,7 +1301,7 @@ function lessonContext(){
   const m=state.meta;
   let ctx=`【教科】${m.subject}　【学年】${m.grade}　【単元】${m.unit}\n`;
   ctx+=`【単元の目標】${m.unitGoal}\n【本時の目標】${m.lessonGoal}\n`;
-  if(m.mearai)ctx+=`【本時のめあて】${m.mearai}\n`;
+  if(m.mearai){const pn={intro:"導入",develop:"展開",summary:"まとめ"}[m.mearaiPhase]||"";ctx+=`【本時のめあて】${m.mearai}${pn?`（${pn}に提示）`:""}\n`;}
   ctx+=`【人数】${m.students}　【本時】${m.minutes}分\n\n本時の展開：\n`;
   state.phases.forEach(p=>{
     ctx+=`■${p.name}（${p.min}分）\n`;
@@ -1565,23 +1576,32 @@ function renderPreview(){
 
   // 各段階を、活動ごとの行に展開（段階セルは最初の行で縦結合）
   let rows="";
+  const hasMearai = m.mearai && m.mearai.trim();
   state.phases.forEach(p=>{
     const filled=p.activities.filter(a=>(a.text&&a.text.trim())||a.teach||a.reaction||a.support||a.strategies.length||(a.eval&&a.eval.trim()));
     const list=filled.length?filled:[null];
+    const showMearaiHere = hasMearai && m.mearaiPhase===p.id;
+    const spanCount = list.length + (showMearaiHere?1:0); // 段階セルがまたぐ行数
+    let firstRow=true;
+    const stageCellHtml=()=>`<td class="pv-stage" rowspan="${spanCount}">${p.name}<br><span class="pv-min">${p.min}分</span></td>`;
+
+    // めあて行（左右横断）
+    if(showMearaiHere){
+      rows+=`<tr>${stageCellHtml()}<td class="pv-mearai" colspan="2"><span class="pv-mearai-l">本時のめあて</span>${esc(m.mearai)}</td></tr>`;
+      firstRow=false;
+    }
     list.forEach((a,i)=>{
-      const stageTd = (i===0)
-        ? `<td class="pv-stage" rowspan="${list.length}">${p.name}<br><span class="pv-min">${p.min}分</span></td>` : "";
+      const stageTd = firstRow ? stageCellHtml() : "";
+      firstRow=false;
       if(!a){
         rows+=`<tr>${stageTd}<td class="pv-left">―</td><td class="pv-right">―</td></tr>`;
         return;
       }
       const no = filled.length>1 ? `<div class="pv-act-no">活動${i+1}</div>` : "";
-      // 左：学習活動・教師の指導・予想される反応
       const left = no
         + fieldBlock("学習活動",a.text)
         + fieldBlock("教師の指導",a.teach)
         + fieldBlock("予想される反応",a.reaction);
-      // 右：支援・留意点・調整方略（＋評価があれば右下に）
       const stratB = a.strategies.length
         ? `<div class="pv-f"><span class="pv-f-l">調整方略</span><span class="pv-f-v">${stratHtml(a.strategies)}</span></div>` : "";
       const evB = (a.eval&&a.eval.trim())
@@ -1597,7 +1617,6 @@ function renderPreview(){
     <table class="pv-table">
       <tr><th>単元の目標</th><td>${m.unitGoal||"―"}</td></tr>
       <tr><th>本時の目標</th><td>${m.lessonGoal||"―"}</td></tr>
-      ${m.mearai?`<tr><th>本時のめあて</th><td>${esc(m.mearai)}</td></tr>`:""}
       <tr><th>人数 / 時間</th><td>${m.students||"―"}人 / ${m.minutes||"―"}分</td></tr>
     </table>
     <table class="pv-table pv-develop">
@@ -1797,7 +1816,6 @@ async function downloadDocx(){
         new TableRow({children:[headCell("単元名",infoLabelW),txtCell(m.unit||"―",{width:infoValW})]}),
         new TableRow({children:[headCell("単元の目標",infoLabelW),txtCell(m.unitGoal||"―",{width:infoValW})]}),
         new TableRow({children:[headCell("本時の目標",infoLabelW),txtCell(m.lessonGoal||"―",{width:infoValW})]}),
-        ...(m.mearai&&m.mearai.trim()?[new TableRow({children:[headCell("本時のめあて",infoLabelW),txtCell(m.mearai,{width:infoValW})]})]:[]),
         new TableRow({children:[headCell("人数 / 時間",infoLabelW),txtCell(`${m.students||"―"}人 / 本時${m.minutes||"―"}分${m.hours?("（"+m.hours+"）"):""}`,{width:infoValW})]}),
       ]
     });
@@ -1827,21 +1845,44 @@ async function downloadDocx(){
       const has=a=>(a.text&&a.text.trim())||a.teach||a.reaction||a.support||a.strategies.length||(a.eval&&a.eval.trim());
       const filled=p.activities.filter(has);
       const list=filled.length?filled:[null];
+      const showMearaiHere = m.mearai && m.mearai.trim() && m.mearaiPhase===p.id;
+      const spanCount = list.length + (showMearaiHere?1:0);
+      let stageEmitted=false;
+      const stageCell=()=>new TableCell({
+        borders:cellBorders,width:{size:stageW,type:WidthType.DXA},
+        shading:{type:ShadingType.CLEAR,fill:"F4F4EF"},
+        margins:{top:80,bottom:80,left:120,right:120},
+        rowSpan:spanCount, verticalAlign:"center",
+        children:[
+          new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({text:p.name,bold:true})]}),
+          new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({text:p.min+"分",size:18,color:"666666"})]})
+        ]
+      });
+
+      // めあて横断行（左右2列を結合）
+      if(showMearaiHere){
+        devRows.push(new TableRow({children:[
+          stageCell(),
+          new TableCell({
+            borders:cellBorders, columnSpan:2,
+            width:{size:leftW+rightW,type:WidthType.DXA},
+            shading:{type:ShadingType.CLEAR,fill:"FFFAF0"},
+            margins:{top:80,bottom:80,left:120,right:120},
+            children:[new Paragraph({alignment:AlignmentType.CENTER,children:[
+              new TextRun({text:"本時のめあて　",bold:true,color:"8A4E10",size:19}),
+              new TextRun({text:m.mearai,bold:true,size:21})
+            ]})]
+          })
+        ]}));
+        stageEmitted=true;
+      }
+
       list.forEach((a,i)=>{
         const cells=[];
-        // 段階セル（最初の行のみ、rowSpanで縦結合）
-        if(i===0){
-          cells.push(new TableCell({
-            borders:cellBorders,width:{size:stageW,type:WidthType.DXA},
-            shading:{type:ShadingType.CLEAR,fill:"F4F4EF"},
-            margins:{top:80,bottom:80,left:120,right:120},
-            rowSpan:list.length,
-            verticalAlign:"center",
-            children:[
-              new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({text:p.name,bold:true})]}),
-              new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({text:p.min+"分",size:18,color:"666666"})]})
-            ]
-          }));
+        // 段階セル（まだ出していなければ最初の行で出す。rowSpanで縦結合）
+        if(!stageEmitted){
+          cells.push(stageCell());
+          stageEmitted=true;
         }
         if(!a){
           cells.push(txtCell("―",{width:leftW}));

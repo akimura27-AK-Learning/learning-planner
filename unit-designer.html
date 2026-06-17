@@ -595,7 +595,7 @@
         <div class="msg sys" id="aiSeed">右下の入力欄から相談を始めてください。例「この単元を見通す・実行する・振り返るの流れで何時間に分けるか一緒に考えたい」</div>
       </div>
       <div class="ai-input">
-        <textarea id="aiInput" placeholder="例）第2次で資料を比べて考察する時間を具体的にしたい" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAI();}"></textarea>
+        <textarea id="aiInput" placeholder="例）第2次で資料を比べて考察する時間を具体的にしたい" onkeydown="if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing&&event.keyCode!==229){event.preventDefault();sendAI();}"></textarea>
         <button class="btn btn-amber" onclick="sendAI()">送信</button>
       </div>
     </div>
