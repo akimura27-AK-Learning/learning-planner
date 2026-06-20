@@ -4529,9 +4529,9 @@ function addL5CoLesson(plan){
     ${dateDisp?`<span style="font-size:11px;background:var(--lv5bg);padding:2px 9px;border-radius:10px;border:0.5px solid var(--lv5br);color:var(--lv5b)">${dateDisp}</span>`:''}
     ${timeDisp?`<span style="font-size:11px;background:var(--lv5bg);padding:2px 9px;border-radius:10px;border:0.5px solid var(--lv5br);color:var(--lv5b)">${timeDisp}</span>`:''}
   </div>
-  ${plan?.kadai?`<div class="fg" style="margin-bottom:6px"><span class="fl">本時の課題</span><textarea class="fi" rows="1" style="font-size:12px;resize:none;overflow:hidden" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${plan.kadai}</textarea></div>`:''}
-  ${plan?.ggoal?`<div class="fg" style="margin-bottom:6px"><span class="fl">グループの目標</span><textarea class="fi" rows="1" style="font-size:12px;resize:none;overflow:hidden" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${plan.ggoal}</textarea></div>`:''}
-  ${plan?.sgoal?`<div class="fg" style="margin-bottom:8px"><span class="fl">自分の目標</span><textarea class="fi" rows="1" style="font-size:12px;resize:none;overflow:hidden" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${plan.sgoal}</textarea></div>`:''}
+  <div class="fg" style="margin-bottom:6px"><span class="fl">本時の課題</span><textarea class="fi" rows="1" placeholder="自ら見出した課題を記述してください" style="font-size:12px;resize:none;overflow:hidden" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${plan?.kadai||''}</textarea></div>
+  <div class="fg" style="margin-bottom:6px"><span class="fl">グループの目標</span><textarea class="fi" rows="1" placeholder="グループとして達成したいこと" style="font-size:12px;resize:none;overflow:hidden" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${plan?.ggoal||''}</textarea></div>
+  <div class="fg" style="margin-bottom:8px"><span class="fl">自分の目標</span><textarea class="fi" rows="1" placeholder="自分として達成したいこと" style="font-size:12px;resize:none;overflow:hidden" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${plan?.sgoal||''}</textarea></div>
   <div class="fg" style="margin-bottom:10px"><span class="fl">今日の計画（見通すから連動）</span><div>${actsHTML}</div></div>
   <div style="display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap">
     <button class="btn bs" style="font-size:11px" onclick="addL5CoExecRow(this)"><i class="ti ti-plus"></i>活動を追加</button>
@@ -6883,7 +6883,7 @@ function addL5Lesson(plan){
       ${timeDisp?`<span style="font-size:11px;background:var(--lv5bg);padding:2px 9px;border-radius:10px;border:0.5px solid var(--lv5br);color:var(--lv5b)">${timeDisp}</span>`:''}
     </div>
     <div style="margin-bottom:8px">
-      <div class="fg" style="margin-bottom:6px"><span class="fl">本時の課題</span><textarea class="fi" rows="1" placeholder="先生から指定された課題を記述してください" style="font-size:12px;resize:none;overflow:hidden" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${plan?.kadai||''}</textarea></div>
+      <div class="fg" style="margin-bottom:6px"><span class="fl">本時の課題</span><textarea class="fi" rows="1" placeholder="自ら見出した課題を記述してください" style="font-size:12px;resize:none;overflow:hidden" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${plan?.kadai||''}</textarea></div>
       <div class="fg"><span class="fl">本時の目標</span><textarea class="fi" rows="1" placeholder="本時の目標" style="font-size:12px;resize:none;overflow:hidden" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${plan?.goal||''}</textarea></div>
     </div>
     <div>
@@ -8601,7 +8601,5 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 
 </script>
-
-<!-- Cloudflare Web Analytics --><script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "3184f28c2e314d999b3a8b48433a9075"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
 </html>
