@@ -612,8 +612,10 @@
       </div>
 
       <div class="field">
-        <label>モデル <span class="hint">通常は空欄のままでOK（推奨モデルを自動使用）</span></label>
-        <input type="text" id="apiModel" placeholder="">
+        <label>モデル <span class="hint">通常は「推奨」のままでOK。レート制限が出るときは別のモデルを選んでください</span></label>
+        <select id="apiModelSelect" onchange="onModelSelectChange()"></select>
+        <input type="text" id="apiModel" placeholder="" style="display:none;margin-top:8px;">
+        <div class="key-help" id="modelHelp" style="margin-top:6px;"></div>
       </div>
 
       <div class="field">
@@ -995,7 +997,9 @@ function saveInputs(){
     });
   });
   const k=document.getElementById("apiKey"); if(k)state.keys[state.provider]=k.value.trim();
-  const md=document.getElementById("apiModel"); if(md)state.models[state.provider]=md.value.trim();
+  const sel=document.getElementById("apiModelSelect"); const md=document.getElementById("apiModel");
+  if(sel){ state.models[state.provider]=(sel.value==="__custom__")?((md&&md.value.trim())||""):sel.value; }
+  else if(md){ state.models[state.provider]=md.value.trim(); }
 }
 function restoreInputs(){
   document.querySelectorAll("[data-bind]").forEach(el=>{el.value=state.meta[el.dataset.bind]||"";});
@@ -1386,16 +1390,60 @@ phaseは導入=intro, 展開=develop, まとめ=summary です。`;
    ============================================================ */
 const PROVIDERS={
   claude:{
-    label:"Anthropic (Claude)", keyPrefix:"sk-ant-", defaultModel:"claude-sonnet-4-20250514",
+    label:"Anthropic (Claude)", keyPrefix:"sk-ant-", defaultModel:"claude-sonnet-4-5-20250929",
     consoleUrl:"https://console.anthropic.com/settings/keys",
-    help:'キーは <b>console.anthropic.com</b> の Settings → API keys で発行。sk-ant- で始まります。'
+    help:'キーは <b>console.anthropic.com</b> の Settings → API keys で発行。sk-ant- で始まります。',
+    models:[
+      {id:"claude-sonnet-4-5-20250929", name:"Claude Sonnet 4.5（推奨・バランス）"},
+      {id:"claude-opus-4-1-20250805",   name:"Claude Opus 4.1（最高品質・低速）"},
+      {id:"claude-3-5-haiku-20241022",  name:"Claude Haiku 3.5（高速・軽量）"}
+    ]
   },
   gemini:{
-    label:"Google (Gemini)", keyPrefix:"AIza", defaultModel:"gemini-3.5-flash",
+    label:"Google (Gemini)", keyPrefix:"AIza", defaultModel:"gemini-2.5-flash",
     consoleUrl:"https://aistudio.google.com/apikey",
-    help:'キーは <b>aistudio.google.com/apikey</b>（Google AI Studio）で「Create API key」から取得。無料枠があります。'
+    help:'キーは <b>aistudio.google.com/apikey</b>（Google AI Studio）で「Create API key」から取得。無料枠があります。',
+    models:[
+      {id:"gemini-2.5-flash",      name:"Gemini 2.5 Flash（推奨・無料枠あり）"},
+      {id:"gemini-2.5-flash-lite", name:"Gemini 2.5 Flash-Lite（無料枠が緩い・連続利用向き）"},
+      {id:"gemini-3-flash",        name:"Gemini 3 Flash（高性能・無料枠あり）"},
+      {id:"gemini-2.5-pro",        name:"Gemini 2.5 Pro（最高品質・有料／無料枠は厳しい）"}
+    ]
   }
 };
+
+/* モデル選択ドロップダウンを現在のプロバイダ用に組み立てる */
+function populateModelSelect(prov){
+  const P=PROVIDERS[prov];
+  const sel=document.getElementById("apiModelSelect");
+  const custom=document.getElementById("apiModel");
+  const help=document.getElementById("modelHelp");
+  if(!sel) return;
+  const saved=(state.models[prov]||"").trim();
+  let html="";
+  (P.models||[]).forEach(m=>{ html+='<option value="'+m.id+'">'+m.name+'</option>'; });
+  html+='<option value="__custom__">その他（モデル名を手入力）</option>';
+  sel.innerHTML=html;
+  // 保存値があり、かつ一覧にあればそれを選択。なければ手入力扱い。一覧の先頭=推奨。
+  const known=(P.models||[]).some(m=>m.id===saved);
+  if(saved&&known){ sel.value=saved; custom.style.display="none"; }
+  else if(saved){ sel.value="__custom__"; custom.style.display="block"; custom.value=saved; }
+  else{ sel.value=P.defaultModel; custom.style.display="none"; custom.value=""; }
+  if(help){
+    help.innerHTML=(prov==="gemini")
+      ? '無料枠でレート制限（429 / quota exceeded）が出るときは <b>Flash-Lite</b> に切り替えると当たりにくくなります。'
+      : '通常は推奨モデルでOK。速さ重視なら Haiku、品質重視なら Opus を選べます。';
+  }
+}
+
+/* ドロップダウン変更時：その他なら手入力欄を表示 */
+function onModelSelectChange(){
+  const sel=document.getElementById("apiModelSelect");
+  const custom=document.getElementById("apiModel");
+  if(sel.value==="__custom__"){ custom.style.display="block"; custom.focus(); }
+  else{ custom.style.display="none"; }
+  saveInputs();
+}
 
 function setProvider(prov){
   // 切替前に現在の入力を保存
@@ -1406,8 +1454,7 @@ function setProvider(prov){
   const keyInput=document.getElementById("apiKey");
   keyInput.value=state.keys[prov]||"";
   keyInput.placeholder=P.keyPrefix+"...";
-  document.getElementById("apiModel").value=state.models[prov]||"";
-  document.getElementById("apiModel").placeholder=P.defaultModel;
+  populateModelSelect(prov);
   document.getElementById("keyHelp").innerHTML=P.help;
   // 手順ガイドの切替
   const gc=document.getElementById("guideClaude"), gg=document.getElementById("guideGemini");
