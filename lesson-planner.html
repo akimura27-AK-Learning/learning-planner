@@ -337,6 +337,12 @@
     border:1px solid var(--amber);background:var(--amber-wash);border-radius:9px;
     padding:9px 12px;font-size:.82rem;align-self:flex-start;max-width:92%;
   }
+  .ai-suggest .why{
+    margin-top:7px;padding:7px 9px;background:rgba(255,255,255,.6);
+    border-left:3px solid var(--amber);border-radius:5px;font-size:.79rem;line-height:1.6;color:var(--ink-soft);
+  }
+  .ai-suggest .why-l{display:block;font-size:.7rem;font-weight:700;color:var(--amber);margin-bottom:2px;}
+  .ai-suggest small{display:block;color:var(--ink-soft);margin-top:3px;}
   .ai-suggest .add{
     display:inline-block;margin-top:7px;font-size:.76rem;font-weight:700;color:#fff;
     background:var(--amber);border:none;border-radius:6px;padding:4px 11px;cursor:pointer;
@@ -942,6 +948,18 @@ const STRATEGIES = {
   We:STRATEGY_LIST.filter(s=>s.layer==="We")
 };
 
+/* AIに渡す方略カタログ（idは STRATEGY_LIST の添字）。本時の段階phase(intro/develop/summary)で
+   対応する学習過程に絞り込み、トークンを抑える。該当が少なければ全件に広げる。 */
+function escHtml(t){return (t==null?"":String(t)).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+const PHASE2PROC={intro:"見通す", develop:"実行する", summary:"振り返る"};
+function buildStrategyCatalog(phaseId){
+  const wantProc=PHASE2PROC[phaseId];
+  let items=STRATEGY_LIST.map((s,idx)=>({idx,s}));
+  let scoped=(wantProc?items.filter(o=>o.s.phase===wantProc):items);
+  if(scoped.length<8) scoped=items; // 絞りすぎ防止
+  return scoped.map(o=>`#${o.idx} [${o.s.layer}/Lv${o.s.lv}/${o.s.type}] ${o.s.text}`).join("\n");
+}
+
 const STEPS=["基本情報","展開を組む","AI相談","指導案","設定"];
 
 /* ============================================================
@@ -1377,13 +1395,18 @@ const SYS_ACTIVITY=`あなたは授業デザインに伴走する教育アドバ
 \`\`\`
 phaseは導入=intro, 展開=develop, まとめ=summary です。必ず最後は教師への問いかけで締めくくってください。`;
 
-const SYS_STRATEGY=`あなたは自己調整学習(SRL)に詳しい教育アドバイザーです。教師が作成中の本時の指導案を読み、調整方略を充実させる手助けをします。
+const SYS_STRATEGY=`あなたは自己調整学習(SRL)に詳しい教育アドバイザーです。教師が作成中の本時の指導案を読み、各学習活動にふさわしい調整方略を提案します。
 方略は3層に分かれます：自己調整(I=個人で調整)、共調整(You=他者やAIと一時的に調整を共有)、社会的に共有された調整(We=集団で相互に調整)。
-すでに具体化された学習活動に合わせて方略を提案してください。日本語で簡潔に答え、具体的な方略を提案するときは必ず本文の最後に次のJSONを付けてください(提案がなければ付けない)：
+
+【最重要ルール】方略の文章を自分で創作してはいけません。提案できるのは、ユーザーメッセージ内の「方略カタログ」に載っている方略だけです。各方略には #番号 が付いています。活動に合うものをカタログから選び、その番号(id)で指定してください。カタログにない方略は提案できません。
+
+各提案には、その活動になぜその方略が合うのかの理由(reason)を必ず1文添えてください。理由は、活動の具体的な内容と方略のねらいを結びつけて、教師が納得できるように書きます。
+
+日本語で簡潔に答えてください。提案があるときは必ず本文の最後に次のJSONを付けます(適切な方略がなければ付けない)：
 \`\`\`json
-{"suggestions":[{"phase":"intro|develop|summary","layer":"I|You|We","text":"方略文(40字程度)"}]}
+{"suggestions":[{"id":カタログの番号(整数),"phase":"intro|develop|summary","reason":"この活動にこの方略が合う理由(1文)"}]}
 \`\`\`
-phaseは導入=intro, 展開=develop, まとめ=summary です。`;
+phaseは導入=intro, 展開=develop, まとめ=summary です。idは必ずカタログに実在する番号にしてください。`;
 
 /* ============================================================
    AIプロバイダ（Claude / Gemini）
@@ -1563,7 +1586,12 @@ async function sendAI(kickoff){
 
   const system=aiMode==="activity"?SYS_ACTIVITY:SYS_STRATEGY;
   const history=state.ai.map(m=>({role:m.role,content:m.content}));
-  const userMsg=`現在の指導案:\n${lessonContext()}\n\n相談内容: ${q}`;
+  let userMsg=`現在の指導案:\n${lessonContext()}\n\n相談内容: ${q}`;
+  if(aiMode!=="activity"){
+    // 調整方略モードでは、選択可能な方略カタログ（全段階分）を渡し、その中からid指定で選ばせる
+    const cat=STRATEGY_LIST.map((s,idx)=>`#${idx} [${s.phase}/${s.proc}/${s.layer}/Lv${s.lv}/${s.type}] ${s.text}`).join("\n");
+    userMsg+=`\n\n【方略カタログ】（この中の#番号から選んでください。文章の創作は禁止）\n${cat}`;
+  }
   const phaseName={intro:"導入",develop:"展開",summary:"まとめ"};
 
   try{
@@ -1597,22 +1625,37 @@ async function sendAI(kickoff){
         document.getElementById("aiLog").appendChild(card);
       });
     }else{
-      // 調整方略の提案を抽出（生JSON・コードフェンス・文章混じりのいずれにも対応）
+      // 調整方略の提案を抽出。AIはカタログの#番号(id)で方略を指定する。
       const ex=extractAIJson(txt);
-      let suggestions=(ex.data&&ex.data.suggestions)||[];
+      let rawSugg=(ex.data&&ex.data.suggestions)||[];
+      // idを正規の方略に解決。存在しないid・不正なものは除外。
+      const resolved=[];
+      rawSugg.forEach(s=>{
+        const id=parseInt(s.id,10);
+        const base=(!isNaN(id)&&STRATEGY_LIST[id])?STRATEGY_LIST[id]:null;
+        if(!base) return; // カタログ外は採用しない（創作防止）
+        resolved.push({
+          id, phase:s.phase||"", reason:(s.reason||"").trim(),
+          layer:base.layer, text:base.text, proc:base.proc, lv:base.lv, type:base.type, srcPhase:base.phase
+        });
+      });
       let msg=ex.text;
       if(!msg){
-        msg = suggestions.length
-          ? `調整方略の案を ${suggestions.length} 件ご用意しました。下のカードから指導案に追加できます。`
-          : "今回は具体的な方略案を作れませんでした。場面やねらいをもう少し教えていただけますか？";
+        msg = resolved.length
+          ? `この活動に合う方略を ${resolved.length} 件、方略リストの中から選びました。理由を添えてあります。下のカードから指導案に追加できます。`
+          : "今回は、活動に合う方略をうまく選べませんでした。活動の内容や場面をもう少し具体的に教えていただけますか？";
       }
       appendMsg("ai",msg);
-      state.ai.push({role:"user",content:userMsg});
+      // 履歴にはカタログを除いた軽い内容を残す
+      state.ai.push({role:"user",content:`現在の指導案:\n${lessonContext()}\n\n相談内容: ${q}`});
       state.ai.push({role:"assistant",content:msg});
-      suggestions.forEach(s=>{
+      resolved.forEach(s=>{
+        const phaseLabel = phaseName[s.phase] || s.srcPhase || s.phase;
         const card=document.createElement("div");card.className="ai-suggest";
-        card.innerHTML=`<b>[${s.layer}]</b> ${s.text}<br>
-          <small>→ 「${phaseName[s.phase]||s.phase}」へ</small><br>
+        const reasonHtml = s.reason ? `<div class="why"><span class="why-l">なぜこの活動にこの方略か</span>${escHtml(s.reason)}</div>` : "";
+        card.innerHTML=`<b>[${s.layer}]</b> ${escHtml(s.text)}
+          <small>（${s.proc}・Lv${s.lv}・${s.type}）→ 「${phaseLabel}」へ</small>
+          ${reasonHtml}
           <button class="add">＋ 指導案に追加</button>`;
         card.querySelector(".add").onclick=()=>{
           addStrategyToPhase(s.phase,s.layer,s.text,"AI提案");
