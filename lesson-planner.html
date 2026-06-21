@@ -1427,7 +1427,7 @@ async function callLLM(system,msgs){
       method:"POST",
       headers:{"Content-Type":"application/json","x-api-key":key,
         "anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
-      body:JSON.stringify({model,max_tokens:1200,system,messages:msgs})
+      body:JSON.stringify({model,max_tokens:8192,system,messages:msgs})
     });
     const data=await resp.json();
     if(data.error) throw new Error(data.error.message||"Claude APIエラー");
@@ -1446,7 +1446,7 @@ async function callLLM(system,msgs){
       body:JSON.stringify({
         system_instruction:{parts:[{text:system}]},
         contents,
-        generationConfig:{maxOutputTokens:1200}
+        generationConfig:{maxOutputTokens:8192,responseMimeType:"application/json",thinkingConfig:{thinkingBudget:0}}
       })
     });
     const data=await resp.json();
@@ -1717,27 +1717,60 @@ async function aiSortImport(){
   const system=`あなたは学習指導案を読み取り、本時の展開を構造化するアシスタントです。
 渡された指導案テキストから、本時の展開を「導入」「展開」「まとめ」の3段階に整理してください。
 展開は複数の学習活動に分かれることが多いので、活動ごとに分けてください。
-指導上の留意点があれば各活動に含めてかまいません。調整方略の話は加えず、書かれている学習活動の内容だけを忠実に抜き出します。
-出力は次のJSONのみとし、前後に文章を付けないでください：
-{"intro":["導入の活動文"],"develop":["展開の活動1","展開の活動2"],"summary":["まとめの活動文"]}
+
+各活動について、指導案に書かれている内容を次の4項目に振り分けて抽出します。
+- text：学習活動（児童・生徒が行う活動）
+- teach：教師の指導・働きかけ（教師が行うこと、発問など）
+- reaction：予想される学習者の反応
+- support：学習者への支援および留意点
+
+重要なルール：
+- 指導案に実際に書かれている内容だけを抜き出します。書かれていない項目は必ず空文字 "" にします。
+- あなたが内容を創作・推測して補ってはいけません。元の指導案に無いことは書かないでください。
+- 調整方略の話は加えません。
+
+出力は次のJSONのみとし、前後に文章やコードブロックを付けないでください：
+{"intro":[{"text":"","teach":"","reaction":"","support":""}],"develop":[{"text":"","teach":"","reaction":"","support":""}],"summary":[{"text":"","teach":"","reaction":"","support":""}]}
 該当が無い段階は空配列にします。`;
 
   try{
     const raw=await callLLM(system,[{role:"user",content:"次の指導案を振り分けてください:\n\n"+text}]);
     let obj=null;
-    const m=raw.match(/\{[\s\S]*\}/);
-    if(m){try{obj=JSON.parse(m[0]);}catch(e){}}
-    if(!obj) throw new Error("AIの応答を解釈できませんでした。もう一度試すか、手作業で貼ってください。");
+    // ```json ... ``` などのコードブロック囲みを除去
+    let cleaned=raw.replace(/```json/gi,"").replace(/```/g,"").trim();
+    // まずそのまま解釈を試みる
+    try{obj=JSON.parse(cleaned);}catch(e){}
+    // だめなら最初の { から最後の } までを取り出して解釈
+    if(!obj){
+      const m=cleaned.match(/\{[\s\S]*\}/);
+      if(m){try{obj=JSON.parse(m[0]);}catch(e){}}
+    }
+    if(!obj){
+      const peek=(raw||"").slice(0,120).replace(/\n/g," ");
+      throw new Error("AIの応答を解釈できませんでした。AIが返した内容の冒頭:「"+peek+"」／もう一度試すか、手作業で貼ってください。");
+    }
 
-    const map={intro:"intro",develop:"develop",summary:"summary"};
-    Object.keys(map).forEach(key=>{
+    ["intro","develop","summary"].forEach(key=>{
       const arr=Array.isArray(obj[key])?obj[key]:[];
       const phase=state.phases.find(p=>p.id===key);
       if(!phase)return;
-      const acts=arr.map(t=>String(t).trim()).filter(Boolean);
-      if(acts.length){
-        phase.activities=acts.map(t=>{const na=newActivity();na.text=t;return na;});
-      }
+      const acts=[];
+      arr.forEach(item=>{
+        const na=newActivity();
+        if(item&&typeof item==="object"){
+          // 新形式：{text,teach,reaction,support}
+          na.text=String(item.text||"").trim();
+          na.teach=String(item.teach||"").trim();
+          na.reaction=String(item.reaction||"").trim();
+          na.support=String(item.support||"").trim();
+        }else{
+          // 旧形式：文字列だけ
+          na.text=String(item||"").trim();
+        }
+        // 4項目すべて空の活動は捨てる
+        if(na.text||na.teach||na.reaction||na.support){acts.push(na);}
+      });
+      if(acts.length){phase.activities=acts;}
     });
     renderPhases();
     st.style.color="#0f6e63";
@@ -1963,7 +1996,5 @@ restoreInputs();
 renderPhases();
 setProvider(state.provider);
 </script>
-
-<!-- Cloudflare Web Analytics --><script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "3184f28c2e314d999b3a8b48433a9075"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
 </html>
