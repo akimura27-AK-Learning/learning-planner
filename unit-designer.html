@@ -1651,6 +1651,30 @@ async function callLLM(system,msgs){
   throw new Error("不明なプロバイダです");
 }
 
+/* AI返答からJSONを頑健に取り出す。
+   ```json 囲み → 生JSON全体 → 最初の{...} の順で試す。
+   返り値: { data:解析できたオブジェクト|null, text:JSON部分を除いた説明文 } */
+function extractAIJson(raw){
+  let text=(raw||"").trim();
+  let data=null;
+  let m=text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if(m){
+    try{data=JSON.parse(m[1].trim());}catch(e){}
+    if(data){ text=text.replace(/```(?:json)?[\s\S]*?```/i,"").trim(); }
+  }
+  if(!data){
+    try{data=JSON.parse(text); text="";}catch(e){}
+  }
+  if(!data){
+    const s=text.indexOf("{"), e=text.lastIndexOf("}");
+    if(s>=0&&e>s){
+      const cand=text.slice(s,e+1);
+      try{data=JSON.parse(cand); text=(text.slice(0,s)+text.slice(e+1)).trim();}catch(e2){}
+    }
+  }
+  return {data, text};
+}
+
 async function testConnection(){
   saveInputs();
   const tr=document.getElementById("testResult");
@@ -1693,16 +1717,18 @@ async function sendAI(kickoff){
     if(!txt){appendMsg("ai","応答を取得できませんでした。設定画面でAPIキーを確認してください。");return;}
 
     if(aiMode==="activity"){
-      // 学習活動の提案を抽出
-      let activities=[];
-      const mjson=txt.match(/```json\s*([\s\S]*?)```/);
-      if(mjson){
-        try{activities=(JSON.parse(mjson[1]).activities)||[];}catch(e){}
-        txt=txt.replace(/```json[\s\S]*?```/,"").trim();
+      // 学習活動の提案を抽出（生JSON・コードフェンス・文章混じりのいずれにも対応）
+      const ex=extractAIJson(txt);
+      let activities=(ex.data&&ex.data.activities)||[];
+      let msg=ex.text;
+      if(!msg){
+        msg = activities.length
+          ? `各時の学習活動の案を ${activities.length} 件ご用意しました。下のカードから該当の時に反映できます。`
+          : "今回は具体的な活動案を作れませんでした。どの次のどんな場面か、もう少し教えていただけますか？";
       }
-      appendMsg("ai",txt);
+      appendMsg("ai",msg);
       state.ai.push({role:"user",content:userMsg});
-      state.ai.push({role:"assistant",content:txt});
+      state.ai.push({role:"assistant",content:msg});
       activities.forEach(a=>{
         const sid=a.stage!=null?a.stage:a.phase; // 後方互換
         const card=document.createElement("div");card.className="ai-activity";
@@ -1716,16 +1742,18 @@ async function sendAI(kickoff){
         document.getElementById("aiLog").appendChild(card);
       });
     }else{
-      // 調整方略の提案を抽出
-      let suggestions=[];
-      const mjson=txt.match(/```json\s*([\s\S]*?)```/);
-      if(mjson){
-        try{suggestions=(JSON.parse(mjson[1]).suggestions)||[];}catch(e){}
-        txt=txt.replace(/```json[\s\S]*?```/,"").trim();
+      // 調整方略の提案を抽出（生JSON・コードフェンス・文章混じりのいずれにも対応）
+      const ex=extractAIJson(txt);
+      let suggestions=(ex.data&&ex.data.suggestions)||[];
+      let msg=ex.text;
+      if(!msg){
+        msg = suggestions.length
+          ? `調整方略の案を ${suggestions.length} 件ご用意しました。下のカードから単元計画に追加できます。`
+          : "今回は具体的な方略案を作れませんでした。場面やねらいをもう少し教えていただけますか？";
       }
-      appendMsg("ai",txt);
+      appendMsg("ai",msg);
       state.ai.push({role:"user",content:userMsg});
-      state.ai.push({role:"assistant",content:txt});
+      state.ai.push({role:"assistant",content:msg});
       suggestions.forEach(s=>{
         const sid=s.stage!=null?s.stage:s.phase; // 後方互換
         const card=document.createElement("div");card.className="ai-suggest";
