@@ -1575,7 +1575,7 @@ async function callLLM(system,msgs){
       method:"POST",
       headers:{"Content-Type":"application/json","x-api-key":key,
         "anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
-      body:JSON.stringify({model,max_tokens:1200,system,messages:msgs})
+      body:JSON.stringify({model,max_tokens:8192,system,messages:msgs})
     });
     const data=await resp.json();
     if(data.error) throw new Error(data.error.message||"Claude APIエラー");
@@ -1594,7 +1594,7 @@ async function callLLM(system,msgs){
       body:JSON.stringify({
         system_instruction:{parts:[{text:system}]},
         contents,
-        generationConfig:{maxOutputTokens:1200}
+        generationConfig:{maxOutputTokens:8192,responseMimeType:"application/json",thinkingConfig:{thinkingBudget:0}}
       })
     });
     const data=await resp.json();
@@ -1864,9 +1864,16 @@ async function aiSortImport(){
   try{
     const raw=await callLLM(system,[{role:"user",content:"次のテキストを単元構成に振り分けてください:\n\n"+text}]);
     let obj=null;
-    const m=raw.match(/\{[\s\S]*\}/);
-    if(m){try{obj=JSON.parse(m[0]);}catch(e){}}
-    if(!obj) throw new Error("AIの応答を解釈できませんでした。もう一度試すか、手作業で貼ってください。");
+    let cleaned=raw.replace(/```json/gi,"").replace(/```/g,"").trim();
+    try{obj=JSON.parse(cleaned);}catch(e){}
+    if(!obj){
+      const m=cleaned.match(/\{[\s\S]*\}/);
+      if(m){try{obj=JSON.parse(m[0]);}catch(e){}}
+    }
+    if(!obj){
+      const peek=(raw||"").slice(0,120).replace(/\n/g," ");
+      throw new Error("AIの応答を解釈できませんでした。AIが返した内容の冒頭:「"+peek+"」／もう一度試すか、手作業で貼ってください。");
+    }
 
     const arr=Array.isArray(obj.periods)?obj.periods:[];
     const periods=arr.map(o=>{
@@ -2004,7 +2011,5 @@ restoreInputs();
 renderPhases();
 setProvider(state.provider);
 </script>
-
-<!-- Cloudflare Web Analytics --><script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "3184f28c2e314d999b3a8b48433a9075"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
 </html>
