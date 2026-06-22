@@ -1646,7 +1646,50 @@ function extractAIJson(raw){
       try{data=JSON.parse(cand); text=(text.slice(0,s)+text.slice(e+1)).trim();}catch(e2){}
     }
   }
+  // 4) 壊れたJSONからの救済：個々の { ... } を拾い、配列を組み直す。
+  //    例 `}, undesired: {` のような不正な区切りが混ざっていても、各オブジェクトを回収する。
+  if(!data){
+    const objs=salvageObjects(text);
+    if(objs.length){
+      data={suggestions:objs, activities:objs}; // 呼び出し側はどちらかのキーを使う
+      text=""; // 生データは表示しない
+    }
+  }
+  // 解析に完全失敗し、残テキストがJSONの破片に見える場合は表示しない（英語の生データ防止）
+  if(!data && /[{}\[\]]|"\s*:\s*"/.test(text)) text="";
   return {data, text};
+}
+
+/* テキストから { ... } の塊を入れ子も含めて全て取り出し、JSONとして解析する（壊れたJSONの救済用） */
+function salvageObjects(text){
+  const parsed=[];
+  // すべての位置を開始点として、対応が取れる { ... } を探す
+  const stack=[];
+  for(let i=0;i<text.length;i++){
+    if(text[i]==="{") stack.push(i);
+    else if(text[i]==="}" && stack.length){
+      const start=stack.pop();
+      const piece=text.slice(start,i+1);
+      try{
+        const o=JSON.parse(piece);
+        if(o && typeof o==="object" && !Array.isArray(o)) parsed.push({start, end:i, o});
+      }catch(e){}
+    }
+  }
+  // suggestions/activities 配列を含むオブジェクトがあれば、その中身を最優先で使う
+  for(const p of parsed){
+    if(Array.isArray(p.o.suggestions)) return p.o.suggestions.filter(x=>x&&(x.id!=null||x.text!=null));
+    if(Array.isArray(p.o.activities))  return p.o.activities.filter(x=>x&&(x.id!=null||x.text!=null));
+  }
+  // なければ、id か text を持つ個別オブジェクトを回収（入れ子の重複を避けるため外側を優先）
+  const picked=[]; let lastEnd=-1;
+  parsed.sort((a,b)=>a.start-b.start);
+  for(const p of parsed){
+    if(p.start>lastEnd && (p.o.id!=null || p.o.text!=null)){
+      picked.push(p.o); lastEnd=p.end;
+    }
+  }
+  return picked;
 }
 
 /* エラーを日本語で分かりやすく説明する。返り値: {short, detail} */

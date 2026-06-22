@@ -1770,7 +1770,45 @@ function extractAIJson(raw){
       try{data=JSON.parse(cand); text=(text.slice(0,s)+text.slice(e+1)).trim();}catch(e2){}
     }
   }
+  // 壊れたJSONからの救済：個々の { ... } を拾い、配列を組み直す。
+  if(!data){
+    const objs=salvageObjects(text);
+    if(objs.length){
+      data={suggestions:objs, activities:objs};
+      text="";
+    }
+  }
+  if(!data && /[{}\[\]]|"\s*:\s*"/.test(text)) text="";
   return {data, text};
+}
+
+/* テキストから { ... } の塊を入れ子も含めて全て取り出し、JSONとして解析する（壊れたJSONの救済用） */
+function salvageObjects(text){
+  const parsed=[];
+  const stack=[];
+  for(let i=0;i<text.length;i++){
+    if(text[i]==="{") stack.push(i);
+    else if(text[i]==="}" && stack.length){
+      const start=stack.pop();
+      const piece=text.slice(start,i+1);
+      try{
+        const o=JSON.parse(piece);
+        if(o && typeof o==="object" && !Array.isArray(o)) parsed.push({start, end:i, o});
+      }catch(e){}
+    }
+  }
+  for(const p of parsed){
+    if(Array.isArray(p.o.suggestions)) return p.o.suggestions.filter(x=>x&&(x.id!=null||x.text!=null));
+    if(Array.isArray(p.o.activities))  return p.o.activities.filter(x=>x&&(x.id!=null||x.text!=null));
+  }
+  const picked=[]; let lastEnd=-1;
+  parsed.sort((a,b)=>a.start-b.start);
+  for(const p of parsed){
+    if(p.start>lastEnd && (p.o.id!=null || p.o.text!=null)){
+      picked.push(p.o); lastEnd=p.end;
+    }
+  }
+  return picked;
 }
 
 /* エラーを日本語で分かりやすく説明する。返り値: {short, detail, raw} */
