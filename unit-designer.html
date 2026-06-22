@@ -640,6 +640,7 @@
         <div class="prov-tabs" id="provTabs">
           <button class="prov-tab active" data-prov="claude" onclick="setProvider('claude')">Claude<small>Anthropic</small></button>
           <button class="prov-tab" data-prov="gemini" onclick="setProvider('gemini')">Gemini<small>Google・無料枠あり</small></button>
+          <button class="prov-tab" data-prov="openai" onclick="setProvider('openai')">GPT<small>OpenAI</small></button>
         </div>
         <div class="key-help" style="margin-top:8px;">初めてなら <b>Gemini</b> がおすすめです。Googleアカウントがあれば無料枠で使い始められ、クレジットカードの登録も不要です。</div>
       </div>
@@ -664,6 +665,17 @@
           <li>プロジェクトの選択を求められたら、案内に従って進めます（既存のものでOK）。</li>
           <li>表示された <b>AIza… で始まる文字列</b>をコピーします。</li>
           <li>下の入力欄に貼り付けます。<br><span class="ok">※無料枠の範囲ならカード登録なしで使えます。</span></li>
+        </ol>
+      </div>
+
+      <div class="guide" id="guideOpenai" style="display:none;">
+        <div class="guide-title">② OpenAI (GPT) のキーを取得する手順</div>
+        <ol class="guide-steps">
+          <li><b>platform.openai.com</b> を開き、OpenAIアカウントでログインします（なければ新規登録）。<br><a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">→ キー発行ページを開く</a></li>
+          <li>支払い方法（クレジットカード）の登録が必要です。無料枠は基本的になく、使った分だけの従量課金です。</li>
+          <li><b>API keys</b> のページで <b>Create new secret key</b> を押します。</li>
+          <li>名前を付けて作成し、表示された <b>sk-… で始まる文字列</b>をコピーします。<br><span class="warn">※キーは作成時の一度しか表示されません。必ずその場でコピーしてください。</span></li>
+          <li>下の入力欄に貼り付けます。</li>
         </ol>
       </div>
 
@@ -756,8 +768,8 @@ const state = {
   ],
   ai:[],            // 相談履歴 {role,content}
   provider:"claude",
-  keys:{claude:"",gemini:""},
-  models:{claude:"",gemini:""}
+  keys:{claude:"",gemini:"",openai:""},
+  models:{claude:"",gemini:"",openai:""}
 };
 
 // 次のidを発番するためのカウンタ
@@ -1565,6 +1577,17 @@ const PROVIDERS={
       {id:"gemini-3-flash",        name:"Gemini 3 Flash（高性能・無料枠あり）"},
       {id:"gemini-2.5-pro",        name:"Gemini 2.5 Pro（最高品質・有料／無料枠は厳しい）"}
     ]
+  },
+  openai:{
+    label:"OpenAI (GPT)", keyPrefix:"sk-", defaultModel:"gpt-5.4-mini",
+    consoleUrl:"https://platform.openai.com/api-keys",
+    help:'キーは <b>platform.openai.com/api-keys</b> で「Create new secret key」から取得。sk- で始まります。無料枠は基本なく従量課金です。',
+    models:[
+      {id:"gpt-5.4-mini", name:"GPT-5.4 mini（推奨・低コスト）"},
+      {id:"gpt-5.5",      name:"GPT-5.5（最高品質・高コスト）"},
+      {id:"gpt-5.4-nano", name:"GPT-5.4 nano（最速・最安）"},
+      {id:"gpt-4.1-mini", name:"GPT-4.1 mini（従来世代・安定）"}
+    ]
   }
 };
 
@@ -1612,17 +1635,54 @@ function setProvider(prov){
   populateModelSelect(prov);
   document.getElementById("keyHelp").innerHTML=P.help;
   // 手順ガイドの切替
-  const gc=document.getElementById("guideClaude"), gg=document.getElementById("guideGemini");
-  if(gc&&gg){gc.style.display=(prov==="claude")?"block":"none";gg.style.display=(prov==="gemini")?"block":"none";}
+  const gc=document.getElementById("guideClaude"), gg=document.getElementById("guideGemini"), gop=document.getElementById("guideOpenai");
+  if(gc)gc.style.display=(prov==="claude")?"block":"none";
+  if(gg)gg.style.display=(prov==="gemini")?"block":"none";
+  if(gop)gop.style.display=(prov==="openai")?"block":"none";
   const tr=document.getElementById("testResult"); if(tr)tr.textContent="";
 }
 
-/* プロバイダ非依存でLLMを呼ぶ。system=システム文, msgs=[{role:'user'|'assistant',content}] → 返り値: 本文文字列 */
-async function callLLM(system,msgs){
+/* プロバイダ非依存でLLMを呼ぶ。system=システム文, msgs=[{role:'user'|'assistant',content}] → 返り値: 本文文字列
+   混雑(503/529)・レート制限(429)・一時的なサーバエラー(500)は自動で数回リトライする。 */
+async function callLLM(system,msgs,onRetry){
+  const MAX_RETRY=4;
+  const BASE_WAIT=2000;
+  let lastErr=null;
+  for(let attempt=0; attempt<=MAX_RETRY; attempt++){
+    try{
+      return await callLLMOnce(system,msgs);
+    }catch(err){
+      lastErr=err;
+      const retryable=err&&err.retryable;
+      if(!retryable || attempt===MAX_RETRY) throw err;
+      let wait = err.retryAfterMs || (BASE_WAIT*Math.pow(2,attempt));
+      wait += Math.floor(Math.random()*600);
+      if(typeof onRetry==="function") onRetry(attempt+1, Math.ceil(wait/1000));
+      await new Promise(r=>setTimeout(r,wait));
+    }
+  }
+  throw lastErr;
+}
+
+/* 1回分のLLM呼び出し。リトライすべきエラーには err.retryable=true を付ける。 */
+async function callLLMOnce(system,msgs){
   const prov=state.provider;
   const key=(state.keys[prov]||"").trim();
   const model=(state.models[prov]||"").trim()||PROVIDERS[prov].defaultModel;
   if(!key) throw new Error("APIキーが未入力です（設定画面で入力してください）");
+
+  const makeErr=(message,status,retryAfterSec)=>{
+    const e=new Error(message||"APIエラー");
+    const msg=(message||"").toLowerCase();
+    const transient = status===429||status===500||status===502||status===503||status===529
+      || msg.includes("high demand") || msg.includes("overloaded")
+      || msg.includes("temporarily") || msg.includes("try again")
+      || msg.includes("rate limit") || msg.includes("quota") || msg.includes("unavailable");
+    e.retryable=!!transient;
+    e.status=status||0;
+    if(retryAfterSec) e.retryAfterMs=retryAfterSec*1000;
+    return e;
+  };
 
   if(prov==="claude"){
     const resp=await fetch("https://api.anthropic.com/v1/messages",{
@@ -1631,8 +1691,12 @@ async function callLLM(system,msgs){
         "anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
       body:JSON.stringify({model,max_tokens:8192,system,messages:msgs})
     });
-    const data=await resp.json();
-    if(data.error) throw new Error(data.error.message||"Claude APIエラー");
+    const ra=parseInt(resp.headers.get("retry-after")||"",10);
+    const data=await resp.json().catch(()=>({}));
+    if(!resp.ok || data.error){
+      throw makeErr((data.error&&data.error.message)||("Claude APIエラー (HTTP "+resp.status+")"),
+                    resp.status, isNaN(ra)?null:ra);
+    }
     return (data.content||[]).map(c=>c.text||"").join("\n");
   }
 
@@ -1651,10 +1715,35 @@ async function callLLM(system,msgs){
         generationConfig:{maxOutputTokens:8192,responseMimeType:"application/json",thinkingConfig:{thinkingBudget:0}}
       })
     });
-    const data=await resp.json();
-    if(data.error) throw new Error(data.error.message||"Gemini APIエラー");
+    const data=await resp.json().catch(()=>({}));
+    if(!resp.ok || data.error){
+      const m=(data.error&&data.error.message)||("Gemini APIエラー (HTTP "+resp.status+")");
+      const rm=m.match(/retry in\s+([\d.]+)\s*s/i);
+      throw makeErr(m, resp.status, rm?Math.ceil(parseFloat(rm[1])):null);
+    }
     const cand=(data.candidates&&data.candidates[0]);
     return cand&&cand.content&&cand.content.parts?cand.content.parts.map(p=>p.text||"").join("\n"):"";
+  }
+
+  if(prov==="openai"){
+    // OpenAIは systemロールをmessages先頭に入れる。新モデルはmax_completion_tokensを使う。
+    const messages=[{role:"system",content:system},...msgs.map(m=>({role:m.role,content:m.content}))];
+    const body={model,messages};
+    if(/^gpt-5/.test(model)) body.max_completion_tokens=8192; else body.max_tokens=8192;
+    body.response_format={type:"json_object"};
+    const resp=await fetch("https://api.openai.com/v1/chat/completions",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},
+      body:JSON.stringify(body)
+    });
+    const ra=parseInt(resp.headers.get("retry-after")||"",10);
+    const data=await resp.json().catch(()=>({}));
+    if(!resp.ok || data.error){
+      throw makeErr((data.error&&data.error.message)||("OpenAI APIエラー (HTTP "+resp.status+")"),
+                    resp.status, isNaN(ra)?null:ra);
+    }
+    const ch=(data.choices&&data.choices[0]);
+    return ch&&ch.message&&ch.message.content?ch.message.content:"";
   }
 
   throw new Error("不明なプロバイダです");
@@ -1684,6 +1773,32 @@ function extractAIJson(raw){
   return {data, text};
 }
 
+/* エラーを日本語で分かりやすく説明する。返り値: {short, detail, raw} */
+function explainError(err){
+  const raw=(err&&err.message)||"";
+  const m=raw.toLowerCase();
+  const status=(err&&err.status)||0;
+  let detail;
+  if(status===401||status===403||m.includes("api key")||m.includes("api_key")||m.includes("unauthorized")||m.includes("permission")||m.includes("invalid authentication")){
+    detail="APIキーが正しくないか、無効になっている可能性があります。設定画面でキーを貼り直してください（前後の空白や改行が混ざっていないかも確認）。";
+  }else if(status===404||m.includes("not found")||(m.includes("model")&&m.includes("not"))||m.includes("does not exist")||m.includes("unsupported")){
+    detail="指定したモデル名が見つかりません。設定画面のモデル選択を「推奨」に戻すか、別のモデルを選んでください。";
+  }else if(status===429||m.includes("quota")||m.includes("rate limit")||m.includes("exceeded")){
+    detail="一定時間に送れる回数（レート制限）か無料枠の上限に達しています。数十秒おいて試すか、Gemini なら Flash-Lite など上限の緩いモデルに切り替えてください。";
+  }else if(status===529||status===503||m.includes("high demand")||m.includes("overloaded")||m.includes("unavailable")||m.includes("try again")){
+    detail="AIサービス側が一時的に混雑しています。少し時間をおいて再度お試しください。頻発する場合は別のモデルに切り替えると改善することがあります。";
+  }else if(status>=500){
+    detail="AIサービス側で一時的なエラーが起きています。少し待ってからもう一度お試しください。";
+  }else if(m.includes("failed to fetch")||m.includes("networkerror")||m.includes("load failed")){
+    detail="ネットワークに接続できませんでした。インターネット接続を確認してください。社内・学校のネットワークだと通信がブロックされている場合もあります。";
+  }else if(m.includes("未入力")){
+    detail="APIキーが入力されていません。設定画面でキーを入力してください。";
+  }else{
+    detail="想定外のエラーです。設定画面でAIサービスとAPIキーを確認してください。";
+  }
+  return {short:detail, detail, raw};
+}
+
 async function testConnection(){
   saveInputs();
   const tr=document.getElementById("testResult");
@@ -1694,7 +1809,10 @@ async function testConnection(){
     if(txt&&txt.trim()){tr.style.color="#1f7a3a";tr.textContent="✓ 接続できました（"+PROVIDERS[state.provider].label+"）";}
     else{tr.style.color="#a23";tr.textContent="応答が空でした。モデル名を確認してください。";}
   }catch(err){
-    tr.style.color="#a23";tr.textContent="✕ "+(err&&err.message?err.message:"接続に失敗しました");
+    const ex=explainError(err);
+    tr.style.color="#a23";
+    tr.innerHTML="✕ 接続できませんでした<br>"+esc(ex.detail)
+      +'<br><span style="opacity:.6;font-size:.85em;">（詳細: '+esc(ex.raw)+'）</span>';
   }
 }
 
@@ -1725,7 +1843,8 @@ async function sendAI(kickoff){
   const stageName=sid=>{const st=resolveStage(sid);const i=state.stages.indexOf(st);return st?`第${i+1}次「${st.name||""}」`:sid;};
 
   try{
-    const txt0=await callLLM(system,[...history,{role:"user",content:userMsg}]);
+    const txt0=await callLLM(system,[...history,{role:"user",content:userMsg}],
+      (n,sec)=>{ typing.textContent=`混雑のため再試行中…（${n}回目／約${sec}秒待機）`; });
     typing.remove();
     let txt=txt0;
     if(!txt){appendMsg("ai","応答を取得できませんでした。設定画面でAPIキーを確認してください。");return;}
@@ -1800,7 +1919,11 @@ async function sendAI(kickoff){
     document.getElementById("aiLog").scrollTop=99999;
   }catch(err){
     typing.remove();
-    appendMsg("ai","通信エラー: "+(err&&err.message?err.message:"接続に失敗しました")+"\n設定画面でAIサービスとAPIキーを確認してください。");
+    const em=(err&&err.message)||"接続に失敗しました";
+    const friendly = err&&err.retryable
+      ? `ただいまAIが混雑しているようです。何度か自動で試しましたがつながりませんでした。少し時間をおいて、もう一度「送信」してください。\n頻発する場合は、設定画面でモデルを変える（例: Gemini の Flash-Lite、または Claude に切替）と改善することがあります。`
+      : `うまく応答を得られませんでした。\n${explainError(err).detail}\n（詳細: ${em}）`;
+    appendMsg("ai",friendly);
   }
 }
 
@@ -2009,7 +2132,7 @@ function downloadJSON(){
   saveInputs();
   // APIキーは保存しない（漏洩防止）
   const out=JSON.parse(JSON.stringify(state));
-  out.keys={claude:"",gemini:""};
+  out.keys={claude:"",gemini:"",openai:""};
   const blob=new Blob([JSON.stringify(out,null,2)],{type:"application/json"});
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
