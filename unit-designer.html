@@ -620,10 +620,13 @@
       <button class="btn btn-ghost" onclick="go(2)">← 相談へ戻る</button>
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
         <button class="btn btn-ghost" onclick="downloadJSON()">データを保存(JSON)</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('loadJsonFile').click()" title="このツールの「データを保存(JSON)」で保存したファイルを読み込み、入力内容を復元します（Word/PDFの指導案取り込みはSTEP2の機能です）">保存したデータ(JSON)を読み込む</button>
+        <input type="file" id="loadJsonFile" accept=".json,application/json" onchange="loadJSONFile(event)" hidden>
         <button class="btn btn-amber" onclick="downloadWord()">Wordで保存</button>
         <button class="btn btn-primary" onclick="window.print()">印刷 / PDF</button>
       </div>
     </div>
+    <div id="loadJsonStatus" class="no-print" style="display:none;margin:-4px 0 14px;padding:9px 12px;border-radius:8px;font-size:.85rem;"></div>
     <div class="preview-sheet" id="preview"></div>
   </section>
 
@@ -2176,6 +2179,115 @@ function downloadJSON(){
   a.href=URL.createObjectURL(blob);
   a.download=(state.meta.unit||"単元構想")+"_単元構想.json";
   a.click();
+}
+
+/* ============================================================
+   保存したデータ(JSON)の読み込み
+   「データを保存(JSON)」で保存したファイルから入力状態を復元する。
+   ※APIキーはファイルに保存されていないため復元対象外（現在の設定を維持）
+   ============================================================ */
+function showLoadStatus(msg,ok){
+  const el=document.getElementById("loadJsonStatus");
+  if(!el){ alert(msg); return; }
+  el.style.display="block";
+  el.style.background=ok?"#e8f3ea":"#fdeceb";
+  el.style.border=ok?"1px solid #9fc7a8":"1px solid #e8b2ae";
+  el.style.color=ok?"#2c5e38":"#8c2f28";
+  el.textContent=msg;
+  if(ok){ setTimeout(()=>{ el.style.display="none"; },8000); }
+}
+async function loadJSONFile(ev){
+  const file=ev.target.files&&ev.target.files[0];
+  ev.target.value=""; // 同じファイルを選び直しても再読み込みできるように
+  if(!file)return;
+  let obj=null;
+  try{
+    const text=await file.text();
+    obj=JSON.parse(text);
+  }catch(e){
+    showLoadStatus("「"+file.name+"」を読み込めませんでした。ファイルが壊れているか、JSON形式ではないようです。このツールの「データを保存(JSON)」で保存したファイルをもう一度選んでください。",false);
+    return;
+  }
+  if(!obj||typeof obj!=="object"||Array.isArray(obj)){
+    showLoadStatus("「"+file.name+"」は単元構想デザイナーの保存データではないようです。「◯◯_単元構想.json」という名前で保存したファイルを選んでください。",false);
+    return;
+  }
+  if(!Array.isArray(obj.stages)&&Array.isArray(obj.phases)){
+    showLoadStatus("「"+file.name+"」は「本時指導案デザイナー」で保存されたデータのようです。こちらは単元構想デザイナーなので、「◯◯_単元構想.json」を選んでください（指導案デザイナー側の読み込みボタンならこのファイルを開けます）。",false);
+    return;
+  }
+  if(!Array.isArray(obj.stages)||!obj.stages.length||typeof obj.meta!=="object"||obj.meta===null){
+    showLoadStatus("「"+file.name+"」は単元構想デザイナーの保存データではないようです。このツールの「データを保存(JSON)」で保存したファイルを選んでください。",false);
+    return;
+  }
+  try{
+    applyLoadedState(obj);
+  }catch(e){
+    showLoadStatus("データの復元中に問題が起きました。ファイルの内容が一部壊れている可能性があります。別の保存ファイルでお試しください。（詳細: "+(e&&e.message?e.message:e)+"）",false);
+    return;
+  }
+  showLoadStatus("「"+file.name+"」を読み込みました。単元名・単元計画・方略・AI相談の記録を復元しています（APIキーは保存されていないため、AI相談を使う場合は⚙設定から入力してください）。",true);
+}
+function applyLoadedState(obj){
+  // メタ情報（不足キーは既定値で補完）
+  const defMeta={subject:"",grade:"",hours:"",unit:"",unitGoal:"",assessment:"",students:"",minutes:"50"};
+  const meta={};
+  Object.keys(defMeta).forEach(k=>{ meta[k]=(obj.meta&&typeof obj.meta[k]==="string")?obj.meta[k]:defMeta[k]; });
+  state.meta=meta;
+  // 単元計画（次→時）を検査しながら復元
+  state.stages=obj.stages.map((st,i)=>{
+    const periods=(Array.isArray(st.periods)&&st.periods.length?st.periods:[{}]).map(pd=>({
+      label:(pd&&typeof pd.label==="string")?pd.label:"",
+      process:(pd&&PROCESS_OPTIONS.includes(pd.process))?pd.process:"課題設定",
+      goal:(pd&&typeof pd.goal==="string")?pd.goal:"",
+      text:(pd&&typeof pd.text==="string")?pd.text:"",
+      evalText:(pd&&typeof pd.evalText==="string")?pd.evalText:"",
+      strategies:(pd&&Array.isArray(pd.strategies))?pd.strategies.filter(s=>s&&typeof s==="object"):[]
+    }));
+    return {
+      id:(typeof st.id==="string"&&st.id)?st.id:("s"+(i+1)),
+      name:(typeof st.name==="string")?st.name:"",
+      phase:STAGE_PHASE_OPTIONS.includes(st.phase)?st.phase:"見通す",
+      periods
+    };
+  });
+  // 「次」のid発番カウンタを、復元したidと衝突しない値に進める
+  let maxSeq=state.stages.length;
+  state.stages.forEach(st=>{ const m=/^s(\d+)$/.exec(st.id); if(m)maxSeq=Math.max(maxSeq,parseInt(m[1],10)); });
+  stageSeq=maxSeq+1;
+  // AI相談履歴
+  state.ai=Array.isArray(obj.ai)?obj.ai.filter(m=>m&&(m.role==="user"||m.role==="assistant")&&typeof m.content==="string"):[];
+  // モデル設定は復元、APIキーは復元しない（保存ファイルには含まれていない）
+  if(obj.models&&typeof obj.models==="object"){
+    ["claude","gemini","openai"].forEach(p=>{ if(typeof obj.models[p]==="string")state.models[p]=obj.models[p]; });
+  }
+  const desiredProvider=["claude","gemini","openai"].includes(obj.provider)?obj.provider:state.provider;
+  // 画面へ反映
+  restoreInputs();
+  buildStepper();
+  renderPhases();
+  setProvider(desiredProvider); // ここで state.provider が切り替わり、キー欄・モデル欄も更新される
+  rebuildAILogFromState();
+  renderBalance();
+  renderPreview();
+}
+/* 復元したAI相談履歴を画面のログに描き直す */
+function rebuildAILogFromState(){
+  const log=document.getElementById("aiLog");
+  if(!log)return;
+  log.innerHTML='<div class="msg sys" id="aiSeed">右下の入力欄から相談を始めてください。例「この単元を見通す・実行する・振り返るの流れで何時間に分けるか一緒に考えたい」</div>';
+  state.ai.forEach(m=>{
+    let t=m.content||"";
+    if(m.role==="user"){
+      const ix=t.lastIndexOf("相談内容:");
+      if(ix>=0)t=t.slice(ix+"相談内容:".length).trim();
+      if(t.indexOf("（システム")===0)return; // 内部指示は表示しない
+      appendMsg("me",t);
+    }else{
+      appendMsg("ai",t);
+    }
+  });
+  if(state.ai.length)kickedOffActivity=true; // 履歴があるときはAIの自動挨拶を出さない
 }
 
 /* ============================================================
