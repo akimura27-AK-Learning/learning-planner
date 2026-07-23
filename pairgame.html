@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>方略ペアさがし｜学びを調整する方略カード</title>
+<!--
+  ============================================================
+  方略ペアさがし v6（方略ゲームシリーズ 第1弾・覚える）
+  作成：2026-07-17 D氏（教材課）／ステータス：CEO確認待ち
+  v2（CEOフィードバック反映）：①めくった2枚の表示時間を延長（正解1.8秒・不正解1.6秒）
+  ②裏面マークを大型化し「問いカード／方略カード」のラベルを追加 ③盤面上部に凡例を追加
+  v3（CEO提案の得点制）：ひとりモードに得点（6回=100点、+1回ごと−10点、最低10点）と
+  ★ランク（★3はかせ級/★2名人級/★1見習い級）、フェーズ別の自己ベスト記録（端末保存）を追加
+  v4（CEO提案）：①ミックスに初級6ペア100点/中級8ペア150点/上級10ペア200点の級を新設
+  ②トップに「きみのきろく」＝るいけい得点・方略レベル（300点ごとにレベルアップ、
+  みならい→チャレンジャー→名人→はかせ→マスター）・レベルアップ演出を追加
+  v5（CEO確認反映）：ふたりモードを「きょうりょく」（共同得点＝ひとりと同じ計算、累計に加算、
+  交代でめくる）と「しょうぶ」（そろえたペア×10点で対戦、累計に入らない）の2つに分離
+  v6（文言同期）：カードゲーム本体（GitHub公開版self.html・2026-07-18更新）の文言変更を反映
+  （「学習のめあてを考える」→「めあてから何ができるようになりたいのかを考える」）
+  ・カードの文言・分類は 自己調整方略カード（self.html）と同一データ（46枚）
+  ・「問い」と「方略」を対にする神経衰弱。フェーズ別／ミックス、1人・2人
+  ・HTML1ファイル完結／オフライン動作（フォントは代替あり）／タブレット対応
+  ============================================================
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FAF9F4; --ink:#273041; --ink-soft:#5B6472; --line:#E3DDCB;
+  --blue:#2563EB; --blue-soft:#EAF1FE;
+  --green:#16A34A; --green-soft:#EAF7EE;
+  --orange:#EA580C; --orange-soft:#FDF0E7;
+  --purple:#7C3AED; --purple-soft:#F1EAFE;
+  --gold:#F59E0B; --radius:18px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+button{font-family:inherit;cursor:pointer}
+body{
+  font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","BIZ UDGothic","Yu Gothic",sans-serif;
+  background:var(--paper); color:var(--ink); line-height:1.7; min-height:100vh;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:36px 36px; background-position:center top;
+  display:flex; flex-direction:column;
+}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px;width:100%}
+header{padding:26px 0 6px;text-align:center}
+.stripe{display:inline-flex;gap:6px;margin-bottom:10px}
+.stripe span{width:30px;height:9px;border-radius:5px}
+.stripe .s1{background:var(--blue)}.stripe .s2{background:var(--green)}.stripe .s3{background:var(--orange)}
+h1{font-size:clamp(24px,4.5vw,36px);font-weight:900;letter-spacing:.06em}
+.subtitle{color:var(--ink-soft);font-size:clamp(12px,1.7vw,15px);font-weight:500;margin-top:4px}
+main{flex:1;padding-bottom:40px}
+.screen{display:none}
+.screen.active{display:block}
+
+/* ===== 設定画面 ===== */
+.panel{background:#fff;border:1.5px solid var(--line);border-radius:var(--radius);
+  padding:22px 22px 20px;margin:18px 0;box-shadow:0 3px 0 rgba(39,48,65,.05)}
+.panel h2{font-size:16px;font-weight:900;letter-spacing:.04em;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.panel h2 .step{background:var(--ink);color:#fff;border-radius:999px;font-size:12px;padding:1px 12px}
+.choices{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.choices.two{grid-template-columns:repeat(2,1fr)}
+.choices.three{grid-template-columns:repeat(3,1fr)}
+@media (max-width:560px){.choices.three{grid-template-columns:1fr}}
+.choice{border:2.5px solid var(--line);background:var(--paper);border-radius:14px;
+  padding:14px 6px 12px;text-align:center;min-height:64px;transition:transform .12s ease}
+.choice:active{transform:scale(.97)}
+.choice .big{font-size:16px;font-weight:900;display:block}
+.choice .small{font-size:11px;color:var(--ink-soft);font-weight:700}
+.choice[data-phase="見通す"].sel{border-color:var(--blue);background:var(--blue-soft)}
+.choice[data-phase="実行する"].sel{border-color:var(--green);background:var(--green-soft)}
+.choice[data-phase="振り返る"].sel{border-color:var(--orange);background:var(--orange-soft)}
+.choice[data-phase="ミックス"].sel{border-color:var(--purple);background:var(--purple-soft)}
+.choice[data-players].sel{border-color:var(--ink);background:#fff}
+.startbtn{display:block;width:100%;margin-top:6px;border:none;border-radius:16px;
+  background:var(--ink);color:#fff;font-size:19px;font-weight:900;letter-spacing:.1em;padding:16px}
+.startbtn:focus-visible,.choice:focus-visible,.tile:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.linkrow{text-align:center;font-size:12.5px;font-weight:700;color:var(--ink-soft);margin-top:4px}
+.linkrow button,.linkrow a{background:none;border:none;color:var(--ink-soft);text-decoration:underline;font-size:12.5px;font-weight:700}
+.panel.record{background:linear-gradient(135deg,#FFFDF6,#FFF7E6);border-color:var(--gold)}
+.rec-row{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.rec-level{display:flex;flex-direction:column}
+.rec-lv{font-size:clamp(20px,3.4vw,28px);font-weight:900;color:var(--ink)}
+.rec-title{font-size:13px;font-weight:900;color:#B45309;background:#fff;border:1.5px solid var(--gold);
+  border-radius:999px;padding:1px 12px;margin-top:2px}
+.rec-pts,.rec-games{font-size:12px;font-weight:700;color:var(--ink-soft)}
+.rec-pts b,.rec-games b{font-size:clamp(20px,3.2vw,26px);font-weight:900;color:var(--ink);margin-right:2px}
+.rec-barwrap{height:14px;background:#fff;border:1.5px solid var(--gold);border-radius:999px;overflow:hidden;margin-top:10px}
+.rec-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--gold),#FBBF24);border-radius:999px;transition:width .5s ease}
+.rec-next{font-size:12px;font-weight:700;color:var(--ink-soft);margin-top:4px;text-align:right}
+.lvchoices{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px;
+  border-top:1.5px dashed var(--line);padding-top:12px}
+.lvchoices .choice.sel{border-color:var(--purple);background:var(--purple-soft)}
+
+/* ===== ゲーム画面 ===== */
+.hud{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:8px 14px;margin:14px 0}
+.hud .info{font-size:14px;font-weight:900}
+.hud .info small{font-weight:700;color:var(--ink-soft);font-size:11px}
+.hud .pl{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:2px 12px;font-size:13px;font-weight:900;border:2px solid transparent}
+.hud .pl.turn{border-color:var(--gold);background:#FFF7E6}
+.hud button{border:1.5px solid var(--line);background:var(--paper);border-radius:999px;
+  font-size:12px;font-weight:900;padding:6px 14px}
+.legend{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;
+  background:#FFF7E6;border:1.5px solid var(--gold);border-radius:12px;
+  padding:8px 12px;margin:0 0 12px;font-size:clamp(12px,1.9vw,14.5px);font-weight:900}
+.legend .lg{display:inline-flex;align-items:center;gap:5px}
+.legend .lgmark{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
+  color:#fff;background:var(--ink);font-size:15px;font-weight:900}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.grid.big{grid-template-columns:repeat(5,1fr)}
+@media (max-width:560px){.grid{grid-template-columns:repeat(3,1fr)}.grid.big{grid-template-columns:repeat(4,1fr)}}
+.tile{position:relative;aspect-ratio:5/6.4;border:none;background:none;perspective:700px}
+.tile .inner{position:absolute;inset:0;transition:transform .35s;transform-style:preserve-3d}
+.tile.open .inner{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;
+  border:1.5px solid var(--line);display:flex;flex-direction:column;overflow:hidden}
+.face.back{background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.face.back .mark{width:72%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;
+  font-size:clamp(34px,7.5vw,58px);font-weight:900;color:#fff}
+.face.back .marklabel{font-size:clamp(10px,1.8vw,13px);font-weight:900;color:var(--ink-soft);letter-spacing:.08em}
+.tile[data-ph="見通す"] .face.back .mark{background:var(--blue)}
+.tile[data-ph="実行する"] .face.back .mark{background:var(--green)}
+.tile[data-ph="振り返る"] .face.back .mark{background:var(--orange)}
+.face.front{background:var(--paper);transform:rotateY(180deg)}
+.face .band{color:#fff;font-size:clamp(8px,1.5vw,11px);font-weight:900;letter-spacing:.05em;
+  padding:3px 6px;display:flex;justify-content:space-between;align-items:center}
+.tile[data-ph="見通す"] .band{background:var(--blue)}
+.tile[data-ph="実行する"] .band{background:var(--green)}
+.tile[data-ph="振り返る"] .band{background:var(--orange)}
+.face .band .kind{background:rgba(255,255,255,.28);border-radius:999px;padding:0 8px}
+.face .txt{flex:1;display:grid;place-items:center;padding:6px;text-align:center;
+  font-size:clamp(10px,1.9vw,14.5px);font-weight:900;line-height:1.45}
+.tile.q .face.front .txt{font-weight:700}
+.tile.done{pointer-events:none}
+.tile.done .face.front{box-shadow:0 0 0 3px var(--gold) inset;opacity:.92}
+.tile.shake .inner{animation:shake .35s}
+@keyframes shake{25%{transform:rotateY(180deg) translateX(-4px)}75%{transform:rotateY(180deg) translateX(4px)}}
+
+/* ===== オーバーレイ（マッチ・ヘルプ） ===== */
+.overlay{position:fixed;inset:0;background:rgba(39,48,65,.45);display:none;
+  align-items:center;justify-content:center;padding:18px;z-index:50}
+.overlay.show{display:flex}
+.card-pop{background:#fff;border-radius:20px;max-width:520px;width:100%;max-height:86vh;overflow:auto;
+  padding:22px 22px 18px;border:1.5px solid var(--line)}
+.card-pop .chip{display:inline-block;color:#fff;border-radius:999px;font-size:12px;font-weight:900;padding:2px 14px;margin-bottom:8px}
+.card-pop h3{font-size:20px;font-weight:900;line-height:1.4}
+.card-pop .q{font-size:14px;font-weight:700;color:var(--ink-soft);margin:8px 0 2px}
+.card-pop .full{font-size:14px;font-weight:500;background:var(--paper);border:1.5px solid var(--line);
+  border-radius:12px;padding:10px 14px;margin-top:10px}
+.card-pop .meta{font-size:11.5px;color:var(--ink-soft);font-weight:700;margin-top:8px}
+.card-pop .okbtn{display:block;width:100%;margin-top:14px;border:none;border-radius:14px;
+  background:var(--ink);color:#fff;font-size:16px;font-weight:900;padding:13px}
+.pairmark{font-size:13px;font-weight:900;color:var(--gold);letter-spacing:.15em;margin-bottom:4px}
+
+/* ===== クリア画面 ===== */
+.result{ text-align:center }
+.result .big{font-size:clamp(26px,5vw,40px);font-weight:900;margin:6px 0}
+.result .sub{font-size:14px;font-weight:700;color:var(--ink-soft)}
+.result .stars{font-size:clamp(30px,6vw,44px);letter-spacing:.12em;color:var(--gold);margin:2px 0}
+.result .stars .off{color:#D8D2C2}
+.result .rank{font-size:clamp(15px,2.4vw,19px);font-weight:900}
+.result .best{display:inline-block;margin-top:8px;font-size:13px;font-weight:900;
+  border-radius:999px;padding:4px 16px;background:var(--paper);border:1.5px solid var(--line);color:var(--ink-soft)}
+.result .best.new{background:#FFF7E6;border-color:var(--gold);color:var(--ink)}
+.result .total{margin-top:10px;font-size:13.5px;font-weight:700;color:var(--ink-soft)}
+.result .total .lvup{font-size:clamp(15px,2.6vw,19px);font-weight:900;color:#B45309}
+.gotlist{display:grid;gap:8px;margin:14px 0;text-align:left}
+.got{background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;
+  display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left}
+.got .dot{width:12px;height:12px;border-radius:50%;flex:0 0 12px;margin-top:7px}
+.got b{font-size:14.5px;font-weight:900;display:block}
+.got small{font-size:12px;color:var(--ink-soft);font-weight:500;display:block}
+.got.picked{box-shadow:0 0 0 3px var(--gold) inset}
+.pickmsg{font-size:14px;font-weight:900;color:var(--ink);background:#FFF7E6;border:1.5px solid var(--gold);
+  border-radius:12px;padding:10px 14px;display:none;margin-bottom:12px}
+.btnrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.btnrow button{border-radius:14px;font-size:15px;font-weight:900;padding:13px;border:1.5px solid var(--line)}
+.btnrow .again{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btnrow .home{background:#fff}
+footer{border-top:1.5px solid var(--line);background:#fff;padding:14px 0 20px;text-align:center;
+  font-size:11.5px;color:var(--ink-soft);font-weight:500}
+.help-body{font-size:13.5px;font-weight:500}
+.help-body h4{font-size:14px;font-weight:900;margin:10px 0 2px}
+</style>
+</head>
+<body>
+
+<header class="wrap">
+  <div class="stripe" aria-hidden="true"><span class="s1"></span><span class="s2"></span><span class="s3"></span></div>
+  <h1>方略ペアさがし</h1>
+  <p class="subtitle">「問い」と「方略」のペアを見つけて、学び方のカードをおぼえよう</p>
+</header>
+
+<main class="wrap">
+
+  <!-- 設定画面 -->
+  <section id="setup" class="screen active" aria-label="ゲーム設定">
+    <div class="panel record">
+      <h2>きみのきろく</h2>
+      <div class="rec-row">
+        <div class="rec-level">
+          <span class="rec-lv" id="recLv">レベル1</span>
+          <span class="rec-title" id="recTitle">方略みならい</span>
+        </div>
+        <div class="rec-pts"><b id="recPts">0</b><small>点（るいけい）</small></div>
+        <div class="rec-games"><b id="recGames">0</b><small>回あそんだ</small></div>
+      </div>
+      <div class="rec-barwrap"><div class="rec-bar" id="recBar"></div></div>
+      <p class="rec-next" id="recNext">つぎのレベルまで あと300点</p>
+    </div>
+    <div class="panel">
+      <h2><span class="step">1</span>フェーズをえらぶ</h2>
+      <div class="choices" role="group" aria-label="フェーズ選択">
+        <button class="choice sel" data-phase="見通す"><span class="big">見通す</span><span class="small">学習のまえ</span></button>
+        <button class="choice" data-phase="実行する"><span class="big">実行する</span><span class="small">学習のとちゅう</span></button>
+        <button class="choice" data-phase="振り返る"><span class="big">振り返る</span><span class="small">学習のあと</span></button>
+        <button class="choice" data-phase="ミックス"><span class="big">ミックス</span><span class="small">ぜんぶから</span></button>
+      </div>
+      <div class="lvchoices" id="lvPanel" style="display:none">
+        <button class="choice sel" data-level="初級"><span class="big">初級</span><span class="small">6ペア・満点100点</span></button>
+        <button class="choice" data-level="中級"><span class="big">中級</span><span class="small">8ペア・満点150点</span></button>
+        <button class="choice" data-level="上級"><span class="big">上級</span><span class="small">10ペア・満点200点</span></button>
+      </div>
+    </div>
+    <div class="panel">
+      <h2><span class="step">2</span>あそびかたをえらぶ</h2>
+      <div class="choices three" role="group" aria-label="あそびかた選択">
+        <button class="choice sel" data-players="1"><span class="big">ひとりで</span><span class="small">少ない回数でクリアをめざす</span></button>
+        <button class="choice" data-players="coop"><span class="big">ふたりで きょうりょく</span><span class="small">声をかけ合って高得点をめざす（きろくにたまる）</span></button>
+        <button class="choice" data-players="vs"><span class="big">ふたりで しょうぶ</span><span class="small">そろえたペア×10点で勝負</span></button>
+      </div>
+    </div>
+    <button class="startbtn" id="startBtn">スタート！</button>
+    <p class="linkrow">
+      <button id="helpBtn">先生方へ（このゲームのつかいかた）</button>
+      <a href="https://akimura27-ak-learning.github.io/learning-planner/cardindex.html">カードずかんでくわしく見る</a>
+    </p>
+  </section>
+
+  <!-- ゲーム画面 -->
+  <section id="game" class="screen" aria-label="ゲーム">
+    <div class="hud">
+      <span class="info" id="hudInfo"></span>
+      <span id="hudP" style="display:none">
+        <span class="pl" id="pl1">プレイヤー1：<b id="sc1">0</b></span>
+        <span class="pl" id="pl2">プレイヤー2：<b id="sc2">0</b></span>
+      </span>
+      <button id="quitBtn">さいしょから</button>
+    </div>
+    <div class="legend" aria-label="ルールの説明">
+      <span class="lg"><span class="lgmark">？</span>問いカード</span>
+      <span>と</span>
+      <span class="lg"><span class="lgmark">★</span>方略カード</span>
+      <span>で、おなじ内容のペアをそろえよう！</span>
+    </div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <!-- クリア画面 -->
+  <section id="clear" class="screen" aria-label="結果">
+    <div class="panel result">
+      <div class="pairmark">★ ぜんぶそろった！ ★</div>
+      <div class="big" id="resultTitle"></div>
+      <div class="stars" id="resultStars"></div>
+      <p class="rank" id="resultRank"></p>
+      <p class="sub" id="resultSub"></p>
+      <span class="best" id="resultBest" style="display:none"></span>
+      <p class="total" id="resultTotal" style="display:none"></p>
+    </div>
+    <div class="panel">
+      <h2>あつめた方略カード ── <span style="font-weight:700;font-size:13px">きょうの学習で使えそうなカードを1まいタップ！</span></h2>
+      <p class="pickmsg" id="pickMsg"></p>
+      <div class="gotlist" id="gotList"></div>
+      <div class="btnrow">
+        <button class="again" id="againBtn">もういちど</button>
+        <button class="home" id="homeBtn">さいしょから</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- マッチしたときのカード表示 -->
+<div class="overlay" id="matchOv" role="dialog" aria-modal="true">
+  <div class="card-pop">
+    <div class="pairmark">★ ペア発見！ ★</div>
+    <span class="chip" id="mChip"></span>
+    <p class="q" id="mQ"></p>
+    <h3 id="mTitle"></h3>
+    <div class="full" id="mFull"></div>
+    <p class="meta" id="mMeta"></p>
+    <button class="okbtn" id="mOk">つぎへ</button>
+  </div>
+</div>
+
+<!-- 先生方へ -->
+<div class="overlay" id="helpOv" role="dialog" aria-modal="true">
+  <div class="card-pop">
+    <h3>先生方へ</h3>
+    <div class="help-body">
+      <h4>ねらい（覚える段階）</h4>
+      <p>調整方略の「名前・意味・フェーズ」に親しむゲームです。自由進度学習の対応表では <b>Lv.0「方略を知る」段階（観察＊）</b>の補強にあたります。カードの文言は公開中の「自己調整方略カード」と同一です。</p>
+      <h4>つかいどころ</h4>
+      <p>朝学習・すきま時間に1ゲーム約3分。フェーズを選ぶと、その日の授業場面（学習前・中・後）に合わせられます。</p>
+      <h4>ルールと3つのあそびかた</h4>
+      <p>「問い（？マーク）」と、それにこたえる「方略」をそろえる神経衰弱です。そろうとカードの意味が表示されます。カードは毎回、選んだフェーズの全カード（見通す16・実行する21・振り返る9、ミックスは46）からランダムに引き直されます。</p>
+      <p>①<b>ひとりで</b>：少ない回数でのクリアをめざします。②<b>ふたりで きょうりょく</b>：交代でめくり、「あそこに★があったよ」と声をかけ合ってふたりで1つの得点をめざします（共調整の練習として。得点はひとりモードと同じ計算で、きろくにも加算）。③<b>ふたりで しょうぶ</b>：交代でめくり、そろえた人が続けてめくれます。得点は<b>そろえたペア×10点</b>で、多い方の勝ち（勝負の得点は「きみのきろく」には入りません）。</p>
+      <h4>得点と方略レベル（ひとりモード）</h4>
+      <p>最少回数でクリアすると満点（フェーズ別・ミックス初級＝6ペア・100点満点／ミックス中級＝8ペア・150点満点／ミックス上級＝10ペア・200点満点）。めくる回数が1回ふえるごとに−10点（最低10点）です。むずかしい級ほど高得点がねらえます。</p>
+      <p>得点はあそぶたびに「るいけい得点」にたまり、300点ごとに方略レベルが上がります（みならい→チャレンジャー→名人→はかせ→マスター）。記録はこの端末に保存されます。「過去の自分」との勝負が基本ですが、学級で「全員レベル3をめざそう」のような目標にも使えます。</p>
+      <h4>おすすめのひとこと</h4>
+      <p>クリア画面で「きょうの学習で使えそうなカード」を1枚選ばせると、ゲームと授業がつながります。</p>
+    </div>
+    <button class="okbtn" id="helpOk">とじる</button>
+  </div>
+</div>
+
+<footer>
+  方略ゲームシリーズ①「方略ペアさがし」（覚える）　カード文言：学びを調整する方略カード（自己調整）と同一　作成：木村明憲
+</footer>
+
+<script>
+const CARDS=[{"phase":"見通す","process":"課題","sub":"課題理解","cat":"認知","layer":"自分で","title":"課題を分けて理解する","full":"課題を分解し，それらの関係を考え，解決策を検討して課題の意味を正確に理解する","q":"課題が難しくて理解しづらいときはどうする?"},{"phase":"見通す","process":"課題","sub":"課題興味","cat":"メタ認知","layer":"自分で","title":"知っていることを振り返る","full":"課題をもとに身近なこと，知っていることを振り返る","q":"課題を身近に感じるにはどうする?"},{"phase":"見通す","process":"課題","sub":"課題興味","cat":"動機づけ調整","layer":"自分で","title":"解決後にできることを考える","full":"課題を解決するとどのようなことがわかるのか，できるようになるのかを考え，前向きな気持ちを高める","q":"課題に対してやる気ができないときはどうする?"},{"phase":"見通す","process":"課題","sub":"課題興味","cat":"動機づけ調整","layer":"自分で","title":"自分を高めると言い聞かせる","full":"提示された課題は大切なこと，自分の能力を高めるものであると自分に言い聞かせ，前向きな気持ちを高める","q":"課題を前向きに受け止めることができるようにするにはどうする?"},{"phase":"見通す","process":"課題","sub":"課題興味","cat":"動機づけ調整","layer":"自分で","title":"自分へのごほうびを考える","full":"課題を解決したときの自分自身への褒美を考え，課題に対する前向きな気持ちを高める","q":"課題をがんばろうとする気持ちをたかめるにはどうする?"},{"phase":"見通す","process":"目標","sub":"目標設定","cat":"認知","layer":"自分で","title":"めあてから何ができるようになりたいのかを考える","full":"課題の解決に向けた学習内容に関する目標を考える（問いを広げる—順序立てる—焦点化する）","q":"学習の目標を決めるときにはどうする?"},{"phase":"見通す","process":"目標","sub":"目標設定","cat":"メタ認知","layer":"自分で","title":"やりたいことの優先順位を考える","full":"生成した目標を振り返り，優先順位を考える","q":"やることが多くて迷うときはどうする?"},{"phase":"見通す","process":"目標","sub":"目標志向","cat":"動機づけ調整","layer":"自分で","title":"能力が高まると言い聞かせる","full":"目標を達成すると自らの能力を高めることができると自らに言い聞かせ，前向きな気持ちを高める","q":"目標の達成にむけて前向きに取り組むためにはどうする?"},{"phase":"見通す","process":"目標","sub":"目標志向","cat":"動機づけ調整","layer":"自分で","title":"目標の中身を整理する","full":"目標の構造（内容—行動—調整）を整理し，何をすれば目標が達成するのかを考え，前向きな気持ちを高める","q":"何をすれば目標を達成できるのかを整理するにはどうする?"},{"phase":"見通す","process":"目標","sub":"結果予期","cat":"動機づけ調整","layer":"自分で","title":"学習後の成長を予想する","full":"学習が終わった後の自分の成長（理解できること，身につけること）を予想し，前向きな気持ちを高める","q":"これからの学習に対する気持ちを高めるにはどうする?"},{"phase":"見通す","process":"目標","sub":"結果予期","cat":"動機づけ調整","layer":"自分で","title":"つくり出せる成果を予想する","full":"目標が達成した際に創り出せる考え方や成果物を予想し，前向きな気持ちを高める","q":"完成のゴールイメージをもって取り組むにはどうする?"},{"phase":"見通す","process":"計画","sub":"計画立案","cat":"メタ認知","layer":"自分で","title":"前の計画を振り返る","full":"自らが立てた過去の計画（学習活動，方法・方略，時間配分）を振り返り，学習計画の見通しをもつ","q":"これから取り組む学習の見通しをもつためにどうする?"},{"phase":"見通す","process":"計画","sub":"計画立案","cat":"動機づけ調整","layer":"自分で","title":"見本を参考に計画を立てる","full":"書籍や見本，教師・他者の計画を参考に，長期課題・目標を基に短期課題・目標と学習活動を決める","q":"計画の立て方に迷うときはどうする?"},{"phase":"見通す","process":"計画","sub":"計画立案","cat":"リソース管理","layer":"自分で","title":"やり方を決めて準備する","full":"短期課題・目標を達成するための方法・方略を決め，今後の学習の準備をする","q":"今後の学習の課題を解決し，目標を達成するためにはどうする?"},{"phase":"見通す","process":"計画","sub":"計画立案","cat":"リソース管理","layer":"自分で","title":"時間配分を決めて準備する","full":"短期課題・目標を達成するための時間配分を決め，今後の学習の準備をする","q":"学習を時間内に終えるためにどうする?"},{"phase":"見通す","process":"計画","sub":"自己効力","cat":"動機づけ調整","layer":"自分で","title":"うまくできそうか考える","full":"立案した計画を基に，学習をうまく実行することができそうかについて考え，前向きな気持ちを高める","q":"計画に自信をもって取りかかるためにどうする?"},{"phase":"実行する","process":"推進","sub":"環境設定","cat":"リソース管理","layer":"自分で","title":"学べる環境を整える","full":"学習に適切な環境（物的・人的）を整える","q":"集中して学べるようにするにはどうする?"},{"phase":"実行する","process":"推進","sub":"情報活用","cat":"認知","layer":"自分で","title":"情報を集めて深める","full":"情報を収集して理解を深める（知っていたこと—新しく知ったこと—新たな問い）","q":"知りたいことを知るためにどうする?"},{"phase":"実行する","process":"推進","sub":"情報活用","cat":"認知","layer":"自分で","title":"情報を関連づける","full":"情報を関連付けて理解を深める（関連ごとにカテゴリーを生成し，ラベルを付ける）","q":"集めた情報を整理して理解を深めるにはどうする?"},{"phase":"実行する","process":"推進","sub":"情報活用","cat":"認知","layer":"自分で","title":"情報を多面的に見る","full":"情報を多面的に見て，吟味して理解を深める（視点・教科の見方を働かせ再整理する）","q":"情報の見方を変え，理解を深めるにはどうする?"},{"phase":"実行する","process":"推進","sub":"情報活用","cat":"認知","layer":"自分で","title":"考えを構造化する","full":"情報を構造化し，考えをつくって理解を深める（整理し，伝える準備をする）","q":"自分の考えをまとめて伝える準備をするにはどうする?"},{"phase":"実行する","process":"推進","sub":"情報活用","cat":"認知","layer":"自分で","title":"新たな価値を創造する","full":"新たな価値を創造することを通して理解を深める","q":"学んだことから新しい考えを生み出すにはどうする?"},{"phase":"実行する","process":"推進","sub":"情報活用","cat":"認知","layer":"自分で","title":"創造した価値を発信する","full":"創造した価値を発信することを通して理解を深める（転移）","q":"つくりだした考えについてさらに深めるにはどうする?"},{"phase":"実行する","process":"推進","sub":"情報活用","cat":"認知","layer":"自分で","title":"くり返して覚える","full":"大切な情報をくり返し言ったり，書いたりして理解を深める（リハーサル）","q":"大切なことをしっかり身につけるにはどうする?"},{"phase":"実行する","process":"確認","sub":"実行確認","cat":"メタ認知","layer":"自分で","title":"めあてと今の学習がずれていないかを確かめる","full":"実行している学習活動が課題・目標からずれていないかを自らに問いかけ，振り返り確認する","q":"今の活動がめあてに合っているか確かめるにはどうする?"},{"phase":"実行する","process":"確認","sub":"実行確認","cat":"メタ認知","layer":"自分で","title":"学習のやり方が良いかを確かめる","full":"実行している方法・方略が適切かを自らに問いかけ，振り返り確認する","q":"今のやり方が合っているか確かめるにはどうする?"},{"phase":"実行する","process":"確認","sub":"実行確認","cat":"メタ認知","layer":"自分で","title":"時間と進み具合を確かめる","full":"計画の時間配分と現在の進捗を比較し，予定時間内に達成するかを自らに問いかけ確認する","q":"時間内に終わりそうかを確かめるにはどうする?"},{"phase":"実行する","process":"確認","sub":"環境確認","cat":"メタ認知","layer":"自分で","title":"物的環境・人的環境を確かめる","full":"学習に取り組みやすい物的・人的環境になっているかを自らに問いかけ確認する","q":"今の環境が学習に合っているか確かめるにはどうする?"},{"phase":"実行する","process":"確認","sub":"情動・興味確認","cat":"メタ認知","layer":"自分で","title":"体の反応から心の調子を確かめる","full":"学習に向かう心や体の状態について自らに問いかけ，振り返り確認する","q":"学習に向かう気持ちを確かめるには?"},{"phase":"実行する","process":"調節","sub":"実行調節","cat":"リソース管理","layer":"自分で","title":"学習活動をよりよく変える","full":"学習の課題・目標を基に自らの今後の学習活動を修正し，調節する","q":"活動がめあてからずれていたときはどうする?"},{"phase":"実行する","process":"調節","sub":"実行調節","cat":"リソース管理","layer":"自分で","title":"別のやり方に変える","full":"課題・目標を達成する上でこれまでよりも効果的で効率的な方法・方略に調節する","q":"今のやり方でうまくいかないときはどうする?"},{"phase":"実行する","process":"調節","sub":"実行調節","cat":"リソース管理","layer":"自分で","title":"時間配分を調節する","full":"進捗状況を基に学習活動の時間配分を変更し，調節する","q":"時間が足りなくなってきたときはどうする?"},{"phase":"実行する","process":"調節","sub":"環境調節","cat":"リソース管理","layer":"自分で","title":"学習環境を調節する","full":"これまでよりも学習が進みやすい物的・人的環境に調節する","q":"もっと学習を進めやすくするにはどうする?"},{"phase":"実行する","process":"調節","sub":"情動調節","cat":"情動調整","layer":"自分で","title":"気持ちの原因を考え調節する","full":"不快な感情が生じた際の動作や体の反応に目を向け，その原因や理由・意味を考え，調節する","q":"いやな気持ちの原因に向き合うにはどうする?"},{"phase":"実行する","process":"調節","sub":"情動調節","cat":"情動調整","layer":"自分で","title":"気持ちを切りかえる","full":"不快な感情が生じた際，どうすれば解決できるか（学習から一旦離れる等）を考え，調節する","q":"学習中にいやな気持ちになったときにはどうする?"},{"phase":"実行する","process":"調節","sub":"興味促進","cat":"動機づけ調整","layer":"自分で","title":"挑戦と考えて前向きになる","full":"困難な課題をやりがいのある挑戦であると考え，学習に対する前向きな気持ちを高める","q":"難しい課題を前向きにとらえるにはどうする?"},{"phase":"実行する","process":"調節","sub":"興味促進","cat":"動機づけ調整","layer":"自分で","title":"一旦離れる・得意なところを見つける","full":"長時間行き詰まった際，向き合い方や解決方法（一旦離れる・得意な所を見つける等）を考える","q":"長く行き詰まったときはどうする?"},{"phase":"振り返る","process":"評価","sub":"自己・相互評価","cat":"メタ認知","layer":"自分で","title":"学習の成果と課題を考える","full":"学習の課題・目標と学習結果を比較し，自らの学習活動の成果と課題を考え，自己評価する","q":"学習の課題・目標について振り返るにはどうする?"},{"phase":"振り返る","process":"評価","sub":"自己・相互評価","cat":"メタ認知","layer":"自分で","title":"やり方の成果と課題を考える","full":"効果的で効率的な方法・方略で学べたのかについて考え，自己評価する","q":"学習のやり方について振り返るにはどうする?"},{"phase":"振り返る","process":"評価","sub":"自己・相互評価","cat":"メタ認知","layer":"自分で","title":"時間の使い方の成果と課題を考える","full":"学習計画を基に，学習活動の時間配分についての成果と課題を考え，自己評価する","q":"時間の使い方について振り返るにはどうする?"},{"phase":"振り返る","process":"評価","sub":"自己・相互評価","cat":"メタ認知","layer":"自分で","title":"学習環境の成果と課題を考える","full":"効果的な物的・人的環境になっていたのかについての成果と課題を考え，自己評価する","q":"学習環境について振り返るにはどうする?"},{"phase":"振り返る","process":"評価","sub":"自己・相互評価","cat":"メタ認知","layer":"自分で","title":"気持ちの変化について考える","full":"学習中の自らの気持ちの変化（情動／興味）について振り返り，自己評価する","q":"学習中の気持ちを振り返るにはどうする?"},{"phase":"振り返る","process":"帰属","sub":"原因帰属","cat":"メタ認知","layer":"自分で","title":"成果・課題の原因を考える","full":"自己評価の成果・課題の原因や理由を考え，振り返る","q":"なぜそのような学習の結果になったのかを振り返るにはどうする?"},{"phase":"振り返る","process":"帰属","sub":"自己・相互満足","cat":"動機づけ調整","layer":"自分で","title":"満足できた所を見つける","full":"自己評価の成果・課題を基に，自らの学習に対して満足できるところを見つけ，前向きな気持ちを高める","q":"学習を前向きにふり返るにはどうする?"},{"phase":"振り返る","process":"適用","sub":"適用","cat":"動機づけ調整","layer":"自分で","title":"次に活かすことを決める","full":"次の学習に活かすことを決め，次の学習に対する前向きな気持ちを高める","q":"今回の学びを次に活かすにはどうする?"},{"phase":"振り返る","process":"適用","sub":"適応","cat":"動機づけ調整","layer":"自分で","title":"学び方をどう変えれば良いかを考える","full":"次の学習に向けて，自らの学び方をどのように変化させれば良いかを考える","q":"次に向けて学び方を見直すにはどうする?"}];
+const PHCOL={"見通す":"var(--blue)","実行する":"var(--green)","振り返る":"var(--orange)"};
+const FLIPBACK=1600, MATCHWAIT=1800;
+const MIXLV={"初級":{pairs:6,base:100},"中級":{pairs:8,base:150},"上級":{pairs:10,base:200}};
+const LVSTEP=300; // 300点ごとに方略レベルが1つ上がる
+let cfg={phase:"見通す",players:"1",level:"初級"};
+let st=null;
+function gamePairs(){return cfg.phase==="ミックス"?MIXLV[cfg.level].pairs:6;}
+function gameBase(){return cfg.phase==="ミックス"?MIXLV[cfg.level].base:100;}
+function lvTitle(lv){return lv<3?'方略みならい':lv<5?'方略チャレンジャー':lv<7?'方略名人':lv<10?'方略はかせ':'方略マスター';}
+function loadTotal(){try{return JSON.parse(localStorage.getItem('pairgame_total')||'{"pts":0,"games":0}');}catch(e){return {pts:0,games:0};}}
+function saveTotal(t){try{localStorage.setItem('pairgame_total',JSON.stringify(t));}catch(e){}}
+function refreshRecord(){
+  const t=loadTotal();
+  const lv=Math.floor(t.pts/LVSTEP)+1;
+  document.getElementById('recLv').textContent='レベル'+lv;
+  document.getElementById('recTitle').textContent=lvTitle(lv);
+  document.getElementById('recPts').textContent=t.pts;
+  document.getElementById('recGames').textContent=t.games;
+  const into=t.pts-(lv-1)*LVSTEP;
+  document.getElementById('recBar').style.width=Math.round(into/LVSTEP*100)+'%';
+  document.getElementById('recNext').textContent='つぎのレベルまで あと'+(LVSTEP-into)+'点';
+}
+
+// ---- 設定画面 ----
+document.querySelectorAll('.choice[data-phase]').forEach(b=>{
+  b.onclick=()=>{document.querySelectorAll('.choice[data-phase]').forEach(x=>x.classList.remove('sel'));
+    b.classList.add('sel');cfg.phase=b.dataset.phase;
+    document.getElementById('lvPanel').style.display=cfg.phase==='ミックス'?'grid':'none';};
+});
+document.querySelectorAll('.choice[data-level]').forEach(b=>{
+  b.onclick=()=>{document.querySelectorAll('.choice[data-level]').forEach(x=>x.classList.remove('sel'));
+    b.classList.add('sel');cfg.level=b.dataset.level;};
+});
+refreshRecord();
+document.querySelectorAll('.choice[data-players]').forEach(b=>{
+  b.onclick=()=>{document.querySelectorAll('.choice[data-players]').forEach(x=>x.classList.remove('sel'));
+    b.classList.add('sel');cfg.players=b.dataset.players;};
+});
+document.getElementById('startBtn').onclick=startGame;
+document.getElementById('helpBtn').onclick=()=>document.getElementById('helpOv').classList.add('show');
+document.getElementById('helpOk').onclick=()=>document.getElementById('helpOv').classList.remove('show');
+document.getElementById('quitBtn').onclick=()=>show('setup');
+document.getElementById('homeBtn').onclick=()=>show('setup');
+document.getElementById('againBtn').onclick=startGame;
+document.getElementById('mOk').onclick=closeMatch;
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='setup')refreshRecord();
+  window.scrollTo({top:0});
+}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+// ---- ゲーム開始 ----
+function startGame(){
+  const pairs=gamePairs();
+  const pool=cfg.phase==="ミックス"?CARDS.slice():CARDS.filter(c=>c.phase===cfg.phase);
+  const picked=shuffle(pool.slice()).slice(0,pairs);
+  const tiles=[];
+  picked.forEach((c,i)=>{tiles.push({id:i,kind:'q',card:c});tiles.push({id:i,kind:'s',card:c});});
+  shuffle(tiles);
+  st={tiles,open:[],lock:false,moves:0,found:0,turn:0,score:[0,0],got:[],pairs,base:gameBase()};
+  const grid=document.getElementById('grid');grid.innerHTML='';
+  grid.className='grid'+(tiles.length>=20?' big':'');
+  tiles.forEach((t,idx)=>{
+    const b=document.createElement('button');
+    b.className='tile '+t.kind;b.dataset.ph=t.card.phase;b.dataset.idx=idx;
+    b.setAttribute('aria-label','ふせられたカード');
+    b.innerHTML=`<div class="inner">
+      <div class="face back"><div class="mark">${t.kind==='q'?'？':'★'}</div><div class="marklabel">${t.kind==='q'?'問いカード':'方略カード'}</div></div>
+      <div class="face front">
+        <div class="band"><span>${t.card.phase}</span><span class="kind">${t.kind==='q'?'問い':'方略'}</span></div>
+        <div class="txt">${t.kind==='q'?t.card.q:t.card.title}</div>
+      </div></div>`;
+    b.onclick=()=>flip(idx,b);
+    grid.appendChild(b);
+  });
+  updateHud();show('game');
+}
+function updateHud(){
+  const info=document.getElementById('hudInfo');
+  const hp=document.getElementById('hudP');
+  const lvtxt=cfg.phase==='ミックス'?`ミックス（${cfg.level}）`:cfg.phase;
+  if(cfg.players==='1'){
+    hp.style.display='none';
+    info.innerHTML=`${lvtxt}　<small>めくった回数</small> ${st.moves}　<small>ペア</small> ${st.found}/${st.pairs}`;
+  }else if(cfg.players==='coop'){
+    hp.style.display='none';
+    info.innerHTML=`${lvtxt}　<small>いまの番</small> プレイヤー${st.turn+1}　<small>回数</small> ${st.moves}　<small>ペア</small> ${st.found}/${st.pairs}`;
+  }else{
+    hp.style.display='';
+    info.textContent=lvtxt;
+    document.getElementById('sc1').textContent=st.score[0];
+    document.getElementById('sc2').textContent=st.score[1];
+    document.getElementById('pl1').classList.toggle('turn',st.turn===0);
+    document.getElementById('pl2').classList.toggle('turn',st.turn===1);
+  }
+}
+function flip(idx,btn){
+  if(st.lock||btn.classList.contains('open')||btn.classList.contains('done'))return;
+  btn.classList.add('open');btn.setAttribute('aria-label',
+    (st.tiles[idx].kind==='q'?'問い：'+st.tiles[idx].card.q:'方略：'+st.tiles[idx].card.title));
+  st.open.push(idx);
+  if(st.open.length<2)return;
+  st.lock=true;st.moves++;
+  const [a,b]=st.open.map(i=>st.tiles[i]);
+  if(a.id===b.id&&a.kind!==b.kind){
+    setTimeout(()=>{
+      st.open.forEach(i=>{document.querySelector(`.tile[data-idx="${i}"]`).classList.add('done');});
+      st.found++;
+      if(cfg.players==='vs')st.score[st.turn]++;      // 勝負：そろえた人が続けてめくれる
+      if(cfg.players==='coop')st.turn=1-st.turn;      // 協力：こうたいでめくる
+      st.got.push(a.card);st.open=[];updateHud();openMatch(a.card);
+    },MATCHWAIT);
+  }else{
+    setTimeout(()=>{
+      st.open.forEach(i=>{const el=document.querySelector(`.tile[data-idx="${i}"]`);
+        el.classList.add('shake');
+        setTimeout(()=>{el.classList.remove('open','shake');el.setAttribute('aria-label','ふせられたカード');},350);});
+      st.open=[];if(cfg.players!=='1')st.turn=1-st.turn;
+      st.lock=false;updateHud();
+    },FLIPBACK);
+  }
+}
+function openMatch(c){
+  document.getElementById('mChip').textContent=c.phase;
+  document.getElementById('mChip').style.background=PHCOL[c.phase];
+  document.getElementById('mQ').textContent='Q. '+c.q;
+  document.getElementById('mTitle').textContent=c.title;
+  document.getElementById('mFull').textContent=c.full;
+  document.getElementById('mMeta').textContent=`プロセス：${c.process}　サブプロセス：${c.sub}`;
+  document.getElementById('matchOv').classList.add('show');
+}
+function closeMatch(){
+  document.getElementById('matchOv').classList.remove('show');
+  st.lock=false;
+  if(st.found===st.pairs)finish();
+}
+function finish(){
+  const t=document.getElementById('resultTitle'),s=document.getElementById('resultSub'),
+    stEl=document.getElementById('resultStars'),rk=document.getElementById('resultRank'),
+    be=document.getElementById('resultBest');
+  stEl.textContent='';rk.textContent='';be.style.display='none';
+  document.getElementById('resultTotal').style.display='none';
+  if(cfg.players==='1'||cfg.players==='coop'){
+    const coop=cfg.players==='coop';
+    const score=Math.max(st.base-10*(st.moves-st.pairs),10);
+    const ratio=score/st.base;
+    const stars=score===st.base?3:ratio>=0.75?2:ratio>=0.45?1:0;
+    t.textContent=coop?`ふたりで ${score}点！`:`${score}点！`;
+    stEl.innerHTML='★'.repeat(stars)+'<span class="off">'+'★'.repeat(3-stars)+'</span>';
+    rk.textContent=stars===3?(coop?'パーフェクト！さいこうのコンビ！':'パーフェクト！方略はかせ級'):
+      stars===2?(coop?'すごい！いいコンビだね':'すごい！方略名人級'):
+      stars===1?'いいちょうし！方略見習い級':'クリアおめでとう！つぎは高得点をねらおう';
+    s.textContent=(coop?'ふたりあわせて':'')+`${st.moves}回でクリア（さいこうきろくは${st.pairs}回＝${st.base}点、1回ふえるごとに −10点）`;
+    const modeName=(cfg.phase==='ミックス'?`ミックス（${cfg.level}）`:cfg.phase)+(coop?'・協力':'');
+    // 自己ベスト（フェーズ・級ごとに端末へ保存）
+    try{
+      const key='pairbest_'+modeName;
+      const best=+(localStorage.getItem(key)||0);
+      if(score>best){
+        localStorage.setItem(key,score);
+        be.textContent=best>0?`じこベストこうしん！（これまで：${best}点）`:'きょうのきろくが じこベストになったよ！';
+        be.className='best new';
+      }else{
+        be.textContent=`じこベスト：${best}点（${modeName}）`;
+        be.className='best';
+      }
+      be.style.display='inline-block';
+    }catch(e){}
+    // るいけい得点と方略レベル
+    try{
+      const tj=loadTotal();
+      const lvBefore=Math.floor(tj.pts/LVSTEP)+1;
+      tj.pts+=score;tj.games++;saveTotal(tj);
+      const lvAfter=Math.floor(tj.pts/LVSTEP)+1;
+      const tot=document.getElementById('resultTotal');
+      if(lvAfter>lvBefore){
+        tot.innerHTML=`<span class="lvup">🎉 レベルアップ！ レベル${lvAfter}「${lvTitle(lvAfter)}」になったよ！</span><br>+${score}点 → るいけい ${tj.pts}点`;
+      }else{
+        const into=tj.pts-(lvAfter-1)*LVSTEP;
+        tot.innerHTML=`+${score}点 → るいけい ${tj.pts}点（レベル${lvAfter}「${lvTitle(lvAfter)}」・つぎのレベルまで あと${LVSTEP-into}点）`;
+      }
+      tot.style.display='block';
+    }catch(e){}
+  }else{
+    const w=st.score[0]===st.score[1]?0:(st.score[0]>st.score[1]?1:2);
+    t.textContent=w===0?'ひきわけ！':`プレイヤー${w}のかち！`;
+    s.textContent=`プレイヤー1：${st.score[0]}ペア＝${st.score[0]*10}点　プレイヤー2：${st.score[1]}ペア＝${st.score[1]*10}点（しょうぶの得点は そろえたペア×10点。きみのきろくには入らないよ）`;
+  }
+  const list=document.getElementById('gotList');list.innerHTML='';
+  document.getElementById('pickMsg').style.display='none';
+  st.got.forEach(c=>{
+    const d=document.createElement('button');d.className='got';
+    d.innerHTML=`<span class="dot" style="background:${PHCOL[c.phase]}"></span>
+      <span><b>${c.title}</b><small>Q. ${c.q}</small></span>`;
+    d.onclick=()=>{
+      document.querySelectorAll('.got').forEach(x=>x.classList.remove('picked'));
+      d.classList.add('picked');
+      const m=document.getElementById('pickMsg');
+      m.textContent=`「${c.title}」をえらんだんだね。きょうの学習でためしてみよう！`;
+      m.style.display='block';
+    };
+    list.appendChild(d);
+  });
+  show('clear');
+}
+</script>
+</body>
+</html>
