@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>自己調整スキル診断 v1.0 | AK-Learning Lab</title>
+<style>
+  :root{
+    --main:#2b7a78; --main-dark:#17252a; --accent:#f6a821; --bg:#f4f9f9;
+    --ph1:#e76f51; --ph2:#2a9d8f; --ph3:#457b9d;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{font-family:"Hiragino Maru Gothic ProN","Yu Gothic",sans-serif; background:var(--bg); color:var(--main-dark); line-height:1.7;}
+  header{background:var(--main); color:#fff; text-align:center; padding:22px 16px 16px;}
+  header .eyebrow{font-size:13px; letter-spacing:2px; opacity:.85;}
+  header h1{font-size:25px; margin-top:4px;}
+  header p{font-size:13px; margin-top:4px; opacity:.9;}
+  main{max-width:860px; margin:0 auto; padding:16px 14px 60px;}
+  .card{background:#fff; border-radius:14px; padding:18px 20px; margin:14px 0; box-shadow:0 2px 8px rgba(0,0,0,.06);}
+  .card h2{font-size:17px; color:var(--main); margin-bottom:8px; border-left:6px solid var(--accent); padding-left:10px;}
+  input[type=text]{font-size:15px; padding:8px 12px; border:2px solid #d5e5e5; border-radius:10px; width:100%; max-width:300px;}
+  /* レベル・ことば切替 */
+  .seg{display:flex; gap:6px; flex-wrap:wrap;}
+  .seg button{flex:1 1 100px; border:2px solid #d5e5e5; background:#fbfefe; border-radius:999px; padding:8px 10px; font-size:14px; font-weight:bold; cursor:pointer; font-family:inherit;}
+  .seg button.on{border-color:var(--accent); background:#fff6e5; color:#b06f00;}
+  .seg-note{font-size:12px; color:#678; margin-top:6px;}
+  /* スコアボード（sticky） */
+  .board{position:sticky; top:0; z-index:10; background:var(--bg); padding:8px 0;}
+  .board-inner{background:#fff; border-radius:14px; box-shadow:0 2px 8px rgba(0,0,0,.1); padding:10px 14px; display:flex; gap:10px; flex-wrap:wrap;}
+  .meter{flex:1 1 140px; min-width:130px;}
+  .meter .m-label{display:flex; justify-content:space-between; font-size:12px; font-weight:bold;}
+  .meter .m-track{height:12px; background:#eef4f4; border-radius:999px; overflow:hidden; margin-top:2px;}
+  .meter .m-fill{height:100%; width:0%; border-radius:999px; transition:.25s;}
+  .meter .m-pct{font-size:11px; color:#678; text-align:right;}
+  /* フェーズセクション */
+  .phase{border-radius:14px; overflow:hidden; margin:16px 0; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,.06);}
+  .phase-head{color:#fff; padding:10px 16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;}
+  .phase-head .ttl{font-size:17px; font-weight:bold;}
+  .phase-head .cnt{font-size:13px; background:rgba(255,255,255,.25); border-radius:999px; padding:2px 12px;}
+  .group-label{font-size:13px; font-weight:bold; color:#567; margin:14px 16px 4px; border-bottom:2px dotted #d5e5e5; padding-bottom:2px;}
+  .item{display:flex; align-items:flex-start; gap:10px; margin:8px 12px; padding:10px 12px; border:2px solid #e2eeee; border-radius:10px; cursor:pointer; background:#fbfefe; transition:.15s;}
+  .item:hover{border-color:#bcd8d6;}
+  .item.checked{background:#fff6e5; border-color:var(--accent);}
+  .item .box{width:24px; height:24px; min-width:24px; border:2px solid #9bbcbc; border-radius:6px; background:#fff; display:flex; align-items:center; justify-content:center; font-size:16px; color:#fff; margin-top:2px;}
+  .item.checked .box{background:var(--accent); border-color:var(--accent);}
+  .item .txt{font-size:14px;}
+  .item .txt .sub{display:block; font-size:12px; color:#678; margin-top:2px;}
+  .phase-foot{padding:8px 16px 14px;}
+  .phase-foot .m-track{height:10px; background:#eef4f4; border-radius:999px; overflow:hidden;}
+  .phase-foot .m-fill{height:100%; border-radius:999px; transition:.25s;}
+  .phase-foot .m-info{font-size:12px; color:#678; text-align:right; margin-top:2px;}
+  /* ボタン */
+  .btn-row{text-align:center; margin-top:16px;}
+  .btn{display:inline-block; background:var(--accent); color:#fff; font-size:15px; font-weight:bold; border:none; border-radius:999px; padding:10px 22px; cursor:pointer; margin:4px 5px; box-shadow:0 2px 6px rgba(0,0,0,.15); font-family:inherit;}
+  .btn:hover{filter:brightness(1.06);}
+  .btn.gray{background:#8aa9a7;}
+  .msg{background:#fff6e5; border-radius:10px; padding:12px 16px; font-size:14px; margin-top:10px;}
+  table{border-collapse:collapse; width:100%; font-size:13px; margin-top:8px;}
+  th,td{border:1px solid #cfe0e0; padding:5px 8px; text-align:center;}
+  th{background:#eaf4f4;}
+  .teacher-link{text-align:center; font-size:13px; margin-top:22px;}
+  .teacher-link a{color:#578; cursor:pointer; text-decoration:underline;}
+  textarea.paste{width:100%; min-height:100px; font-size:12px; font-family:monospace; border:2px solid #d5e5e5; border-radius:10px; padding:8px;}
+  /* 先生用つかい方 */
+  details.thelp{background:#f2f8f8; border:2px solid #d5e5e5; border-radius:12px; padding:10px 14px; margin:10px 0; font-size:13px;}
+  details.thelp summary{cursor:pointer; font-weight:bold; color:var(--main); font-size:14px;}
+  details.thelp summary:hover{color:var(--accent);}
+  details.thelp h3{font-size:13px; color:var(--main); margin:12px 0 4px; border-left:4px solid var(--accent); padding-left:8px;}
+  details.thelp ol{margin:4px 0 4px 20px;}
+  details.thelp ol li{margin:4px 0;}
+  details.thelp .note{font-size:12px; color:#678; background:#fff; border-radius:8px; padding:8px 10px; margin:6px 0;}
+  .hidden{display:none;}
+  footer{text-align:center; font-size:12px; color:#789; padding:20px;}
+  @media print{
+    body{background:#fff;} header{padding:8px;}
+    .no-print, .teacher-link, footer, .btn-row{display:none!important;}
+    .board{position:static;}
+    .card,.phase{box-shadow:none; border:1px solid #ccc; page-break-inside:avoid;}
+    .item{page-break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">AK-Learning Lab</div>
+  <h1><span id="pageTitle">自己調整スキル診断</span> <span style="font-size:.55em; opacity:.85;">v1.0</span></h1>
+  <p id="pageSub">じぶんの学習をふりかえって、できていたことにチェックしよう</p>
+  <p style="font-size:11px; opacity:.8; margin-top:2px;">開発：木村明憲（Kimura Akinori）</p>
+</header>
+<main>
+
+<section id="screen-check">
+  <div class="card no-print">
+    <h2>なまえ・レベル・ことば</h2>
+    <input type="text" id="userName" placeholder="なまえ（ニックネームでもOK）">
+    <div style="margin-top:12px;">
+      <div class="seg" id="levelSeg">
+        <button data-lv="初級" class="on">🌱 初級（11方略）</button>
+        <button data-lv="中級">🌿 中級（20方略）</button>
+        <button data-lv="上級">🌳 上級（46方略）</button>
+      </div>
+      <div class="seg-note" id="levelNote"></div>
+    </div>
+    <div style="margin-top:12px;">
+      <div class="seg" id="wordSeg">
+        <button data-w="easy" class="on">🐣 やさしいことば</button>
+        <button data-w="hard">📖 くわしい言葉</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="board no-print">
+    <div class="board-inner" id="board"></div>
+  </div>
+
+  <div id="phases"></div>
+
+  <div class="card">
+    <h2 id="radarTitle">方略レーダー</h2>
+    <p id="radarDesc" style="font-size:12px; color:#678; margin-bottom:4px;">プロセスごとの達成率です。チェックをつけると形が変わります。</p>
+    <div id="radar" style="text-align:center;"></div>
+  </div>
+
+  <div class="card">
+    <h2 id="msgTitle">診断メッセージ</h2>
+    <div class="msg" id="message">チェックをつけると、ここにメッセージが表示されます。</div>
+  </div>
+
+  <div class="btn-row no-print">
+    <button class="btn" id="copyRow">📋 記録をコピー（先生に送る）</button>
+    <button class="btn" id="saveCsv">📄 記録を保存（CSV）</button>
+    <button class="btn" id="printBtn" onclick="window.print()">🖨 印刷する</button>
+    <button class="btn gray" id="resetBtn">リセット</button>
+  </div>
+
+  <div class="card no-print" id="historyCard" style="display:none;">
+    <h2 id="histTitle">これまでの記録</h2>
+    <div id="historyTable"></div>
+  </div>
+
+  <div class="teacher-link no-print"><a id="teacherOpen">👩‍🏫 先生用：学級集計ページ</a></div>
+</section>
+
+<!-- 先生用 -->
+<section id="screen-teacher" class="hidden">
+  <div class="card">
+    <h2>👩‍🏫 先生用：学級集計ページ</h2>
+    <p style="font-size:14px;">児童生徒の記録（コピーしたテキスト、または保存したCSV）をまとめて読みこむと、学級全体の傾向を表示します。このページは先生向けです（サーバーには何も送信されず、データはこの端末内だけで処理されます）。</p>
+
+    <details class="thelp">
+      <summary>📖 つかい方（クリックで開く）</summary>
+
+      <h3>おすすめ：はりつけ方式（ファイル集め不要・いちばん簡単）</h3>
+      <ol>
+        <li><strong>児童生徒</strong>：チェックを終えたら「📋 記録をコピー（先生に送る）」を押します。1行の記録がコピーされます。</li>
+        <li><strong>児童生徒</strong>：ふだんの提出先に<strong>そのままはりつけて送信</strong>します。例：Google Classroom の「質問（記述式）」や課題の限定公開コメント、Google フォームの記述欄、Teams・ロイロノート等のテキスト提出。</li>
+        <li><strong>先生</strong>：集まった全員分の記録を<strong>まとめてコピー</strong>し、下の<strong>方法2</strong>の欄に<strong>一括ではりつけ</strong>ます。一人ずつはりつける必要はありません。<br>
+        ・Google フォームなら、回答の「スプレッドシートを表示」→記録の列をまるごとコピー→はりつけ、で全員分が一度に入ります。<br>
+        ・Classroom の回答一覧も、画面上でまとめて選択してコピーすればOKです（余計な行が混ざっても自動で読み飛ばします）。</li>
+        <li>「集計する」を押します。</li>
+      </ol>
+
+      <h3>ファイル方式（CSVで残したいとき）</h3>
+      <ol>
+        <li><strong>児童生徒</strong>：「📄 記録を保存（CSV）」を押すと、端末に「自己調整スキル診断_なまえ_日付.csv」がダウンロードされます。</li>
+        <li><strong>先生</strong>：提出箱・共有ドライブなどでCSVファイルを1か所に集め、下の<strong>方法1</strong>で<strong>まとめて選択</strong>します（1つ選んでから Ctrl（Macは⌘）や Shift を押しながらクリックすると複数選べます）→「集計する」。</li>
+      </ol>
+      <p class="note" style="margin-top:6px;">方法1と方法2は併用できます（両方に入れて一度に集計可）。</p>
+
+      <h3>結果の見方</h3>
+      <ol>
+        <li><strong>学級平均</strong>：見通す・実行する・振り返るの3フェーズと合計の平均％がバーで表示され、いちばん低いフェーズ（＝授業で意図的に方略を働かせる場を設けたいフェーズ）が助言として示されます。</li>
+        <li><strong>個人一覧</strong>：<span style="background:#fde8e4; padding:0 6px; border-radius:4px;">赤＝40％未満（重点支援）</span>／<span style="background:#e6f4ea; padding:0 6px; border-radius:4px;">緑＝80％以上（強み）</span>の色つきで、支援したい子と学級の強みがひと目でわかります。</li>
+        <li><strong>記録に残す</strong>：「🖨 集計を印刷」でそのまま印刷（またはPDF保存）できます。</li>
+      </ol>
+
+      <div class="note">
+        ⚠️ <strong>集計時の注意</strong><br>
+        ・％はレベル（初級11／中級20／上級46方略）ごとの達成率です。学級で<strong>同じレベル・同じ時期</strong>にそろえて実施すると比べやすくなります（一覧表にはレベル列があるので、混在していても確認できます）。<br>
+        ・同じ子のCSVが複数あると全部が集計に入ります。<strong>最新の1回分だけ</strong>を選ぶようにしてください。<br>
+        ・この診断は成績づけではなく、<strong>自己調整の姿を自覚し、次の一歩を決めるための道具</strong>です。結果は励ましとセットで返すことをおすすめします。
+      </div>
+    </details>
+
+    <p style="font-size:13px; margin-top:8px;"><strong>方法1：</strong>CSVファイルをまとめて選択</p>
+    <input type="file" id="csvFiles" multiple accept=".csv,.txt" style="margin:6px 0;">
+    <p style="font-size:13px; margin-top:8px;"><strong>方法2：</strong>記録のテキストを下にはりつけ（全員分まとめてOK）</p>
+    <textarea class="paste" id="csvPaste"></textarea>
+    <div class="btn-row"><button class="btn" id="aggBtn">集計する</button></div>
+  </div>
+  <div id="aggResult"></div>
+  <div class="btn-row no-print"><button class="btn gray" id="backBtn">← 診断にもどる</button></div>
+</section>
+
+</main>
+<footer>
+  AK-Learning Lab ｜ 出典：自己/共/社会的に共有された調整方略リスト（自己調整学習方略）・『自己調整学習と自由進度学習』<br>
+  自己調整スキル診断 v1.0 ｜ 開発：木村明憲（Kimura Akinori）
+</footer>
+
+<script>
+/* ============ フェーズ定義 ============ */
+const PHASES=[
+ {key:"見通す", hex:"#e76f51", sub:"学習を始める前に、課題・目標・計画・動機を整える", subE:"がくしゅうの まえに、かだい・もくひょう・けいかく・きもちを ととのえる"},
+ {key:"実行する", hex:"#2a9d8f", sub:"学習中に自分をモニタリングし、状況に応じて調節する", subE:"がくしゅうちゅうに じぶんの ようすを たしかめて、ちょうせつする"},
+ {key:"振り返る", hex:"#457b9d", sub:"学習後に評価・分析し、次の学習をより良くする", subE:"がくしゅうの あとに ふりかえって、つぎの がくしゅうに いかす"}
+];
+
+const LEVEL_NOTE={
+ "初級":"初級：フェーズごとの大まかな行動ができていたかを問います（11方略）",
+ "中級":"中級：19のスキル単位でできていたかを問います（20方略）",
+ "上級":"上級：調整方略リストの方略レベルでできていたかを問います（46方略）"
+};
+const LEVEL_NOTE_E={
+ "初級":"しょきゅう：フェーズごとの おおまかな こうどうが できていたかを きくよ（11の ほうりゃく）",
+ "中級":"ちゅうきゅう：19の スキルごとに できていたかを きくよ（20の ほうりゃく）",
+ "上級":"じょうきゅう：ほうりゃくの リストの こまかい ほうりゃくごとに きくよ（46の ほうりゃく）"
+};
+const LEVEL_BTN={
+ "初級":{e:"🌱 しょきゅう（11ほうりゃく）", d:"🌱 初級（11方略）"},
+ "中級":{e:"🌿 ちゅうきゅう（20ほうりゃく）", d:"🌿 中級（20方略）"},
+ "上級":{e:"🌳 じょうきゅう（46ほうりゃく）", d:"🌳 上級（46方略）"}
+};
+const GROUP_READ={課題:"かだい", 目標:"もくひょう", 計画:"けいかく", 推進:"すいしん", 確認:"かくにん", 調節:"ちょうせつ", 評価:"ひょうか", 帰属:"きぞく", 適用:"てきよう"};
+
+/* ============ チェック項目 ============
+ 出典：自己/共/社会的に共有された調整方略リスト（案）14 の「自己調整学習方略（I）」列
+ e=やさしいことば d=くわしい言葉 p=フェーズ g=グループ表示名 */
+const ITEMS={
+"初級":[
+ {p:"見通す",g:"課題",e:"なにを するのかを かんがえてから はじめた",d:"課題の意味を考えてから学習を始めた"},
+ {p:"見通す",g:"目標",e:"じぶんで めあてを きめた",d:"自分でめあて（目標）を決めた"},
+ {p:"見通す",g:"計画",e:"やりかたと じかんの けいかくを たてた",d:"学習のやり方や時間配分の計画を立てた"},
+ {p:"見通す",g:"計画",e:"うまく できそうかを かんがえた",d:"計画をうまく実行できそうかを考えた"},
+ {p:"実行する",g:"確認",e:"めあてと ずれていないか たしかめた",d:"めあてや計画とずれていないか、ときどき確認した"},
+ {p:"実行する",g:"確認",e:"こころと からだの ちょうしを たしかめた",d:"学習に向かう心や体の状態を確認した"},
+ {p:"実行する",g:"調節",e:"うまくいかないとき、やりかたを かえた",d:"うまくいかないとき、方法や時間配分を調節した"},
+ {p:"実行する",g:"調節",e:"いやな きもちを きりかえた",d:"いやな気持ちになったとき、気持ちを調節した"},
+ {p:"振り返る",g:"評価",e:"できたこと・できなかったことを ふりかえった",d:"うまくいったこと・いかなかったことを振り返った"},
+ {p:"振り返る",g:"帰属",e:"その わけを かんがえた",d:"うまくいった・いかなかった理由（原因）を考えた"},
+ {p:"振り返る",g:"適用",e:"つぎに いかすことを きめた",d:"次の学習に活かすことを決めた"}
+],
+"中級":[
+ {p:"見通す",g:"課題",e:"かだいを 小さく分けて、どうすれば できるか かんがえた",d:"【課題理解】課題を分解し、関係を考え、解決策を検討して課題の意味を正確に理解した"},
+ {p:"見通す",g:"課題",e:"かだいを じぶんの しっていることと つなげて、やるきを 出した",d:"【課題興味】課題を身近なこと・知っていることと結びつけ、解決するとわかること・できることを考えて前向きな気持ちを高めた"},
+ {p:"見通す",g:"目標",e:"といを ひろげて、ならべて、しぼって、めあてを きめた",d:"【目標設定】問いを広げる→順序立てる→焦点化する、の順で学習内容に関する目標を立てた"},
+ {p:"見通す",g:"目標",e:"めあてが できたら どんな力が つくかを かんがえた",d:"【目標志向】目標を達成するとどのような能力が高まるのか、何をすれば達成できるのかを考えた"},
+ {p:"見通す",g:"目標",e:"べんきょうのあとの じぶんや、つくれるものを そうぞうした",d:"【結果予期】学習後の自分の成長や、創り出せる考え方・成果物を予想して前向きな気持ちを高めた"},
+ {p:"見通す",g:"計画",e:"やること・やりかた・じかんを きめた",d:"【計画立案】過去の計画を振り返り、学習活動・方法・方略・時間配分を決めた"},
+ {p:"見通す",g:"計画",e:"けいかくが うまく できそうか かんがえた",d:"【自己効力】立てた計画をもとに、学習をうまく実行できそうかを考えた"},
+ {p:"実行する",g:"推進",e:"べんきょうしやすい ばしょや なかまを ととのえた",d:"【環境設定】学習に適切な環境（物的・人的）を整えた"},
+ {p:"実行する",g:"推進",e:"じょうほうを あつめて、つなげて、かんがえを つくった",d:"【情報活用】情報を収集・関連付け・多面的に吟味・構造化して考えをつくり、理解を深めた"},
+ {p:"実行する",g:"確認",e:"めあてと ずれていないか、やりかたや じかんは いいか たしかめた",d:"【実行確認】学習活動が課題・目標からずれていないか、方法・方略や時間配分が適切かを自らに問いかけて確認した"},
+ {p:"実行する",g:"確認",e:"べんきょうしやすい ばしょに なっているか たしかめた",d:"【環境確認】学習に取り組みやすい物的・人的環境になっているかを確認した"},
+ {p:"実行する",g:"確認",e:"こころと からだの ちょうしを たしかめた",d:"【情動・興味確認】学習に向かう心や体の状態を自らに問いかけて確認した"},
+ {p:"実行する",g:"調節",e:"うまくいかないとき、やりかたや じかんを かえた",d:"【実行調節】課題・目標をもとに、学習活動・方法・方略・時間配分を修正し、調節した"},
+ {p:"実行する",g:"調節",e:"もっと べんきょうしやすい ばしょに かえた",d:"【環境調節】これまでより学習が進みやすい物的・人的環境に調節した"},
+ {p:"実行する",g:"調節",e:"いやな きもちの わけを かんがえて、きりかえた",d:"【情動調節】不快な感情が生じたとき、その原因や解決方法を考えて調節した"},
+ {p:"実行する",g:"調節",e:"むずかしい かだいを 「ちょうせん」と かんがえて がんばった",d:"【興味促進】困難な課題をやりがいのある挑戦と捉えたり、得意なところから取り組んだりして前向きな気持ちを高めた"},
+ {p:"振り返る",g:"評価",e:"できたことと できなかったことを ふりかえった",d:"【自己評価】課題・目標と学習結果を比較し、活動・方法・時間・環境・気持ちの成果と課題を自己評価した"},
+ {p:"振り返る",g:"帰属",e:"うまくいった わけ・いかなかった わけを かんがえた",d:"【原因帰属】自己評価の成果・課題の原因や理由を考えた"},
+ {p:"振り返る",g:"帰属",e:"まんぞくできた ところを 見つけた",d:"【自己満足】自分の学習に対して満足できるところを見つけ、前向きな気持ちを高めた"},
+ {p:"振り返る",g:"適用",e:"つぎの べんきょうに いかすことを きめた",d:"【適用】次の学習に活かすことを決め、学び方をどのように変えるかを考えた"}
+],
+"上級":[
+ // ---- 見通す：課題 ----
+ {p:"見通す",g:"課題",e:"かだいを 小さく分けて かんがえた",d:"【課題理解】課題を分解し、それらの関係を考え、解決策を検討して課題の意味を正確に理解した"},
+ {p:"見通す",g:"課題",e:"しっていることを おもい出した",d:"【課題興味】課題をもとに身近なこと、知っていることを振り返った"},
+ {p:"見通す",g:"課題",e:"できるようになることを かんがえた",d:"【課題興味】課題を解決するとどのようなことがわかるのか、できるようになるのかを考え、前向きな気持ちを高めた"},
+ {p:"見通す",g:"課題",e:"「じぶんの力になる」と かんがえた",d:"【課題興味】課題は大切なこと、自分の能力を高めるものであると自分に言い聞かせ、前向きな気持ちを高めた"},
+ {p:"見通す",g:"課題",e:"ごほうびを かんがえた",d:"【課題興味】課題を解決したときの自分自身への褒美を考え、前向きな気持ちを高めた"},
+ // ---- 見通す：目標 ----
+ {p:"見通す",g:"目標",e:"めあてを かんがえた",d:"【目標設定】課題の解決に向けた学習内容に関する目標を考えた（問いを広げる→順序立てる→焦点化する）"},
+ {p:"見通す",g:"目標",e:"やることの じゅんばんを きめた",d:"【目標設定】生成した目標を振り返り、優先順位を考えた"},
+ {p:"見通す",g:"目標",e:"「力が つく」と じぶんに いった",d:"【目標志向】目標を達成すると自らの能力を高めることができると言い聞かせ、前向きな気持ちを高めた"},
+ {p:"見通す",g:"目標",e:"めあての なかみを せいりした",d:"【目標志向】目標の構造（内容—行動—調整）を整理し、何をすれば目標が達成するのかを考え、前向きな気持ちを高めた"},
+ {p:"見通す",g:"目標",e:"せいちょうした じぶんを そうぞうした",d:"【結果予期】学習が終わった後の自分の成長（理解できること、身につけること）を予想し、前向きな気持ちを高めた"},
+ {p:"見通す",g:"目標",e:"つくれるものを そうぞうした",d:"【結果予期】目標が達成した際に創り出せる考え方や成果物を予想し、前向きな気持ちを高めた"},
+ // ---- 見通す：計画 ----
+ {p:"見通す",g:"計画",e:"まえの けいかくを おもい出した",d:"【計画立案】自らが立てた過去の計画（学習活動、方法・方略、時間配分）を振り返り、学習計画の見通しをもった"},
+ {p:"見通す",g:"計画",e:"おてほんを 見て けいかくを たてた",d:"【計画立案】書籍や見本、教師・他者の計画を参考に、長期課題・目標をもとに短期課題・目標と学習活動を決めた"},
+ {p:"見通す",g:"計画",e:"やりかたを きめて じゅんびした",d:"【計画立案】短期課題・目標を達成するための方法・方略を決め、今後の学習の準備をした"},
+ {p:"見通す",g:"計画",e:"じかんの つかいかたを きめた",d:"【計画立案】短期課題・目標を達成するための時間配分を決め、今後の学習の準備をした"},
+ {p:"見通す",g:"計画",e:"うまく できそうか かんがえた",d:"【自己効力】立案した計画をもとに、学習をうまく実行することができそうかを考え、前向きな気持ちを高めた"},
+ // ---- 実行する：推進 ----
+ {p:"実行する",g:"推進",e:"べんきょうしやすい ばしょを つくった",d:"【環境設定】学習に適切な環境（物的・人的）を整えた"},
+ {p:"実行する",g:"推進",e:"じょうほうを あつめた",d:"【情報活用】情報を収集して理解を深めた（知っていたこと—新しく知ったこと—新たな問い：精緻化）"},
+ {p:"実行する",g:"推進",e:"じょうほうを つなげた",d:"【情報活用】情報を関連付けて理解を深めた（関連ごとにカテゴリーを生成し、ラベルを付ける：精緻化）"},
+ {p:"実行する",g:"推進",e:"いろいろな 見かたで 見た",d:"【情報活用】情報を多面的に見て、吟味して理解を深めた（視点・教科の見方を働かせ再整理する：精緻化）"},
+ {p:"実行する",g:"推進",e:"かんがえを せいりして まとめた",d:"【情報活用】情報を構造化し、考えをつくって理解を深めた（整理し、伝える準備をする：体制化）"},
+ {p:"実行する",g:"推進",e:"あたらしい かんがえを つくった",d:"【情報活用】新たな価値を創造することを通して理解を深めた"},
+ {p:"実行する",g:"推進",e:"つくったものを つたえた",d:"【情報活用】創造した価値を発信することを通して理解を深めた（転移）"},
+ {p:"実行する",g:"推進",e:"くりかえして おぼえた",d:"【情報活用】大切な情報をくり返し言ったり、書いたりして理解を深めた（リハーサル）"},
+ // ---- 実行する：確認 ----
+ {p:"実行する",g:"確認",e:"めあてと ずれていないか たしかめた",d:"【実行確認】実行している学習活動が課題・目標からずれていないかを自らに問いかけ、振り返り確認した"},
+ {p:"実行する",g:"確認",e:"やりかたが いいか たしかめた",d:"【実行確認】実行している方法・方略が適切かを自らに問いかけ、振り返り確認した"},
+ {p:"実行する",g:"確認",e:"じかんと すすみぐあいを たしかめた",d:"【実行確認】計画の時間配分と現在の進捗を比較し、予定時間内に達成するかを自らに問いかけ確認した"},
+ {p:"実行する",g:"確認",e:"ばしょや なかまの ようすを たしかめた",d:"【環境確認】学習に取り組みやすい物的・人的環境になっているかを自らに問いかけ確認した"},
+ {p:"実行する",g:"確認",e:"こころと からだの ちょうしを たしかめた",d:"【情動・興味確認】学習に向かう心や体の状態について自らに問いかけ、振り返り確認した"},
+ // ---- 実行する：調節 ----
+ {p:"実行する",g:"調節",e:"やることを よりよく かえた",d:"【実行調節】学習の課題・目標をもとに自らの今後の学習活動を修正し、調節した"},
+ {p:"実行する",g:"調節",e:"べつの やりかたに かえた",d:"【実行調節】課題・目標を達成する上でこれまでよりも効果的で効率的な方法・方略に調節した"},
+ {p:"実行する",g:"調節",e:"じかんの つかいかたを かえた",d:"【実行調節】進捗状況をもとに学習活動の時間配分を変更し、調節した"},
+ {p:"実行する",g:"調節",e:"ばしょや なかまを かえた",d:"【環境調節】これまでよりも学習が進みやすい物的・人的環境に調節した"},
+ {p:"実行する",g:"調節",e:"いやな きもちの わけを かんがえた",d:"【情動調節】不快な感情が生じた際の動作や体の反応に目を向け、その原因や理由・意味を考え、調節した"},
+ {p:"実行する",g:"調節",e:"きもちを きりかえた",d:"【情動調節】不快な感情が生じた際、どうすれば解決できるか（学習から一旦離れるなど）を考え、調節した"},
+ {p:"実行する",g:"調節",e:"「ちょうせんだ」と かんがえた",d:"【興味促進】困難な課題をやりがいのある挑戦であると考え、学習に対する前向きな気持ちを高めた"},
+ {p:"実行する",g:"調節",e:"いったん はなれたり、とくいな ところから やったりした",d:"【興味促進】長時間行き詰まった際、向き合い方や解決方法（一旦離れる・得意な所を見つける等）を考えた"},
+ // ---- 振り返る：評価 ----
+ {p:"振り返る",g:"評価",e:"できたこと・できなかったことを かんがえた",d:"【自己評価】学習の課題・目標と学習結果を比較し、自らの学習活動の成果と課題を考え、自己評価した"},
+ {p:"振り返る",g:"評価",e:"やりかたが よかったか かんがえた",d:"【自己評価】効果的で効率的な方法・方略で学べたのかについて考え、自己評価した"},
+ {p:"振り返る",g:"評価",e:"じかんの つかいかたを ふりかえった",d:"【自己評価】学習計画をもとに、学習活動の時間配分についての成果と課題を考え、自己評価した"},
+ {p:"振り返る",g:"評価",e:"ばしょや なかまが よかったか かんがえた",d:"【自己評価】効果的な物的・人的環境になっていたのかについての成果と課題を考え、自己評価した"},
+ {p:"振り返る",g:"評価",e:"きもちの へんかを ふりかえった",d:"【自己評価】学習中の自らの気持ちの変化（情動・興味）について振り返り、自己評価した"},
+ // ---- 振り返る：帰属 ----
+ {p:"振り返る",g:"帰属",e:"うまくいった わけを かんがえた",d:"【原因帰属】自己評価の成果・課題の原因や理由を考え、振り返った"},
+ {p:"振り返る",g:"帰属",e:"まんぞくできた ところを 見つけた",d:"【自己満足】自己評価の成果・課題をもとに、自らの学習に対して満足できるところを見つけ、前向きな気持ちを高めた"},
+ // ---- 振り返る：適用・適応 ----
+ {p:"振り返る",g:"適用",e:"つぎに いかすことを きめた",d:"【適用】次の学習に活かすことを決め、次の学習に対する前向きな気持ちを高めた"},
+ {p:"振り返る",g:"適用",e:"まなびかたを どう かえるか かんがえた",d:"【適応】次の学習に向けて、自らの学び方をどのように変化させれば良いかを考えた"}
+]
+};
+
+const CSV_HEADER=["名前","レベル","ことば","日付","見通す済","見通す全","実行する済","実行する全","振り返る済","振り返る全","合計%"];
+const LS_KEY="akl_srl_check_history";
+
+/* ============ 状態 ============ */
+let LEVEL="初級";
+let WORD="easy";
+const checks={ "初級":new Set(), "中級":new Set(), "上級":new Set() };
+
+const $=id=>document.getElementById(id);
+function today(){
+  const d=new Date();
+  return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")}`;
+}
+
+/* ============ 描画 ============ */
+function render(){
+  const easy=WORD==="easy";
+  $("pageTitle").textContent= easy ? "じこちょうせい スキル しんだん" : "自己調整スキル診断";
+  $("pageSub").textContent= easy ? "じぶんの がくしゅうを ふりかえって、できていたことに チェックしよう" : "じぶんの学習をふりかえって、できていたことにチェックしよう";
+  $("msgTitle").textContent= easy ? "しんだんメッセージ" : "診断メッセージ";
+  $("histTitle").textContent= easy ? "これまでの きろく" : "これまでの記録";
+  $("copyRow").textContent= easy ? "📋 きろくを コピー（せんせいに おくる）" : "📋 記録をコピー（先生に送る）";
+  $("saveCsv").textContent= easy ? "📄 きろくを ほぞん（CSV）" : "📄 記録を保存（CSV）";
+  $("printBtn").textContent= easy ? "🖨 いんさつする" : "🖨 印刷する";
+  $("levelNote").textContent= easy ? LEVEL_NOTE_E[LEVEL] : LEVEL_NOTE[LEVEL];
+  $("levelSeg").querySelectorAll("button").forEach(b=>{
+    b.textContent = easy ? LEVEL_BTN[b.dataset.lv].e : LEVEL_BTN[b.dataset.lv].d;
+  });
+  const items=ITEMS[LEVEL];
+  const wrap=$("phases");
+  wrap.innerHTML="";
+  PHASES.forEach(ph=>{
+    const phItems=items.map((it,idx)=>({it,idx})).filter(x=>x.it.p===ph.key);
+    const sec=document.createElement("div");
+    sec.className="phase";
+    let inner=`<div class="phase-head" style="background:${ph.hex};">
+      <div><div class="ttl">${easy?PHASE_LABEL[ph.key].e:ph.key}</div><div style="font-size:11px; opacity:.9;">${easy?ph.subE:ph.sub}</div></div>
+      <div class="cnt" id="cnt-${ph.key}">0 / ${phItems.length}</div>
+    </div>`;
+    let lastG=null;
+    phItems.forEach(({it,idx})=>{
+      if (it.g!==lastG){ inner+=`<div class="group-label">${easy?(GROUP_READ[it.g]||it.g):it.g}</div>`; lastG=it.g; }
+      const checked=checks[LEVEL].has(idx);
+      const main = WORD==="easy" ? it.e : it.d;
+      const sub  = WORD==="easy" ? "" : `<span class="sub"></span>`;
+      inner+=`<div class="item ${checked?"checked":""}" data-idx="${idx}">
+        <div class="box">${checked?"✓":""}</div>
+        <div class="txt">${main}${sub}</div>
+      </div>`;
+    });
+    inner+=`<div class="phase-foot">
+      <div class="m-track"><div class="m-fill" id="fill-${ph.key}" style="background:${ph.hex};"></div></div>
+      <div class="m-info" id="info-${ph.key}"></div>
+    </div>`;
+    sec.innerHTML=inner;
+    wrap.appendChild(sec);
+  });
+  wrap.querySelectorAll(".item").forEach(el=>{
+    el.addEventListener("click",()=>{
+      const idx=+el.dataset.idx;
+      if (checks[LEVEL].has(idx)) checks[LEVEL].delete(idx); else checks[LEVEL].add(idx);
+      el.classList.toggle("checked");
+      el.querySelector(".box").textContent=checks[LEVEL].has(idx)?"✓":"";
+      updateMeters();
+    });
+  });
+  renderBoard();
+  updateMeters();
+  renderHistory();
+}
+
+function renderBoard(){
+  const easy=WORD==="easy";
+  $("board").innerHTML = PHASES.map(ph=>`
+    <div class="meter">
+      <div class="m-label"><span style="color:${ph.hex};">${easy?PHASE_LABEL[ph.key].e:ph.key}</span><span id="b-cnt-${ph.key}">0/0</span></div>
+      <div class="m-track"><div class="m-fill" id="b-fill-${ph.key}" style="background:${ph.hex};"></div></div>
+      <div class="m-pct" id="b-pct-${ph.key}">0%</div>
+    </div>`).join("") + `
+    <div class="meter">
+      <div class="m-label"><span style="color:#f6a821;">${easy?"ごうけい":"合計"}</span><span id="b-cnt-total">0/0</span></div>
+      <div class="m-track"><div class="m-fill" id="b-fill-total" style="background:#f6a821;"></div></div>
+      <div class="m-pct" id="b-pct-total">0%</div>
+    </div>`;
+}
+
+function stats(){
+  const items=ITEMS[LEVEL];
+  const s={};
+  PHASES.forEach(ph=>s[ph.key]={done:0,total:0});
+  items.forEach((it,idx)=>{
+    s[it.p].total++;
+    if (checks[LEVEL].has(idx)) s[it.p].done++;
+  });
+  s.合計={done:[...checks[LEVEL]].length, total:items.length};
+  return s;
+}
+
+function updateMeters(){
+  const s=stats();
+  PHASES.forEach(ph=>{
+    const {done,total}=s[ph.key];
+    const pct=total?Math.round(done/total*100):0;
+    $("cnt-"+ph.key).textContent=`${done} / ${total}`;
+    $("fill-"+ph.key).style.width=pct+"%";
+    $("info-"+ph.key).textContent=`${done} / ${total}（${pct}%）`;
+    $("b-cnt-"+ph.key).textContent=`${done}/${total}`;
+    $("b-fill-"+ph.key).style.width=pct+"%";
+    $("b-pct-"+ph.key).textContent=pct+"%";
+  });
+  const t=s.合計, tpct=t.total?Math.round(t.done/t.total*100):0;
+  $("b-cnt-total").textContent=`${t.done}/${t.total}`;
+  $("b-fill-total").style.width=tpct+"%";
+  $("b-pct-total").textContent=tpct+"%";
+  drawRadar();
+  writeMessage(s);
+}
+
+/* ============ 方略レーダー ============ */
+const AXIS_ORDER=["課題","目標","計画","推進","確認","調節","評価","帰属","適用"];
+const AXIS_PHASE={課題:"見通す",目標:"見通す",計画:"見通す",推進:"実行する",確認:"実行する",調節:"実行する",評価:"振り返る",帰属:"振り返る",適用:"振り返る"};
+const G2AXIS={
+ "課題":"課題","課題理解・課題興味":"課題",
+ "目標":"目標","目標設定・目標志向・結果予期":"目標",
+ "計画":"計画","計画立案・自己効力":"計画",
+ "推進":"推進","環境設定・情報活用（推進）":"推進",
+ "確認":"確認","確認（モニタリング）":"確認",
+ "調節":"調節","調節（コントロール）":"調節",
+ "評価":"評価","自己評価":"評価",
+ "帰属":"帰属","原因帰属・自己満足":"帰属",
+ "適用":"適用","適用・適応":"適用"
+};
+function axisStats(){
+  const items=ITEMS[LEVEL];
+  const m={};
+  items.forEach((it,idx)=>{
+    const ax=G2AXIS[it.g]||it.g;
+    if(!m[ax]) m[ax]={done:0,total:0};
+    m[ax].total++;
+    if (checks[LEVEL].has(idx)) m[ax].done++;
+  });
+  return AXIS_ORDER.filter(a=>m[a]).map(a=>({axis:a, pct:m[a].total?m[a].done/m[a].total:0, done:m[a].done, total:m[a].total}));
+}
+const AXIS_LABEL={
+ 課題:{e:"かだい",d:"課題"}, 目標:{e:"もくひょう",d:"目標"}, 計画:{e:"けいかく",d:"計画"},
+ 推進:{e:"すいしん",d:"推進"}, 確認:{e:"かくにん",d:"確認"}, 調節:{e:"ちょうせつ",d:"調節"},
+ 評価:{e:"ひょうか",d:"評価"}, 帰属:{e:"きぞく",d:"帰属"}, 適用:{e:"てきよう",d:"適用"}
+};
+const PHASE_LABEL={見通す:{e:"みとおす",d:"見通す"}, 実行する:{e:"じっこうする",d:"実行する"}, 振り返る:{e:"ふりかえる",d:"振り返る"}};
+
+function drawRadar(){
+  const easy=WORD==="easy";
+  $("radarTitle").textContent = easy ? "ほうりゃくレーダー" : "方略レーダー";
+  $("radarDesc").textContent = easy
+    ? "チェックをつけると かたちが かわるよ。そとがわの 3しょくの おびで「みとおす・じっこうする・ふりかえる」の バランスも わかるよ。"
+    : "プロセスごとの達成率です。外側の3色の帯は「見通す・実行する・振り返る」フェーズ別の達成率（バランス）を表します。";
+  const data=axisStats();
+  const s=stats();
+  const n=data.length;
+  const W=420, H=372, cx=W/2, cy=H/2, R=116;
+  const hexes={見通す:"#e76f51", 実行する:"#2a9d8f", 振り返る:"#457b9d"};
+  const step=2*Math.PI/n;
+  const ang=i=>-Math.PI/2 + i*step;
+  const pt=(i,r)=>[cx+r*Math.cos(ang(i)), cy+r*Math.sin(ang(i))];
+  const ptA=(a,r)=>[cx+r*Math.cos(a), cy+r*Math.sin(a)];
+  let svg=`<svg viewBox="0 0 ${W} ${H}" style="max-width:470px; width:100%;" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="プロセス別レーダーチャート">`;
+  // 目盛りリング（25/50/75/100%）
+  [0.25,0.5,0.75,1].forEach(f=>{
+    const pts=data.map((_,i)=>pt(i,R*f).map(v=>v.toFixed(1)).join(",")).join(" ");
+    svg+=`<polygon points="${pts}" fill="${f===1?"#f7fbfb":"none"}" stroke="#d5e5e5" stroke-width="1"/>`;
+  });
+  // 軸線とラベル
+  data.forEach((d,i)=>{
+    const [x,y]=pt(i,R);
+    svg+=`<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#d5e5e5" stroke-width="1"/>`;
+    const [lx,ly]=pt(i,R+26);
+    const col=hexes[AXIS_PHASE[d.axis]]||"#567";
+    const label=easy ? AXIS_LABEL[d.axis].e : AXIS_LABEL[d.axis].d;
+    svg+=`<text x="${lx.toFixed(1)}" y="${(ly-2).toFixed(1)}" text-anchor="middle" font-size="${easy?11:13}" font-weight="bold" fill="${col}">${label}</text>`;
+    svg+=`<text x="${lx.toFixed(1)}" y="${(ly+11).toFixed(1)}" text-anchor="middle" font-size="10" fill="#789">${Math.round(d.pct*100)}%</text>`;
+  });
+  // フェーズ別バランス帯（外周アーク）
+  const groups=[];
+  data.forEach((d,i)=>{
+    const ph=AXIS_PHASE[d.axis];
+    if (groups.length && groups[groups.length-1].ph===ph) groups[groups.length-1].end=i;
+    else groups.push({ph, start:i, end:i});
+  });
+  const rArc=R+58, pad=0.08;
+  let legend="";
+  groups.forEach(g=>{
+    const a0=ang(g.start)-step/2+pad, a1=ang(g.end)+step/2-pad;
+    const [x0,y0]=ptA(a0,rArc), [x1,y1]=ptA(a1,rArc);
+    const large=(a1-a0)>Math.PI?1:0;
+    const col=hexes[g.ph];
+    const pct=s[g.ph].total?Math.round(s[g.ph].done/s[g.ph].total*100):0;
+    svg+=`<path d="M ${x0.toFixed(1)} ${y0.toFixed(1)} A ${rArc} ${rArc} 0 ${large} 1 ${x1.toFixed(1)} ${y1.toFixed(1)}" fill="none" stroke="${col}" stroke-width="6" stroke-linecap="round" opacity=".85"/>`;
+    const pLabel=easy ? PHASE_LABEL[g.ph].e : PHASE_LABEL[g.ph].d;
+    legend+=`<span style="display:inline-flex; align-items:center; gap:5px; white-space:nowrap;"><span style="width:14px; height:7px; border-radius:999px; background:${col}; display:inline-block;"></span><span style="color:${col};">${pLabel} ${pct}%</span></span>`;
+  });
+  // データ多角形
+  const poly=data.map((d,i)=>pt(i,R*d.pct).map(v=>v.toFixed(1)).join(",")).join(" ");
+  svg+=`<polygon points="${poly}" fill="rgba(246,168,33,.30)" stroke="#f6a821" stroke-width="2.5" stroke-linejoin="round"/>`;
+  data.forEach((d,i)=>{
+    const [x,y]=pt(i,R*d.pct);
+    svg+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5" fill="#f6a821"/>`;
+  });
+  svg+=`</svg>`;
+  svg+=`<div style="display:flex; justify-content:center; gap:16px; flex-wrap:wrap; font-size:13px; font-weight:bold; margin-top:6px;">${legend}</div>`;
+  $("radar").innerHTML=svg;
+}
+
+function writeMessage(s){
+  const easy=WORD==="easy";
+  const t=s.合計;
+  if (!t.done){ $("message").textContent= easy ? "チェックを つけると、ここに メッセージが 出るよ。" : "チェックをつけると、ここにメッセージが表示されます。"; return; }
+  const pcts=PHASES.map(ph=>({key:ph.key, pct:s[ph.key].total?s[ph.key].done/s[ph.key].total:0}));
+  pcts.sort((a,b)=>b.pct-a.pct);
+  const top=pcts[0], low=pcts[pcts.length-1];
+  const tpct=Math.round(t.done/t.total*100);
+  let head;
+  if (easy){
+    if (tpct>=80) head="すばらしい！じぶんの がくしゅうを とても じょうずに ちょうせつ できています。";
+    else if (tpct>=50) head="いいちょうし！じぶんで がくしゅうを ちょうせつする ちからが そだってきています。";
+    else head="これから のびる チャンスが たくさん あります。";
+    $("message").innerHTML=`${head}<br>いちばん できているのは<strong>「${PHASE_LABEL[top.key].e}」</strong>（${Math.round(top.pct*100)}%）、これから のばしたいのは<strong>「${PHASE_LABEL[low.key].e}」</strong>（${Math.round(low.pct*100)}%）です。チェックが つかなかった ところから、つぎの がくしゅうで 1つ ためして みよう。`;
+    return;
+  }
+  if (tpct>=80) head="すばらしい！自分の学習をとても上手に調整できています。";
+  else if (tpct>=50) head="いい調子！自分で学習を調整する力が育ってきています。";
+  else head="これからのびるチャンスがたくさんあります。";
+  $("message").innerHTML=`${head}<br>いちばんできているのは<strong>「${top.key}」</strong>（${Math.round(top.pct*100)}%）、これからのばしたいのは<strong>「${low.key}」</strong>（${Math.round(low.pct*100)}%）のフェーズです。チェックがつかなかった項目から、次の学習で1つためしてみましょう。`;
+}
+
+/* ============ 切替 ============ */
+$("levelSeg").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  LEVEL=b.dataset.lv;
+  $("levelSeg").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));
+  render();
+});
+$("wordSeg").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  WORD=b.dataset.w;
+  $("wordSeg").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));
+  render();
+});
+$("resetBtn").addEventListener("click",()=>{
+  checks[LEVEL].clear();
+  render();
+});
+
+/* ============ 保存・履歴 ============ */
+function download(filename, blob){
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+function safeName(){ return ($("userName").value.trim()||"noname").replace(/[\\/:*?"<>|,]/g,"_"); }
+function loadHistory(){ try{ return JSON.parse(localStorage.getItem(LS_KEY))||[]; }catch(e){ return []; } }
+
+function currentRow(){
+  const s=stats();
+  const tpct=s.合計.total?Math.round(s.合計.done/s.合計.total*100):0;
+  const row=[ $("userName").value.trim()||"noname", LEVEL, WORD==="easy"?"やさしい":"くわしい", today(),
+    s["見通す"].done, s["見通す"].total, s["実行する"].done, s["実行する"].total, s["振り返る"].done, s["振り返る"].total, tpct ];
+  return {s, tpct, row};
+}
+function recordHistory(s,tpct){
+  const h=loadHistory();
+  h.push({date:today(), name:$("userName").value.trim(), level:LEVEL,
+    pct:{見通す:pctOf(s,"見通す"), 実行する:pctOf(s,"実行する"), 振り返る:pctOf(s,"振り返る"), 合計:tpct}});
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(h.slice(-50))); }catch(e){}
+  renderHistory();
+}
+
+$("saveCsv").addEventListener("click",()=>{
+  const {s,tpct,row}=currentRow();
+  const csv="﻿"+CSV_HEADER.join(",")+"\n"+row.join(",")+"\n";
+  download(`自己調整スキル診断_${safeName()}_${today().replaceAll("/","-")}.csv`, new Blob([csv],{type:"text/csv"}));
+  recordHistory(s,tpct);
+});
+
+$("copyRow").addEventListener("click", async ()=>{
+  const {s,tpct,row}=currentRow();
+  const text=row.join(",");
+  try{ await navigator.clipboard.writeText(text); }
+  catch(e){
+    const ta=document.createElement("textarea");
+    ta.value=text; document.body.appendChild(ta); ta.select();
+    document.execCommand("copy"); ta.remove();
+  }
+  recordHistory(s,tpct);
+  const b=$("copyRow"), old=b.textContent;
+  b.textContent="✅ コピーできた！先生に はりつけて送ろう";
+  setTimeout(()=>{ b.textContent=old; },2500);
+});
+function pctOf(s,k){ return s[k].total?Math.round(s[k].done/s[k].total*100):0; }
+
+function renderHistory(){
+  const h=loadHistory();
+  if (!h.length) return;
+  const easy=WORD==="easy";
+  const LV_READ={初級:"しょきゅう", 中級:"ちゅうきゅう", 上級:"じょうきゅう"};
+  const th=easy
+    ? ["ひづけ","なまえ","レベル",PHASE_LABEL["見通す"].e,PHASE_LABEL["実行する"].e,PHASE_LABEL["振り返る"].e,"ごうけい"]
+    : ["日付","なまえ","レベル","見通す","実行する","振り返る","合計"];
+  const note=easy
+    ? "※きろくは この パソコン（ブラウザ）の なかだけに ほぞんされます。さいしんの 5かいぶんを ひょうじ。"
+    : "※記録はこのパソコン（ブラウザ）の中だけに保存されます。最新5回分を表示。";
+  $("historyCard").style.display="block";
+  $("historyTable").innerHTML="<table><tr>"+th.map(t=>`<th>${t}</th>`).join("")+"</tr>"+
+    h.slice(-5).reverse().map(r=>`<tr><td>${r.date}</td><td>${r.name||""}</td><td>${easy?(LV_READ[r.level]||r.level):r.level}</td><td>${r.pct.見通す}%</td><td>${r.pct.実行する}%</td><td>${r.pct.振り返る}%</td><td><strong>${r.pct.合計}%</strong></td></tr>`).join("")+
+    `</table><p style='font-size:11px;color:#789;margin-top:4px;'>${note}</p>`;
+}
+
+/* ============ 先生用集計 ============ */
+$("teacherOpen").addEventListener("click",()=>{ $("screen-check").classList.add("hidden"); $("screen-teacher").classList.remove("hidden"); window.scrollTo({top:0}); });
+$("backBtn").addEventListener("click",()=>{ $("screen-teacher").classList.add("hidden"); $("screen-check").classList.remove("hidden"); });
+
+function parseCsvText(text){
+  const rows=[];
+  text.replace(/^﻿/,"").split(/\r?\n/).forEach(line=>{
+    if (!line.trim()) return;
+    const c=line.split(",");
+    if (c[0]===CSV_HEADER[0]) return;
+    if (c.length<11) return;
+    const nums=c.slice(4,11).map(Number);
+    if (nums.some(isNaN)) return;
+    rows.push({name:c[0], level:c[1], date:c[3],
+      p1:{d:+c[4],t:+c[5]}, p2:{d:+c[6],t:+c[7]}, p3:{d:+c[8],t:+c[9]}, total:+c[10]});
+  });
+  return rows;
+}
+
+$("aggBtn").addEventListener("click", async ()=>{
+  let rows=parseCsvText($("csvPaste").value);
+  for (const f of $("csvFiles").files) rows=rows.concat(parseCsvText(await f.text()));
+  if (!rows.length){
+    $("aggResult").innerHTML="<div class='card'><p>読みこめるデータがありませんでした。</p></div>";
+    return;
+  }
+  const avg=k=>Math.round(rows.reduce((s,r)=>s+(r[k].t?r[k].d/r[k].t*100:0),0)/rows.length);
+  const avgs={見通す:avg("p1"), 実行する:avg("p2"), 振り返る:avg("p3")};
+  avgs.合計=Math.round(rows.reduce((s,r)=>s+r.total,0)/rows.length);
+  const keys=["見通す","実行する","振り返る"];
+  const hexes={見通す:"#e76f51", 実行する:"#2a9d8f", 振り返る:"#457b9d", 合計:"#f6a821"};
+  const lowKey=keys.reduce((a,b)=>avgs[a]<=avgs[b]?a:b);
+  $("aggResult").innerHTML=`<div class="card"><h2>学級集計結果（${rows.length}人）</h2>`+
+    [...keys,"合計"].map(k=>`
+      <div class="meter" style="margin:8px 0;">
+        <div class="m-label"><span style="color:${hexes[k]};">${k}</span><span>${avgs[k]}%</span></div>
+        <div class="m-track"><div class="m-fill" style="background:${hexes[k]}; width:${avgs[k]}%;"></div></div>
+      </div>`).join("")+
+    `<div class="msg">学級全体でのばしたいのは<strong>「${lowKey}」</strong>フェーズ（平均${avgs[lowKey]}%）です。授業の中に「${lowKey}」の方略を働かせる場を意図的に設けることをおすすめします。</div>
+    </div>
+    <div class="card"><h2>個人一覧</h2>
+    <div style="overflow-x:auto;"><table><tr><th>名前</th><th>日付</th><th>レベル</th><th>見通す</th><th>実行する</th><th>振り返る</th><th>合計</th></tr>`+
+    rows.map(r=>{
+      const cell=(d,t)=>{
+        const p=t?Math.round(d/t*100):0;
+        const bg=p<40?"#fde8e4":p>=80?"#e6f4ea":"";
+        return `<td style="background:${bg};">${p}%</td>`;
+      };
+      return `<tr><td>${r.name}</td><td>${r.date}</td><td>${r.level}</td>${cell(r.p1.d,r.p1.t)}${cell(r.p2.d,r.p2.t)}${cell(r.p3.d,r.p3.t)}<td><strong>${r.total}%</strong></td></tr>`;
+    }).join("")+
+    `</table></div>
+    <p style="font-size:12px;color:#678;margin-top:6px;">赤＝40%未満（重点支援）／緑＝80%以上（強み）</p>
+    <div class="btn-row no-print"><button class="btn" onclick="window.print()">🖨 集計を印刷</button></div></div>`;
+});
+
+/* ============ 初期化 ============ */
+render();
+renderHistory();
+</script>
+</body>
+</html>
