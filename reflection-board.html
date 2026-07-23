@@ -1,0 +1,1873 @@
+<!-- @dsCard group="見取りボード" name="案B ガイド進行（縦レール）" subtitle="濃紺ヘッダ・左に手順レール・いまのステップ以外は淡く・段階ごとに行を色分け" viewport="1280x900" -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+  ============================================================
+  ふりかえり見取りボード v3.1（振り返り評価システム／試作2・教師用）
+  v3.1（2026-07-22・CEO指示で修正）：Claude Design「案B ガイド進行」を、CSS/HTML/画面構成を
+  一切変更せず一字一句そのまま採用（v3.0の手作業マージで生じたデザイン崩れを解消）。
+  変更したのはこの3点のみ：①Webフォント参照を削除（通信ゼロ維持。タイトルはBIZ UDPGothic等へ自動フォールバック）
+  ②案Aとの比較用クロスリンク・「デザイン案B」ラベルを削除（本番の一枚として独立させたため）
+  ③mitori-app.js（プレースホルダ）を実際の判定エンジンJSに実体化
+  判定エンジン自体はv2.0時点の正本のまま無変更（観点99.4%・段階100%）
+  ============================================================
+-->
+<title>ふりかえり見取りボード v3｜学級の見取りと個人の変容（教師用）</title>
+<style>
+:root{
+  --bg:#F4F6F9; --card:#FFFFFF; --ink:#1F2733; --sub:#66707D; --line:#E2E7EE;
+  --accent:#2F6DE0; --accent-soft:#EAF0FB;
+  --blue:#2563EB; --blue-soft:#EAF1FE;
+  --green:#16A34A; --green-soft:#EAF7EE;
+  --orange:#EA580C; --orange-soft:#FDF0E7;
+  --purple:#7C3AED; --purple-soft:#F1EAFE;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+button,input,textarea,select{font-family:inherit}
+button{cursor:pointer}
+body{
+  font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","BIZ UDPGothic","Yu Gothic UI","Yu Gothic",Meiryo,sans-serif;
+  background:var(--bg); color:var(--ink); line-height:1.7; min-height:100vh;
+}
+.wrap{max-width:1140px;margin:0 auto;padding:0 18px 70px;width:100%}
+header{padding:22px 0 12px;border-bottom:1px solid var(--line)}
+h1{font-family:"Zen Maru Gothic","BIZ UDPGothic",sans-serif;font-size:22px;font-weight:900;letter-spacing:.06em;display:flex;align-items:center}
+h1::before{content:"";display:inline-block;width:12px;height:12px;border-radius:4px;background:var(--accent);margin-right:11px}
+.subtitle{color:var(--sub);font-size:12.5px;margin-top:3px}
+.notice{background:var(--accent-soft);border:1px solid #D7E3F7;border-radius:8px;
+  padding:9px 13px;margin:12px 0 0;font-size:12px;color:#3D4854}
+.notice b{color:var(--ink)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:10px;
+  padding:16px 18px;margin:12px 0;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.panel h2{font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.panel h2 .step{background:var(--accent-soft);color:var(--accent);border-radius:6px;font-size:11.5px;padding:1px 9px}
+label.f{display:block;font-size:12px;font-weight:700;color:var(--sub);margin:8px 0 3px}
+input[type=text],textarea,select{width:100%;border:1px solid #CBD5E1;border-radius:8px;background:#fff;
+  padding:9px 11px;font-size:13.5px;color:var(--ink);line-height:1.6;min-height:40px}
+textarea{min-height:120px;resize:vertical;font-size:12.5px;line-height:1.55}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px}
+input::placeholder,textarea::placeholder{color:#B3BCC7;font-weight:400}
+.subbtn:disabled{opacity:.45;cursor:default}
+.subbtn:disabled:hover{border-color:#CBD5E1;color:#3D4854}
+details.more summary{cursor:pointer;color:var(--sub);font-size:11.5px}
+details.more[open] summary{margin-bottom:2px}
+.maprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:8px}
+.gobtn{display:block;width:100%;margin-top:14px;border:none;border-radius:8px;background:var(--accent);
+  color:#fff;font-size:15px;font-weight:700;letter-spacing:.05em;padding:12px;min-height:46px}
+.gobtn:hover{background:#2558B8}
+.subbtn{border:1px solid #CBD5E1;background:#fff;border-radius:8px;padding:9px 14px;min-height:40px;
+  font-size:12.5px;font-weight:700;color:#3D4854}
+.subbtn:hover{border-color:var(--accent);color:var(--accent)}
+.subbtn.on{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.filebtn{display:inline-flex;align-items:center;gap:6px}
+details.practice summary{cursor:pointer;font-size:13px;font-weight:700;color:#3D4854}
+details.practice[open] summary{margin-bottom:8px}
+#resultsWrap > summary.wrapsum,#resultsWrapP > summary.wrapsum{cursor:pointer;font-size:14px;font-weight:700;color:var(--ink);
+  background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:12px 0;
+  box-shadow:0 1px 2px rgba(16,24,40,.04)}
+#resultsWrap > summary.wrapsum:hover,#resultsWrapP > summary.wrapsum:hover{border-color:var(--accent);color:var(--accent)}
+.msg{border-radius:8px;padding:7px 11px;font-size:12px;font-weight:700;margin-top:8px;display:none}
+.msg.err{display:block;background:#FDECEC;color:#B91C1C}
+.msg.ok{display:block;background:var(--green-soft);color:var(--green)}
+
+.sumgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.sumcard{border:1px solid var(--line);border-radius:8px;padding:11px 13px;background:#F8FAFC}
+.sumcard .t{font-size:11.5px;font-weight:700;color:var(--sub)}
+.sumcard .v{font-size:14px;font-weight:700;margin-top:4px;line-height:1.6}
+.gr{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;
+  border-radius:6px;font-weight:700;font-size:13px;padding:0 6px}
+.gr.S{background:#FCE7F3;color:#BE185D}.gr.A{background:var(--blue-soft);color:var(--blue)}
+.gr.B{background:var(--green-soft);color:var(--green)}.gr.C{background:var(--orange-soft);color:#C2570B}
+.gr.D{background:#EDF0F3;color:var(--sub)}
+.gnote{font-size:11px;color:var(--sub)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table.mx{border-collapse:collapse;width:100%;min-width:900px;font-size:12px}
+.mx th,.mx td{border-bottom:1px solid var(--line);padding:5px 6px;text-align:center}
+.mx thead th{background:#F8FAFC;font-size:10.5px;font-weight:700;color:var(--sub);position:sticky;top:0}
+.mx th.grp1{background:var(--blue-soft);color:var(--blue)}
+.mx th.grp3{background:var(--orange-soft);color:#C2570B}
+.mx th.grp4{background:var(--purple-soft);color:var(--purple)}
+.mx td.on{color:var(--ink);font-weight:700}
+.mx td.offm{color:#C6CDD6}
+.mx tbody tr{cursor:pointer}
+.mx tbody tr:hover{background:var(--accent-soft)}
+.mx tbody tr.open{background:var(--accent-soft)}
+.sortrow{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px;align-items:center}
+.detail{border:1px solid var(--accent);border-radius:8px;background:#fff;padding:13px 15px;margin-top:10px}
+.detail h3{font-size:13.5px;font-weight:700;margin-bottom:8px}
+.sent{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:6px;background:#F8FAFC;font-size:12.5px}
+.kind{font-size:10px;font-weight:700;border-radius:5px;padding:1px 7px;margin-left:6px}
+.kind.内容{background:#FDE8E8;color:#B91C1C}
+.kind.調整{background:var(--green-soft);color:var(--green)}
+.tglst{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.tg{border:1px solid var(--line);background:#fff;border-radius:5px;padding:1px 8px;font-size:11px;font-weight:700;color:#3D4854}
+.advice{border-left:3px solid #E88A2D;background:#FDF6ED;border-radius:8px;padding:9px 12px;margin:8px 0;font-size:12.5px}
+.advice.good{border-left-color:#D9A514;background:#FBF7E8}
+.advice b{font-weight:700}
+.advice .q{background:#fff;border:1px solid var(--line);border-radius:6px;padding:5px 9px;margin-top:5px;font-size:12px;display:block}
+.paircard{border:1px solid var(--line);border-radius:8px;padding:11px 14px;margin-bottom:8px;background:#fff}
+.paircard .who{font-size:14px;font-weight:700}
+.paircard .type{font-size:10.5px;font-weight:700;border-radius:5px;padding:2px 8px;margin-left:8px}
+.type.near{background:var(--green-soft);color:var(--green)}
+.type.diff{background:var(--purple-soft);color:var(--purple)}
+.paircard .why{font-size:12px;color:var(--sub);margin-top:4px;line-height:1.7}
+.paircard .why b{color:var(--ink)}
+.foot{font-size:11.5px;color:var(--sub);margin-top:10px;line-height:1.7}
+.foot code{background:#F1F4F8;border-radius:5px;padding:1px 5px}
+
+a{color:var(--accent)}a:hover{color:#2558B8}
+.subbtn{min-height:44px}
+.gobtn{min-height:52px}
+.rail{list-style:none;display:flex;gap:6px;margin:14px 0 4px;padding:6px;background:var(--card);border:1px solid var(--line);border-radius:12px;position:sticky;top:8px;z-index:20;box-shadow:0 2px 8px rgba(16,24,40,.06)}
+.rail li{flex:1;display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;font-size:13px;font-weight:700;color:var(--sub);cursor:pointer;min-height:44px;border:1px solid transparent}
+.rail li i{font-style:normal;width:26px;height:26px;border-radius:50%;background:#EDF0F3;color:var(--sub);display:grid;place-items:center;font-size:13px;flex:none}
+.rail li.cur{background:var(--accent-soft);color:var(--accent);border-color:#C9DAF6}
+.rail li.cur i{background:var(--accent);color:#fff}
+.rail li.done{color:var(--green)}
+.rail li.done i{background:var(--green);color:#fff;font-size:0}
+.rail li.done i::after{content:"✓";font-size:13px}
+[data-steppanel]{transition:box-shadow .2s,opacity .2s}
+.panel[data-steppanel].cur{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+#resultsWrap.cur>summary{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.hero{display:flex;flex-wrap:wrap;gap:14px;align-items:center;background:var(--accent-soft);border:1px solid #C9DAF6;border-radius:12px;padding:16px 18px;margin:12px 0}
+.hero .ht{flex:1;min-width:240px}
+.hero .ht b{font-size:15px}
+.hero .ht p{font-size:12.5px;color:#3D4854;margin-top:2px}
+.hero .gobtn.big{width:auto;margin:0;padding:14px 26px;font-size:16px;min-height:56px;border-radius:10px;box-shadow:0 2px 6px rgba(47,109,224,.35)}
+.modeseg{display:flex;gap:8px;margin:14px 0 0;flex-wrap:wrap}
+.modeseg button{flex:1;min-width:230px;text-align:left;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:12px 16px;min-height:64px;display:flex;flex-direction:column;gap:2px}
+.modeseg button b{font-size:14.5px;color:var(--ink)}
+.modeseg button span{font-size:11.5px;color:var(--sub);font-weight:400}
+.modeseg button.on{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.modeseg button.on b{color:var(--accent)}
+.modeseg button.on b::after{content:"表示中";font-size:10px;color:#fff;background:var(--accent);border-radius:4px;padding:1px 6px;margin-left:8px;vertical-align:2px}
+.ghost .skel{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-top:10px}
+.ghost .sk{border:1.5px dashed #C9D2DD;border-radius:8px;min-height:84px;background:repeating-linear-gradient(45deg,#F3F6FA 0 8px,#FAFCFE 8px 16px);display:grid;place-items:center}
+.ghost .sk span{font-family:ui-monospace,SFMono-Regular,monospace;font-size:11px;color:var(--sub);background:#fff;padding:2px 8px;border-radius:5px;border:1px solid var(--line)}
+.mx th,.mx td{padding:8px 8px}
+.mx td{font-size:14px}
+.mx td.offm{color:#DCE1E8}
+.gr{min-width:30px;height:30px;font-size:14px}
+
+body{background:#EEF1F5}
+.topband{background:#1F2733;color:#fff}
+.topband header{border-bottom:none;padding-bottom:4px}
+.topband h1{color:#fff}
+.topband h1::before{background:#6FA0F0}
+.topband .subtitle{color:#AEB8C4}
+.topband .notice{background:#2A3442;border-color:#3A4658;color:#C7D0DB;margin-bottom:16px}
+.topband .notice b{color:#fff}
+.topband .notice a{color:#9FC0F5}
+.topband details.more summary{color:#9FB0C4}
+.topband .modeseg{margin:12px 0 0;padding-bottom:2px}
+.topband .modeseg button{background:#2A3442;border-color:#3A4658}
+.topband .modeseg button b{color:#E7EDF4}
+.topband .modeseg button span{color:#9AA7B6}
+.topband .modeseg button.on{background:var(--accent-soft);border-color:#fff}
+.topband .modeseg button.on b{color:var(--accent)}
+.topband .modeseg button.on span{color:#3D4854}
+#modeClass{display:grid;grid-template-columns:225px minmax(0,1fr);gap:16px;align-items:start;margin-top:14px}
+#modeClass>.main{min-width:0}
+#modeClass .rail{flex-direction:column;position:sticky;top:14px;margin:0}
+#modeClass .rail li{flex:none}
+[data-steppanel]{opacity:.72}
+[data-steppanel].cur,[data-steppanel]:hover,[data-steppanel]:focus-within{opacity:1}
+#mxWrap tbody tr:has(.gr.S){background:#FFF5FA}
+#mxWrap tbody tr:has(.gr.A){background:#F4F8FF}
+#mxWrap tbody tr:has(.gr.B){background:#F3FBF5}
+#mxWrap tbody tr:has(.gr.C){background:#FFF8F2}
+#mxWrap tbody tr:has(.gr.D){background:#F7F8FA}
+#mxWrap tbody tr:hover,#mxWrap tbody tr.open{background:var(--accent-soft)}
+#mxWrap td:nth-child(n+3):nth-child(-n+5).on{color:var(--blue)}
+#mxWrap td:nth-child(n+6):nth-child(-n+12).on{color:#C2570B}
+#mxWrap td:nth-child(n+13).on{color:var(--purple)}
+#tlWrap td:nth-child(n+2):nth-child(-n+4).on{color:var(--blue)}
+#tlWrap td:nth-child(n+5):nth-child(-n+11).on{color:#C2570B}
+#tlWrap td:nth-child(n+12):nth-child(-n+14).on{color:var(--purple)}
+@media(max-width:880px){#modeClass{display:block}#modeClass .rail{flex-direction:row;position:sticky;top:8px;margin-bottom:10px}}
+/* 文字の工夫：UDフォント優先・全体に大きく */
+body{font-family:"BIZ UDPGothic","Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic UI","Yu Gothic",Meiryo,sans-serif}
+h1{font-size:30px}
+body.fs-l h1{font-size:33px}
+body.fs-xl h1{font-size:36px}
+.subtitle{font-size:13.5px}
+.panel h2{font-size:16.5px}
+.panel h2 .step{font-size:12.5px;padding:2px 10px}
+label.f{font-size:13px}
+input[type=text],textarea,select{font-size:15px}
+textarea{font-size:14px}
+.subbtn{font-size:13.5px}
+.foot{font-size:12.5px}
+.gnote{font-size:12px}
+.notice{font-size:13px}
+details.more summary{font-size:12.5px}
+table.mx{font-size:13px}
+.mx thead th{font-size:12px}
+.sumcard .t{font-size:12.5px}
+.sumcard .v{font-size:15px}
+.advice{font-size:13.5px}
+.advice .q{font-size:13px}
+.sent{font-size:13.5px}
+.paircard .why{font-size:13px}
+#resultsWrap>summary.wrapsum,#resultsWrapP>summary.wrapsum{font-size:15.5px}
+.hero .ht b{font-size:16.5px}
+.hero .ht p{font-size:13.5px}
+.modeseg button b{font-size:15.5px}
+.modeseg button span{font-size:12.5px}
+.msg{font-size:13px}
+.rail li{font-size:13.5px}
+/* 個人の変容モード＝赤基調 */
+body.pmode{--accent:#C63F3F;--accent-soft:#FBEDEC}
+body.pmode .topband{background:#3B2327}
+body.pmode .topband h1::before{background:#E58B85}
+body.pmode .topband .notice{background:#4A2E31;border-color:#5D3B3E}
+body.pmode .topband .notice a{color:#F2B4AE}
+body.pmode .topband .modeseg button{background:#4A2E31;border-color:#5D3B3E}
+body.pmode .topband .modeseg button.on{background:var(--accent-soft);border-color:#fff}
+body.pmode .rail li.cur{border-color:#F0CFCC}
+body.pmode .hero{border-color:#F0CFCC}
+body.pmode .gobtn:hover{background:#A93434}
+body.pmode a{color:#C63F3F}
+body.pmode a:hover{color:#A93434}
+body.pmode .notice{background:var(--accent-soft);border-color:#F0CFCC}
+summary.wrapsum .step{background:var(--accent-soft);color:var(--accent);border-radius:6px;font-size:12.5px;padding:2px 10px}
+body.fs-xl summary.wrapsum .step,body.fs-xl .panel h2 .step{font-size:14.5px}
+body.fs-l summary.wrapsum .step,body.fs-l .panel h2 .step{font-size:13.5px}
+/* ？ホバー説明 */
+.help{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;border:none;background:#E2E7EE;color:#66707D;font-size:12.5px;font-weight:700;cursor:help;position:relative;vertical-align:-3px}
+.help:hover,.help:focus{background:var(--accent);color:#fff;outline:none}
+.help::after{content:attr(data-tip);position:absolute;left:0;top:28px;background:#1F2733;color:#fff;font-size:12.5px;font-weight:400;line-height:1.7;padding:9px 13px;border-radius:8px;width:min(340px,74vw);z-index:60;opacity:0;pointer-events:none;transition:opacity .15s;text-align:left;white-space:normal}
+.help:hover::after,.help:focus::after{opacity:1}
+/* 文字の大きさ切替 */
+.fsctl{display:flex;gap:6px;align-items:center;margin-top:12px;font-size:12.5px;color:#AEB8C4;flex-wrap:wrap}
+.fsctl button{border:1px solid #3A4658;background:#2A3442;color:#C7D0DB;border-radius:7px;padding:5px 14px;min-height:38px;font-weight:700;cursor:pointer;font-size:13px}
+.fsctl button[data-fs="fs-l"]{font-size:15px}
+.fsctl button[data-fs="fs-xl"]{font-size:17px}
+.fsctl button.on{background:#fff;color:#1F2733;border-color:#fff}
+body.pmode .fsctl button{background:#4A2E31;border-color:#5D3B3E}
+body.pmode .fsctl button.on{background:#fff;color:#3B2327;border-color:#fff}
+/* 大きめ */
+body.fs-l .panel h2{font-size:18px}
+body.fs-l input[type=text],body.fs-l textarea,body.fs-l select{font-size:16.5px}
+body.fs-l .subbtn{font-size:15px;min-height:48px}
+body.fs-l .gobtn{font-size:17px}
+body.fs-l .foot{font-size:14px}
+body.fs-l .gnote{font-size:13.5px}
+body.fs-l .notice{font-size:14.5px}
+body.fs-l .subtitle{font-size:15px}
+body.fs-l table.mx{font-size:14.5px}
+body.fs-l .mx thead th{font-size:13px}
+body.fs-l .sumcard .t{font-size:14px}
+body.fs-l .sumcard .v{font-size:16.5px}
+body.fs-l .advice{font-size:15px}
+body.fs-l .advice .q{font-size:14.5px}
+body.fs-l .sent{font-size:15px}
+body.fs-l .paircard .why{font-size:14.5px}
+body.fs-l #resultsWrap>summary.wrapsum,body.fs-l #resultsWrapP>summary.wrapsum{font-size:17px}
+body.fs-l .hero .ht b{font-size:18px}
+body.fs-l .hero .ht p{font-size:15px}
+body.fs-l .modeseg button b{font-size:17px}
+body.fs-l .modeseg button span{font-size:14px}
+body.fs-l .rail li{font-size:15px}
+body.fs-l .msg{font-size:14.5px}
+body.fs-l label.f{font-size:14.5px}
+body.fs-l .help::after{font-size:13.5px}
+body.fs-xl .panel h2{font-size:20px}
+body.fs-xl input[type=text],body.fs-xl textarea,body.fs-xl select{font-size:18px}
+body.fs-xl .subbtn{font-size:16.5px;min-height:52px}
+body.fs-xl .gobtn{font-size:19px}
+body.fs-xl .foot{font-size:15.5px}
+body.fs-xl .gnote{font-size:15px}
+body.fs-xl .notice{font-size:17.5px}
+body.fs-xl .subtitle{font-size:16.5px}
+body.fs-xl table.mx{font-size:16px}
+body.fs-xl .mx thead th{font-size:14.5px}
+body.fs-xl .sumcard .t{font-size:15.5px}
+body.fs-xl .sumcard .v{font-size:18px}
+body.fs-xl .advice{font-size:16.5px}
+body.fs-xl .advice .q{font-size:16px}
+body.fs-xl .sent{font-size:16.5px}
+body.fs-xl .paircard .why{font-size:16px}
+body.fs-xl #resultsWrap>summary.wrapsum,body.fs-xl #resultsWrapP>summary.wrapsum{font-size:18.5px}
+body.fs-xl .hero .ht b{font-size:20px}
+body.fs-xl .hero .ht p{font-size:16.5px}
+body.fs-xl .modeseg button b{font-size:18.5px}
+body.fs-xl .modeseg button span{font-size:15.5px}
+body.fs-xl .rail li{font-size:16.5px}
+body.fs-xl .msg{font-size:16px}
+body.fs-xl label.f{font-size:16px}
+body.fs-xl .help::after{font-size:14.5px}
+body.fs-l .help::after{font-size:13.5px}
+</style>
+</head>
+<body>
+<div class="topband"><div class="wrap" style="padding-bottom:18px">
+<header>
+<h1>ふりかえり見取りボード</h1>
+<p class="subtitle">学習計画表を一括で読み取り、振り返りの見取りと明日の声かけにつなぐ（教師用）</p>
+</header>
+<div class="notice">教師の見取り用ボードです。記述はこの端末の中だけで処理され、どこにも送信されません。<details class="more"><summary>くわしく</summary><span style="display:block;margin-top:4px">S〜Dの段階は指導の手がかりであり、成績の評定ではありません。子どもに返す・掲示するものではありません。点数・順位・学級平均は出しません（くらべる相手は前回のじぶんだけ）。</span></details></div>
+<div class="modeseg">
+<button id="modeClassBtn" class="on"><b>学習者全体の見取り</b><span>クラス全員の「今日の振り返り」をまとめて見る</span></button>
+<button id="modePersonalBtn"><b>個人の変容の見取り</b><span>一人の子の振り返りを、時間の流れで見る</span></button>
+</div>
+</div></div>
+<div class="wrap">
+<div id="modeClass">
+<ol class="rail">
+<li data-stepnav="1" class="cur"><i>1</i><span>課題を入れる</span></li>
+<li data-stepnav="2"><i>2</i><span>表を読み込む</span></li>
+<li data-stepnav="3"><i>3</i><span>結果を見る</span></li>
+<li data-stepnav="4"><i>4</i><span>書き出す</span></li>
+</ol>
+<div class="main">
+<div class="hero">
+<div class="ht"><b>はじめてですか？　まず動きを見てみましょう<button class="help" type="button" aria-label="説明" data-tip="架空の24人の学級（すべてAIがつくった架空の記述。実在の児童生徒は含みません）で、③の結果がどう出るかを体験できます。実際のデータはあとから②で読み込めます。">？</button></b></div>
+<button class="gobtn big" id="btnDemo">▶ 例の学級で見てみる</button>
+</div>
+<div class="panel" data-steppanel="1">
+<h2><span class="step">1</span>本時の課題を入れる（学級共通）</h2>
+<input type="text" id="inKadai" autocomplete="off" placeholder="れい：地域の水をきれいに保つために、自分たちにできることを調べて提案をまとめよう">
+</div>
+<div class="panel" data-steppanel="2">
+<h2><span class="step">2</span>目標・ふりかえりの読み込み<button class="help" type="button" aria-label="説明" data-tip="表のままコピーして貼り付けられます（区切りは自動判別）。ファイル（.csv／.txt／.xlsx）もそのまま読み込めます。Googleスプレッドシートは、表をコピーして貼り付けるか .xlsx／.csv でダウンロードしてください。表に「課題」の列があるときは、そちらを①より優先して判定します。1行目の見出しは、あってもなくてもかまいません。">？</button></h2>
+  
+  
+  <div style="display:flex;gap:8px;margin:0 0 8px;flex-wrap:wrap">
+    <label class="subbtn filebtn">表のファイルを選ぶ（.csv／.txt／.xlsx）<input type="file" id="inFile" accept=".csv,.tsv,.txt,.xlsx" style="display:none"></label>
+  </div>
+  <label class="f" for="inPaste">以下に目標・振り返りを貼り付けてください</label>
+  <textarea id="inPaste" autocomplete="off" placeholder="れい（列の順は自由）：&#10;番号	Be	Do	Regulate	ふりかえり&#10;01	川のごみの多い場所を…	班でごみの種類を…	調べる前に…	川の写真をくらべて…"></textarea>
+  <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+    <button class="subbtn" id="btnParse">貼り付けた表を読み込む</button>
+  </div>
+  <div class="msg" id="msgParse"></div>
+  <div id="mapArea" style="display:none">
+    <p class="foot" id="mapSummary" style="margin:8px 0 4px"></p>
+    <details id="mapDetail">
+      <summary class="foot" style="cursor:pointer">列の割り当てを確かめる・直す</summary>
+      <p class="foot" style="margin:6px 0 4px">貼り付けた表の<b>どの列が「番号」「課題」「ふりかえり」…にあたるか</b>の対応づけです。自動で推測するので、ふだんは直す必要はありません。まちがっているときだけ選び直してください。</p>
+      <div class="maprow" id="mapSelects"></div>
+    </details>
+  </div>
+  <button class="gobtn" id="btnRun" style="display:none">読み取る</button>
+</div>
+<details id="resultsWrap" data-steppanel="3">
+<summary class="wrapsum"><span class="step">3</span>　見取りの結果（Ⅰ〜Ⅳ）　—　タップで開閉</summary>
+<div class="panel ghost" id="emptyState">
+<p style="font-weight:700;margin-bottom:4px">ここに見取りの結果が出ます</p>
+<p class="foot" style="margin:0 0 8px">①課題を入れる → ②表を読み込む → 「読み取る」を押すと、次の4つが並びます（下はイメージ）。</p>
+<div class="skel">
+<div class="sk"><span>Ⅰ 学級のいま</span></div>
+<div class="sk"><span>Ⅱ 学級マトリクス</span></div>
+<div class="sk"><span>Ⅲ 一人ひとりへの手がかり</span></div>
+<div class="sk"><span>Ⅳ ペアの提案</span></div>
+</div>
+</div>
+<div id="resultsBody" style="display:none">
+
+  <div class="panel">
+    <h2>Ⅰ 学級のいま</h2>
+    <div class="sumgrid" id="sumBody"></div>
+    <div class="advice" id="classAdvice" style="margin-top:10px"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Ⅱ 学級マトリクス<button class="help" type="button" aria-label="説明" data-tip="●＝書けている／・＝まだ。行をタップすると、その子の詳細（どこをそう読んだか）が開きます。並べ替えは見取りのためのもので、順位番号・平均は表示しません。">？</button></h2>
+    <div class="sortrow">
+      <button class="subbtn on" data-sort="no">番号順</button>
+      <button class="subbtn" data-sort="grade">段階ごと（S→D）</button>
+      <button class="subbtn" data-sort="few">手がかりが少ない子から</button>
+      
+    </div>
+    <div class="tablewrap" id="mxWrap"></div>
+    <div id="detailArea"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Ⅲ 一人ひとりへの指導の手がかり<button class="help" type="button" aria-label="説明" data-tip="提案の文面は、先生の言葉に直してお使いください。">？</button></h2>
+    <div class="sortrow"><span class="gnote">ならべ替え：</span>
+      <button class="subbtn on" data-psort="meibo">名簿順</button>
+      <button class="subbtn" data-psort="share">記述内容が良く、クラスで共有したい順</button>
+      <button class="subbtn" data-psort="need">指導・支援が必要な順</button>
+    </div>
+    <div id="perChild"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Ⅳ いっしょに学ぶとよさそうなペア（提案）<button class="help" type="button" aria-label="説明" data-tip="振り返りの学習内容のことばから、①同じ事柄に興味をもつ子、②興味は同じで考えがちがう子を提案します。実際の座席・関係性とあわせてご判断ください。">？</button></h2>
+    
+    <div id="pairBody"></div>
+  </div>
+
+  </div>
+  
+</details>
+<div class="panel" data-steppanel="4">
+<h2><span class="step">4</span>書き出し</h2>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<button class="subbtn" id="btnCsv" disabled>見取り表をCSVで保存（見取り用・評定ではない）</button>
+<button class="subbtn" id="btnPrint" disabled onclick="window.print()">このボードを印刷</button>
+</div>
+</div>
+</div>
+</div>
+<!-- ===== 個人の振り返りの変容の見取り ===== -->
+<div id="modePersonal" style="display:none">
+
+<div class="panel">
+  <h2><span class="step">1</span>一人分の学習計画表の読み込み<button class="help" type="button" aria-label="説明" data-tip="一人の子の学習計画表（複数の時間分）を読み込みます。表のままコピーして貼り付けるか、ファイル（.csv／.txt／.xlsx）を選びます。写真・PDF（.jpg／.png／.pdf）はAIで文字に起こしてから読み込みます（下の設定と注意をご覧ください）。">？</button></h2>
+  
+  <div style="display:flex;gap:8px;margin:0 0 8px;flex-wrap:wrap">
+    <label class="subbtn filebtn">表のファイルを選ぶ（.csv／.txt／.xlsx）<input type="file" id="inFileP" accept=".csv,.tsv,.txt,.xlsx" style="display:none"></label>
+    <label class="subbtn filebtn">写真・PDFを読み込む（AI利用）<input type="file" id="inFileImgP" accept="image/jpeg,image/png,application/pdf" multiple style="display:none"></label>
+  </div>
+  <details class="more" id="aiSetP" style="margin-top:8px">
+    <summary>写真・PDF読み込みの設定と注意（AIの種類・APIキー）　<b style="color:#C0392B">※読み込む前に必ず読んでください</b></summary>
+    <div class="notice" style="margin:8px 0">
+      <b>写真・PDFの読み込みは、画像を外部AI（Gemini または Claude）に送信して文字に起こします。</b><br>
+      ・<b>氏名・学校名が写っている部分は、隠すか切り取ってから</b>読み込んでください（送信前に毎回確認します）<br>
+      ・子どもの記述をAIが読むことになります。学校・保護者の方針、自治体の生成AI利用ガイドラインに従ってお使いください<br>
+      ・Geminiは<b>無料のAPIキー（Google AI Studio）でも使えます</b>。ただし無料枠では、送信した内容がモデルの改善に使われる場合があります（有料キーは対象外）。学校利用では有料キーまたはClaudeをおすすめします<br>
+      ・キーはこの端末にのみ保存され、文字起こし以外には使いません。表の貼り付け・ファイル読み込み・判定では一切通信しません
+    </div>
+    <div class="maprow">
+      <div><label class="f">つかうAI</label>
+        <select id="inAiKindP">
+          <option value="gemini">Gemini（Google・無料キー可）</option>
+          <option value="anthropic">Claude（Anthropic）</option>
+        </select></div>
+      <div><label class="f">APIキー（この端末にのみ、AIごとに保存）</label>
+        <input type="password" id="inApiKeyP" placeholder="APIキーを貼り付け" autocomplete="off"></div>
+    </div>
+    <p class="foot" style="margin-top:4px">APIキーの取得（コピーして上の欄に貼り付けます）：<br>
+    ・Gemini：<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio − APIキー</a>（Googleアカウントで無料から作成できます）<br>
+    ・Claude：<a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Anthropic Console − API Keys</a>（要アカウント・有料）</p>
+  </details>
+  <label class="f" for="inPasteP">以下に課題・目標・振り返りを貼り付けてください</label>
+  <textarea id="inPasteP" autocomplete="off" placeholder="れい（1行＝1時間分。列の順は自由）：&#10;回	課題	Be	Do	Regulate	ふりかえり&#10;1	川のごみを調べよう	ごみの種類を説明できる	班で数える	時間を守る	ペットボトルが多いことが分かった。"></textarea>
+  <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+    <button class="subbtn" id="btnParseP">貼り付けた表を読み込む</button>
+  </div>
+  <div class="msg" id="msgParseP"></div>
+  <button class="gobtn" id="btnRunP" style="display:none">変容を読み取る</button>
+</div>
+
+<details id="resultsWrapP">
+  <summary class="wrapsum"><span class="step">2</span>　見取りの結果　—　タップで開閉</summary>
+  <div class="panel" id="emptyStateP">ここに一人の子の変容が出ます。①で学習計画表（複数の時間分）を読み込むと，①の中に「変容を読み取る」ボタンが現れます。それを押してください。</div>
+  <div id="resultsBodyP" style="display:none">
+    <div class="panel"><h2>Ⅰ 変容タイムライン（●＝書けている／・＝まだ）</h2>
+      <div class="tablewrap" id="tlWrap"></div></div>
+    <div class="panel"><h2>Ⅱ 変容の読み取り</h2><div id="changeBody"></div></div>
+    <div class="panel"><h2>Ⅲ この子への声かけ（案）</h2>
+      <p class="foot" style="margin:0 0 8px">文面は先生の言葉に直してお使いください。</p>
+      <div id="personAdvice"></div></div>
+  </div>
+</details>
+
+<div class="panel">
+  <h2><span class="step">3</span>書き出し</h2>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="subbtn" id="btnCsvP" disabled>変容タイムラインをCSVで保存（見取り用・評定ではない）</button>
+    <button class="subbtn" id="btnPrintP" disabled onclick="window.print()">このボードを印刷</button>
+  </div>
+</div>
+
+<details class="panel practice">
+  <summary><span class="step">4</span>　架空の一人の例（6時間分）</summary>
+  <p class="foot" style="margin:8px 0 10px">一人の学習計画表を読み込むと、このように変容が見えます。例はすべてAIがつくった架空の記述です（実在の児童生徒は含みません）。</p>
+  <button class="subbtn" id="btnDemoP">例を表示する</button>
+</details>
+
+</div><!-- /modePersonal -->
+<p class="foot" style="text-align:center">ふりかえり見取りボード v3.1（試作）／システム開発課／判定のものさし：<code>調整方略リスト（案）14</code>／端末内で完結・通信なし</p>
+</div>
+<script>
+"use strict";
+/* =====================================================================
+   1. 判定辞書
+   企画書 §2.2（観点B：記述の評価）／§2.1（観点A：記述外との関連）／§2.3（観点C：調整の主体）
+   ／§2.4（内容・調整の2大別）の各表と 1対1 で対応させたオブジェクト。
+   サブプロセス名は 05_研究部/理論課「調整方略リスト（案）14」に厳密準拠。
+   ※このオブジェクトは、方式B（AI・APIキー方式）のプロンプト定義にそのまま転用する前提で
+     判定ロジックから独立させてある（手がかり／除外／表示名／サブプロセス名／フェーズ）。
+   ===================================================================== */
+
+/* --- 観点B：記述の評価（企画書§2.2の表そのもの）--------------------------- */
+const 判定辞書_観点B = {
+  成果の自己評価: {
+    表_記述要素: "成果の自己評価（うまくいったこと）",
+    サブプロセス: "自己・相互評価", 方略カテゴリー: "メタ認知", フェーズ: "振り返る",
+    やさしい: "できたこと", くわしい: "成果の自己評価",
+    ほめ: "できたことが、じぶんの言葉で書けているね！",
+    問い: "きょう、できるようになったことは あるかな？",
+    ヒント: "「〜できた」「〜が分かった」",
+    手がかり: [/でき(た|ました|て)/, /(分|わ)か(っ|り)(た|ました|て)/, /理解でき/,
+               /見つ(け|かっ)(た|られた|ることができた)/, /(まとめられ|書け|説明でき|解け|進められ|求められ)(た|る|て)/,
+               /うまくいっ(た|て)/, /(達成|完成)でき/],
+    除外: [/でき(なかった|ませんでした|ていない)/, /(たい|しよう|つもり)。?$/],
+  },
+  課題の自己評価: {
+    表_記述要素: "課題の自己評価（うまくいかなかったこと）",
+    サブプロセス: "自己・相互評価", 方略カテゴリー: "メタ認知", フェーズ: "振り返る",
+    やさしい: "できなかったこと", くわしい: "課題の自己評価",
+    ほめ: "うまくいかなかったことから、目をそらさずに書けているね。",
+    問い: "うまくいかなかったことや、まだ とちゅうのことは あるかな？",
+    ヒント: "「〜が途中になった」「〜できなかった」",
+    手がかり: [/でき(なかった|ませんでした|ていない)/, /(分|わ)から(なかった|ず)/,
+               /途中(に|で)(なっ|終わ)/, /とちゅう(に|で)(なっ|終わ)/,
+               /(間に合わ|時間が足りな)/, /(むずかし|難し)かった/, /うまくいかなかった/,
+               /まだ[^。]*(ない|いない|なかった)/, /(弱い|足りない)と思う/,
+               /(進められ|進んでい|いか)なかった/, /[ぁ-んァ-ヶ一-龥]なかった/],
+    /* 「〜なかったから／ので／ため」は理由の説明（原因帰属）なので、判定前に伏せ字にして
+       「できなかった」等の自己評価だけを拾う（同じ文に両方あっても取りこぼさない） */
+    前処理: [[/[ぁ-んァ-ヶ一-龥]なかった(から|ので|ため)/g, "〓"],
+             /* 「気づかなかった」は学習中の気づきの話であって、成果・課題の自己評価ではない */
+             [/(気づ|気付)かなかった/g, "〓"]],
+    除外: [],
+  },
+  原因帰属: {
+    表_記述要素: "原因帰属（理由）",
+    サブプロセス: "原因帰属", 方略カテゴリー: "メタ認知", フェーズ: "振り返る",
+    やさしい: "そのわけ（理由）", くわしい: "原因帰属",
+    ほめ: "うまくいった／いかなかった <b>わけ</b> まで書けているのがすごい！",
+    問い: "そうなったのは、どうしてだと思う？",
+    ヒント: "「〜だから」「理由は〜」",
+    手がかり: [/理由は/, /原因(は|だ|と思う|で)/, /から(だ|です|である)/, /のは[^。]*から/,
+               /ので[、,]/, /から[、,]/, /(かった|だった|った)から/, /せいで/, /おかげで/],
+    除外: [/てから[、,]/],
+  },
+  適用: {
+    表_記述要素: "適用（次に活かすこと）",
+    サブプロセス: "適用", 方略カテゴリー: "動機づけ調整", フェーズ: "振り返る",
+    やさしい: "つぎにやること", くわしい: "適用",
+    ほめ: "つぎの学習につなげる言葉が書けているね。",
+    問い: "つぎの時間には、どんなことを やってみたい？",
+    ヒント: "「次は〜したい」「これからは〜」",
+    手がかり: [/(次(は|に|回|からは|の(学習|時間|単元))|今度は|これからは)[^。]*(たい|しよう|する|していく|してみ|取りかかり|ようにする)/,
+               /次(の学習)?に(活|い)かし/],
+    除外: [],
+  },
+  適応: {
+    表_記述要素: "適応（学び方そのものを変える）",
+    サブプロセス: "適応", 方略カテゴリー: "動機づけ調整", フェーズ: "振り返る",
+    やさしい: "学び方をかえる", くわしい: "適応",
+    ほめ: "「学び方そのもの」を変えようとしているのが、とても大きい一歩だね。",
+    問い: "つぎは、学び方（進め方）そのものを どう変えてみる？",
+    ヒント: "「〜というやり方に変える」「〜という進め方にしたい」",
+    手がかり: [/(学び方|やり方|進め方|調べ方|学習の仕方|勉強の仕方)[^。]*(変え|見直|にしたい|にしていきたい)/,
+               /という(やり方|進め方|学び方|調べ方)/,
+               /(方法|やり方)を他の[^。]*(使|活)/],   /* 方法を他の学習へ転移させる宣言も「学び方の変革」と読む */
+    除外: [],
+  },
+  方略言及: {
+    表_記述要素: "学習方略への言及",
+    サブプロセス: "（全フェーズの方略語彙）", 方略カテゴリー: "認知／メタ認知／リソース管理", フェーズ: "実行する",
+    やさしい: "つかった方法（ほうりゃく）", くわしい: "学習方略への言及",
+    ほめ: "どんな<b>方法</b>で学んだかを、名前をつけて書けているね。",
+    問い: "そのとき、どんな方法（やり方）を つかったのかな？",
+    ヒント: "「図で」「キーワードを抜き出して」など、方法の名前",
+    手がかり: [/樹形図/, /キーワード/, /線を(引|ひ)/, /付箋/, /カード/, /メモ/, /見出し/, /要約/,
+               /表(に|で|を|と)/, /図(を|で|に|と|や)/, /式(を|で|に|と|や)/, /グラフ/, /写真/, /地図/,
+               /分類/, /整理/, /関連付け/, /くり返/, /音読/, /時間配分/, /役割分担/, /分たん/,
+               /計画/, /インタビュー/, /順番を(決|か)/, /分けて(読|調|書|考)/, /書き出/, /確かめ/,
+               /実験/, /観察/, /聞き取り/, /記録/,
+               /(やり方|進め方|学び方|読み方|書き方|方法)(を|で|に)/],
+    /* 「〜する方法を考えたい」は学習内容そのもの（例：水を大切に使う方法）のことが多く、方略の名指しではない */
+    除外: [/方法を考え/],
+  },
+  満足: {
+    表_記述要素: "満足・気持ち",
+    サブプロセス: "自己・相互満足", 方略カテゴリー: "動機づけ調整", フェーズ: "振り返る",
+    やさしい: "うれしかった気もち", くわしい: "自己・相互満足",
+    ほめ: "学習のあとの気もちが 書けているね。",
+    問い: "きょうの学習で、うれしかった・よかったと思えたことは あるかな？",
+    ヒント: "「よかったです」「うれしかった」",
+    手がかり: [/(よ|良)かった/, /(うれ|嬉)しかった/, /(たの|楽)しかった/, /満足/, /すっきり/, /自信が(つ|も)/],
+    除外: [],
+  },
+};
+
+/* --- 観点C：調整の主体（企画書§2.3の表）----------------------------------- */
+const 判定辞書_観点C = {
+  I:   { やさしい: "じぶんで（I）", くわしい: "自己調整（I）",
+         定義: "個人で認知・行動・動機づけ・情動を調整",
+         手がかり: [/自分(で|が|の|は)/, /じぶん(で|が|の)/, /(わたし|私|ぼく|僕)/, /(一人|ひとり)で/, /自(ら|力)/],
+         既定: true },  /* 既定＝You/Weの手がかりがない文は「じぶん」の調整とみなす */
+  You: { やさしい: "だれかと（You）", くわしい: "共調整（You）",
+         定義: "他者と一時的に自己調整を共有（モデリング・支援・対話・フィードバック、援助要請を含む）",
+         手がかり: [/(先生|友(だち|達)|班の(人|子)|ペア|相手|他の人)(に|と|から|の)/,
+                    /教えてもら(っ|い)/, /聞い(て|た)/, /たずね(て|た)/, /相談(し|する)/, /アドバイス/,
+                    /(助|手伝)けてもら/, /手伝ってもら/, /言われて/, /見せてもら/, /ヒント/,
+                    /にインタビュー/, /協力してもら/],
+         既定: false },
+  We:  { やさしい: "みんなで（We）", くわしい: "社会的に共有された調整（We）",
+         定義: "集団で共有した課題・目標に向けて相互に調整",
+         /* 「協力してもらう」は他者への援助要請（You）なので、Weの手がかりは「〜で」の集団表現に限る */
+         手がかり: [/(班|グループ|チーム|クラス|全員|みんな|自分たち|集団)で/,
+                    /役割分担/, /分たん/, /話し合っ/, /相互に/],
+         既定: false },
+};
+
+/* --- 観点A：記述外との関連（企画書§2.1の表）------------------------------- */
+const 判定辞書_観点A = {
+  課題関連: { やさしい: "きょうの課題とつながっている", くわしい: "課題との関連",
+    見るもの: "課題に関することが振り返りに書かれているか", フェーズ: "見通す",
+    ほめ: "きょうの<b>課題</b>のことが ちゃんと書けているね。",
+    問い: "きょうの課題（学習の中みそのもの）については、どんなことが書けそう？",
+    ヒント: "課題に出てきた言葉を ひとつ使ってみよう" },
+  目標関連: { やさしい: "自分目標とつながっている", くわしい: "目標との関連",
+    見るもの: "目標（Be／Do／Regulate）に関することが書かれているか", フェーズ: "見通す",
+    ほめ: "はじめに立てた<b>自分目標</b>と つないで書けているね。",
+    問い: "はじめに決めた「自分目標」は、どうだったかな？",
+    ヒント: "目標の言葉を そのまま使って ふりかえってみよう" },
+  確認調節関連: { やさしい: "とちゅうで気づいて変えたこと", くわしい: "確認・調節との関連",
+    見るもの: "学習中の気づき・修正（時間配分の見直し、方法の切り替え、援助要請など）", フェーズ: "実行する",
+    ほめ: "学習の<b>とちゅう</b>で気づいて動けたことが書けているね。",
+    問い: "学習のとちゅうで「あれ？」と思って、変えたことは あったかな？",
+    ヒント: "「とちゅうで〜に気づいて、〜を変えた」",
+    /* 学習中のメタ認知（確認・調節）の手がかり */
+    手がかり: [/気づ(いた|いて|き)/, /気付(いた|いて|き)/,
+               /(やり方|読み方|方法|順番|書き方|進め方)を(変え|そろえ|見直|決め)/,
+               /時間を(ときどき|時々)?(見|確か)/, /残り[0-9０-９]+分/,
+               /(進み具合|進捗)を(確か|見)/, /(先にした|後回しに)/],
+    /* 援助要請は「学習中の困り」とセットのときだけ確認・調節とみなす */
+    援助: [/(聞い(て|た)|たずね(て|た)|相談(し|した)|教えてもら(っ|い))/],
+    困り: [/まよ(っ|い)/, /(分|わ)から(な|ず)/, /でき(な|ず)/, /重なりが出/, /止ま(っ|り)/,
+           /(た|る)ときに?は?[、,]/, /ので[、,]/, /とちゅう/, /途中/],
+  },
+};
+
+/* --- §2.4：内容／調整の2大別 ---------------------------------------------- */
+const 判定辞書_内容調整 = {
+  内容: { 説明: "教科の中身（学習内容の理解・成果）についての記述", 色: "赤系" },
+  調整: { 説明: "学び方・方略・調整についての記述", 色: "緑系" },
+  調整の手がかり: [/時間/, /計画/, /目標/, /班/, /みんな/, /話し合/, /相談/, /聞い/, /教えてもら/,
+                   /次(は|に|からは)/, /これからは/, /気づ/, /決め/, /見直/, /役割/, /分たん/],
+};
+
+/* 一般語（キーワード照合から外す語）。教科をまたいで出てくる語・1字の一般動詞など */
+const 一般語 = new Set(["今日","本時","課題","目標","学習","活動","自分","自分たち","人","方","事","物","時","日",
+  "中","上","下","前","後","大","小","数","的","進","考","使","見","分","書","読","出","決","変","気","付",
+  "先","思","言","聞","来","行","作","入","取","持","当","何"]);
+
+/* =====================================================================
+   2. 判定エンジン（ルールベース／完全ローカル）
+   ===================================================================== */
+function 文分割(text){
+  const out = []; let cur = "";
+  for (const ch of String(text).replace(/[\r\n]+/g, "")) {
+    cur += ch;
+    if ("。！？!?".indexOf(ch) >= 0) { out.push(cur); cur = ""; }
+  }
+  if (cur.trim()) out.push(cur);
+  return out.filter(s => s.replace(/[\s、。]/g, "").length > 0);
+}
+function あてはまる(文, 定義){
+  let t = 文;
+  if (定義.前処理) for (const [r, s] of 定義.前処理) t = t.replace(r, s);
+  if (定義.除外 && 定義.除外.some(r => r.test(t))) return null;
+  for (const r of 定義.手がかり) { const m = t.match(r); if (m) return m[0]; }
+  return null;
+}
+function 語抽出(s){
+  const m = String(s || "").match(/[一-龥々]+|[ァ-ヴ][ァ-ヴー]{2,}/g) || [];
+  return Array.from(new Set(m)).filter(w => !一般語.has(w));
+}
+function 三gram(s){
+  const t = String(s || "").replace(/[、。，．,\.\s「」『』（）()]/g, "");
+  const g = new Set();
+  for (let i = 0; i + 3 <= t.length; i++) g.add(t.slice(i, i + 3));
+  return g;
+}
+/* 語句照合による「関連」判定。返り値：{有無, 根拠語[]} */
+function 関連判定(本文, 語群){
+  const hit = 語群.filter(w => 本文.indexOf(w) >= 0);
+  return { 有無: hit.length > 0, 根拠語: hit };
+}
+
+function 読み取る(入力){
+  const 本文 = String(入力.本文 || "");
+  const 文リスト = 文分割(本文);
+  const 課題語 = 語抽出(入力.課題);
+  const 目標全語 = 語抽出([入力.Be,入力.Do, input_or(入力.Regulate)].join("　"));
+  /* 目標固有語＝目標の語から、課題の語と重なるもの（部分一致を含む）を除いたもの
+     ── 課題関連と目標関連が同じ語で二重に立つのを防ぐ */
+  const 目標語 = 目標全語.filter(g => !課題語.some(k => k.indexOf(g) >= 0 || g.indexOf(k) >= 0));
+  /* 内容／調整の2大別（§2.4）で使う「学習内容の語」＝課題の語＋Beゴール（学習内容の目標）の語 */
+  const 内容語 = Array.from(new Set(課題語.concat(語抽出(入力.Be))));
+
+  /* --- 文ごとのタグづけ（観点B・観点C・内容/調整） --- */
+  const 文結果 = 文リスト.map(文 => {
+    const タグ = [];
+    for (const key in 判定辞書_観点B) {
+      const 根拠 = あてはまる(文, 判定辞書_観点B[key]);
+      if (根拠) タグ.push({ 種別: "B", key: key, 根拠: 根拠 });
+    }
+    const C = [];
+    for (const key of ["You", "We"]) {
+      const 定義 = 判定辞書_観点C[key];
+      for (const r of 定義.手がかり) { const m = 文.match(r); if (m) { C.push({ 種別: "C", key: key, 根拠: m[0] }); break; } }
+    }
+    let Iあり = false, I根拠 = "";
+    for (const r of 判定辞書_観点C.I.手がかり) { const m = 文.match(r); if (m) { Iあり = true; I根拠 = m[0]; break; } }
+    /* 他者・集団の手がかりがなく、なんらかの要素が読み取れる文は「じぶんの調整（I）」とみなす */
+    if (!Iあり && C.length === 0 && タグ.length > 0) { Iあり = true; I根拠 = "（じぶんの言葉として）"; }
+    if (Iあり) C.unshift({ 種別: "C", key: "I", 根拠: I根拠 });
+
+    /* 確認・調節の手がかり（文単位） */
+    let 確認調節 = null;
+    const 定A = 判定辞書_観点A.確認調節関連;
+    for (const r of 定A.手がかり) { const m = 文.match(r); if (m) { 確認調節 = m[0]; break; } }
+    if (!確認調節 && 定A.援助.some(r => r.test(文)) && 定A.困り.some(r => r.test(文))) {
+      確認調節 = 文.match(定A.援助.find(r => r.test(文)))[0];
+    }
+
+    /* 内容／調整の2大別（§2.4）
+       ①学習中の確認・調節の文 → 調整
+       ②他者・集団との調整（You/We）が読み取れる文 → 調整
+       ③課題／Beゴールの学習内容の語を含み、かつ成果・課題の自己評価がある文 → 内容
+       ④調整の手がかり語がある → 調整　⑤それ以外 → 内容 */
+    const 内容語ヒット = 内容語.filter(w => 文.indexOf(w) >= 0);
+    const 評価あり = タグ.some(t => t.key === "成果の自己評価" || t.key === "課題の自己評価");
+    let 別;
+    if (確認調節) 別 = "調整";
+    else if (C.some(c => c.key !== "I")) 別 = "調整";
+    else if (内容語ヒット.length > 0 && 評価あり) 別 = "内容";
+    else if (判定辞書_内容調整.調整の手がかり.some(r => r.test(文)) ||
+             タグ.some(t => ["方略言及", "適用", "適応", "原因帰属", "満足"].indexOf(t.key) >= 0) ||
+             C.some(c => c.key !== "I")) 別 = "調整";
+    else 別 = "内容";
+
+    return { 文: 文, タグ: タグ.concat(C), 別: 別, 確認調節: 確認調節, 内容語: 内容語ヒット };
+  });
+
+  /* --- 観点A：記述外との関連 --- */
+  const 課題直接 = 関連判定(本文, 課題語);
+  let 課題関連 = { 有無: 課題直接.有無, 根拠語: 課題直接.根拠語, 方法: "語句照合" };
+  if (!課題関連.有無 && 入力.課題) {           /* 漢字語で当たらないときは3文字の並びで照合 */
+    const g1 = 三gram(入力.課題), g2 = 三gram(本文);
+    const 共通 = Array.from(g1).filter(g => g2.has(g));
+    if (共通.length >= 4) 課題関連 = { 有無: true, 根拠語: 共通.slice(0, 4), 方法: "3文字照合" };
+  }
+  const 目標直接 = 関連判定(本文, 目標語);
+  const 確認調節文 = 文結果.filter(s => s.確認調節);
+
+  const A = {
+    課題関連: { 有無: !!入力.課題 && 課題関連.有無, 根拠: 課題関連.根拠語.join("・") },
+    目標関連: { 有無: (!!入力.Be || !!入力.Do || !!入力.Regulate) && 目標直接.有無, 根拠: 目標直接.根拠語.join("・") },
+    確認調節関連: { 有無: 確認調節文.length > 0, 根拠: 確認調節文.map(s => s.確認調節).join("・"),
+                    文: 確認調節文.length ? 確認調節文[0].文 : "" },
+  };
+
+  return { 文結果: 文結果, A: A, 課題語: 課題語, 目標語: 目標語, 入力: 入力 };
+}
+function input_or(v){ return v || ""; }
+
+/* 取り消し（「ちがうよ」）を反映して観点B・観点Cを集計する */
+function 集計(結果, 取消){
+  const B = {}; for (const k in 判定辞書_観点B) B[k] = null;
+  const C = { I: null, You: null, We: null };
+  結果.文結果.forEach((s, i) => {
+    s.タグ.forEach((t, j) => {
+      if (取消.has("s" + i + "-" + j)) return;
+      if (t.種別 === "B" && !B[t.key]) B[t.key] = { 文: s.文, 根拠: t.根拠 };
+      if (t.種別 === "C" && !C[t.key]) C[t.key] = { 文: s.文, 根拠: t.根拠 };
+    });
+  });
+  const A = {};
+  for (const k in 結果.A) A[k] = 取消.has("A-" + k) ? { 有無: false, 根拠: "" } : 結果.A[k];
+  return { B: B, C: C, A: A };
+}
+
+/* =====================================================================
+   T1. 段階の物差し（S〜D）── 教師の見取り用。評定ではない。
+   企画書§2の4層（観点A/B/C）から機械的に決める。CEO確認待ちのたたき台。
+   ===================================================================== */
+const 段階定義 = {
+  S: "課題・目標・確認調節のうち2つ以上とつながり、原因帰属と適用があり、さらに適応（学び方の変革）または学習中の確認・調節が書けている（要素5つ以上）",
+  A: "課題・目標などとのつながりが1つ以上あり、原因帰属または適用が書けている（要素3つ以上）",
+  B: "自己評価など、振り返りの要素が2つ以上書けている",
+  C: "読み取れた要素が1つ",
+  D: "読み取れた要素がない（記述が短い・手がかり不足を含む）",
+};
+const BK = ["成果の自己評価","課題の自己評価","原因帰属","適用","適応","方略言及","満足"];
+const AK = ["課題関連","目標関連","確認調節関連"];
+function 段階判定(A, B){
+  const 関連 = AK.filter(k => A[k]).length;
+  const 要素 = BK.filter(k => B[k]).length;
+  if (関連 >= 2 && B["原因帰属"] && B["適用"] && (B["適応"] || A["確認調節関連"]) && 要素 >= 5) return "S";
+  if (関連 >= 1 && (B["原因帰属"] || B["適用"]) && 要素 >= 3) return "A";
+  if (要素 >= 2) return "B";
+  if (要素 === 1) return "C";
+  return "D";
+}
+
+/* =====================================================================
+   T2. 取り込み（貼り付け表・CSV/TSV）
+   ===================================================================== */
+const $ = id => document.getElementById(id);
+let 生表 = null;      /* {見出し:[], 行:[[]]} */
+let 学級 = null;      /* 判定済みの学級データ */
+let 並び = "no";
+let 指導順 = "meibo";   /* Ⅲの並べ替え：meibo=名簿順／share=共有したい順／need=指導・支援が必要な順 */
+let 開行 = -1;
+
+function 区切り推定(text){
+  const l = text.split(/\r?\n/).filter(x => x.trim())[0] || "";
+  if (l.indexOf("\t") >= 0) return "\t";
+  if (l.indexOf(",") >= 0) return ",";
+  return "\t";
+}
+function 表parse(text){
+  const sep = 区切り推定(text);
+  const rows = text.split(/\r?\n/).filter(x => x.trim()).map(line => {
+    if (sep === ",") { /* 簡易CSV（"…"内のカンマ対応） */
+      const out = []; let cur = "", q = false;
+      for (const ch of line) {
+        if (ch === '"') q = !q;
+        else if (ch === "," && !q) { out.push(cur); cur = ""; }
+        else cur += ch;
+      }
+      out.push(cur); return out.map(s => s.trim());
+    }
+    return line.split(sep).map(s => s.trim());
+  });
+  if (!rows.length) return null;
+  const ncol = Math.max.apply(null, rows.map(r => r.length));
+  rows.forEach(r => { while (r.length < ncol) r.push(""); });
+  /* 1行目が見出しか：数字だけの列が無く、「番号/ふりかえり/振り返り/目標」等の語を含むなら見出し */
+  const head = rows[0];
+  const 見出しらしい = head.some(c => /番号|名前|氏名|ふりかえり|振り返り|目標|Be|Do|Reg/i.test(c)) &&
+                       !head.every(c => /^[0-9０-９]+$/.test(c));
+  return { 見出し: 見出しらしい ? head : head.map((_, i) => "列" + (i + 1)),
+           行: 見出しらしい ? rows.slice(1) : rows };
+}
+const 役割 = [
+  { key: "番号", 必須: true, 推測: /番号|出席|No\.?|ID/i },
+  { key: "ふりかえり", 必須: true, 推測: /ふりかえり|振り返り|本文|感想/ },
+  { key: "課題", 必須: false, 推測: /課題|めあて/ },
+  { key: "Be", 必須: false, 推測: /Be|内容の目標|学習内容/i },
+  { key: "Do", 必須: false, 推測: /Do|行動の目標/i },
+  { key: "Regulate", 必須: false, 推測: /Reg|調整の目標|気を付け/i },
+];
+function 列推測(){
+  const sel = {};
+  役割.forEach(r => {
+    let hit = 生表.見出し.findIndex(h => r.推測.test(h));
+    sel[r.key] = hit;
+  });
+  /* 見出しなしの保険：1列目=番号、割り当て済み以外で一番文字数の多い列=ふりかえり */
+  if (sel["番号"] < 0) sel["番号"] = 0;
+  if (sel["ふりかえり"] < 0) {
+    const used = new Set(Object.keys(sel).filter(k => k !== "ふりかえり").map(k => sel[k]).filter(v => v >= 0));
+    let best = -1, bl = -1;
+    生表.見出し.forEach((_, i) => {
+      const len = 生表.行.reduce((a, r) => a + (r[i] || "").length, 0);
+      if (!used.has(i) && len > bl) { bl = len; best = i; }
+    });
+    sel["ふりかえり"] = best;
+  }
+  return sel;
+}
+function 氏名列らしい(i){ return /氏名|名前|なまえ/.test(生表.見出し[i] || ""); }
+function mapUI(){
+  const sel = 列推測();
+  $("mapSelects").innerHTML = 役割.map(r =>
+    '<div><label class="f">' + r.key + (r.必須 ? "（必須）" : "（なければ「使わない」）") + '</label>' +
+    '<select data-role="' + r.key + '">' +
+    '<option value="-1">使わない</option>' +
+    生表.見出し.map((h, i) => 氏名列らしい(i) ? "" :
+      '<option value="' + i + '"' + (sel[r.key] === i ? " selected" : "") + '>' + esc(h) + '</option>').join("") +
+    '</select></div>').join("");
+  $("mapArea").style.display = "block";
+  $("btnRun").style.display = "block";
+  Array.prototype.forEach.call(document.querySelectorAll("#mapSelects select"), s => { s.onchange = map概要; });
+  map概要();
+}
+/* 自動で決めた列の割り当てを、日本語の一文で示す */
+function map概要(){
+  const parts = [];
+  Array.prototype.forEach.call(document.querySelectorAll("#mapSelects select"), s => {
+    const i = +s.value;
+    if (i >= 0) parts.push(s.getAttribute("data-role") + "＝「" + (生表.見出し[i] || "") + "」の列");
+  });
+  $("mapSummary").innerHTML = "<b>自動で読み取りました：</b>" + (parts.join("　／　") || "（読み取れる列がありません）") +
+    "<br>まちがっているときだけ、下の「列の割り当てを確かめる・直す」で選び直してください。";
+}
+function msg(el, cls, text){ el.className = "msg " + cls; el.textContent = text; }
+
+$("btnParse").onclick = () => {
+  const t = $("inPaste").value;
+  if (!t.trim()) { msg($("msgParse"), "err", "貼り付け欄が空です。表をコピーして貼り付けてください。"); return; }
+  生表 = 表parse(t);
+  if (!生表 || !生表.行.length) { msg($("msgParse"), "err", "表として読み取れませんでした。ロイロノートや表計算ソフトの表を、そのままコピーして貼り付けてください。"); return; }
+  const 氏名注意 = 生表.見出し.some((_, i) => 氏名列らしい(i)) ? "「氏名」らしき列は取り込み候補から外しました。" : "";
+  msg($("msgParse"), "ok", 生表.行.length + "行を読み取りました。" + 氏名注意 + "列の対応を確認してください。");
+  mapUI();
+};
+$("inFile").onchange = async e => {
+  const f = e.target.files[0]; e.target.value = "";
+  if (!f) return;
+  if (/\.xlsx$/i.test(f.name)) {
+    try {
+      $("inPaste").value = await xlsx読み込み(f);
+      $("btnParse").click();
+    } catch (err) {
+      msg($("msgParse"), "err", "Excelファイルを読み取れませんでした。表をコピーして貼り付けるか、CSVで保存し直してお試しください。");
+    }
+    return;
+  }
+  const 読む = enc => new Promise(ok => {
+    const r = new FileReader();
+    r.onload = () => ok(String(r.result));
+    r.readAsText(f, enc);
+  });
+  let t = await 読む("utf-8");
+  if (t.indexOf("\uFFFD") >= 0) t = await 読む("shift-jis");   /* ExcelのCSVはShift_JISが多い */
+  $("inPaste").value = t;
+  $("btnParse").click();
+};
+
+/* =====================================================================
+   T2b. Excelファイル（.xlsx）の読み込み
+   ・xlsxの実体はzip圧縮のXML。ブラウザ標準の DecompressionStream で展開し、
+     先頭のシートをタブ区切りにして貼り付け欄に入れる（外部ライブラリなし・通信なし）
+   ・Googleスプレッドシートは「表をコピーして貼り付け」または .xlsx/.csv でダウンロード
+   ===================================================================== */
+function u32(b, p){ return (b[p] | (b[p+1] << 8) | (b[p+2] << 16) | (b[p+3] << 24)) >>> 0; }
+function u16(b, p){ return b[p] | (b[p+1] << 8); }
+function inflateRaw(u8){
+  const st = new Blob([u8]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+  return new Response(st).arrayBuffer().then(ab => new Uint8Array(ab));
+}
+async function zip展開(buf){
+  let eocd = -1;
+  for (let p = buf.length - 22; p >= Math.max(0, buf.length - 65558); p--) {
+    if (u32(buf, p) === 0x06054b50) { eocd = p; break; }
+  }
+  if (eocd < 0) throw new Error("zipではありません");
+  const 件数 = u16(buf, eocd + 10);
+  let p = u32(buf, eocd + 16);
+  const out = {}, dec = new TextDecoder();
+  for (let i = 0; i < 件数; i++) {
+    if (u32(buf, p) !== 0x02014b50) break;
+    const method = u16(buf, p + 10), csize = u32(buf, p + 20);
+    const nlen = u16(buf, p + 28), elen = u16(buf, p + 30), clen = u16(buf, p + 32);
+    const lho = u32(buf, p + 42);
+    const name = dec.decode(buf.slice(p + 46, p + 46 + nlen));
+    const lnlen = u16(buf, lho + 26), lelen = u16(buf, lho + 28);
+    const start = lho + 30 + lnlen + lelen;
+    out[name] = { method: method, data: buf.slice(start, start + csize) };
+    p += 46 + nlen + elen + clen;
+  }
+  return out;
+}
+async function zip中身(entry){
+  if (!entry) return null;
+  const raw = entry.method === 8 ? await inflateRaw(entry.data) : entry.data;
+  return new TextDecoder().decode(raw);
+}
+function 列番号(ref){   /* "BC12" → 54（0始まり） */
+  let n = 0;
+  for (const ch of ref) {
+    const c = ch.charCodeAt(0);
+    if (c >= 65 && c <= 90) n = n * 26 + (c - 64); else break;
+  }
+  return n - 1;
+}
+async function xlsx読み込み(file){
+  const buf = new Uint8Array(await file.arrayBuffer());
+  const z = await zip展開(buf);
+  const dp = new DOMParser();
+  /* 共有文字列（セルの文字はここに集約されている） */
+  const 共有 = [];
+  const ss = await zip中身(z["xl/sharedStrings.xml"]);
+  if (ss) {
+    const doc = dp.parseFromString(ss, "application/xml");
+    Array.prototype.forEach.call(doc.getElementsByTagName("si"), si => {
+      let t = "";
+      Array.prototype.forEach.call(si.getElementsByTagName("t"), el => { t += el.textContent; });
+      共有.push(t);
+    });
+  }
+  /* 先頭のシートを読む */
+  const sheets = Object.keys(z).filter(n => /^xl\/worksheets\/sheet\d+\.xml$/.test(n))
+    .sort((a, b) => (+a.match(/\d+/)[0]) - (+b.match(/\d+/)[0]));
+  const sx = await zip中身(z[sheets[0]]);
+  if (!sx) throw new Error("シートが見つかりません");
+  const doc = dp.parseFromString(sx, "application/xml");
+  const lines = [];
+  Array.prototype.forEach.call(doc.getElementsByTagName("row"), row => {
+    const cells = [];
+    Array.prototype.forEach.call(row.getElementsByTagName("c"), c => {
+      const ref = c.getAttribute("r") || "";
+      const col = ref ? 列番号(ref) : cells.length;
+      const t = c.getAttribute("t");
+      let v = "";
+      if (t === "inlineStr") {
+        const el = c.getElementsByTagName("t")[0]; v = el ? el.textContent : "";
+      } else {
+        const el = c.getElementsByTagName("v")[0];
+        v = el ? el.textContent : "";
+        if (t === "s") v = 共有[+v] || "";
+      }
+      while (cells.length < col) cells.push("");
+      cells[col] = String(v).replace(/[\t\r\n]+/g, " ").trim();
+    });
+    lines.push(cells.join("\t"));
+  });
+  const text = lines.filter(l => l.replace(/\t/g, "").trim()).join("\n");
+  if (!text) throw new Error("空のシートです");
+  return text;
+}
+
+/* =====================================================================
+   T3. 一括判定
+   ===================================================================== */
+function 一括判定(rows){
+  const 子ら = rows.map(row => {
+    const 課題 = String(row.課題 || "").trim() || $("inKadai").value.trim();   /* 表の「課題」列を優先、なければ①の共通課題 */
+    const 結果 = 読み取る({ 課題: 課題, Be: row.Be || "", Do: row.Do || "", Regulate: row.Regulate || "", 本文: row.本文 });
+    const 集 = 集計(結果, new Set());
+    const A = {}; AK.forEach(k => A[k] = !!集.A[k].有無);
+    const B = {}; BK.forEach(k => B[k] = !!集.B[k]);
+    const Cx = { I: !!集.C.I, You: !!集.C.You, We: !!集.C.We };
+    return { 番号: row.番号, 課題: 課題, 本文: row.本文, 目標: { Be: row.Be || "", Do: row.Do || "", Regulate: row.Regulate || "" },
+             結果: 結果, 集: 集, A: A, B: B, C: Cx, 段階: 段階判定(A, B) };
+  });
+  return { 子ら: 子ら };
+}
+$("btnRun").onclick = () => {
+  const sel = {};
+  Array.prototype.forEach.call(document.querySelectorAll("#mapSelects select"), s => sel[s.getAttribute("data-role")] = +s.value);
+  if (sel["番号"] < 0 || sel["ふりかえり"] < 0) { msg($("msgParse"), "err", "「番号」と「ふりかえり」の列は必須です。"); return; }
+  const rows = 生表.行.map(r => ({
+    番号: r[sel["番号"]] || "", 本文: r[sel["ふりかえり"]] || "",
+    課題: sel["課題"] >= 0 ? r[sel["課題"]] : "",
+    Be: sel["Be"] >= 0 ? r[sel["Be"]] : "", Do: sel["Do"] >= 0 ? r[sel["Do"]] : "",
+    Regulate: sel["Regulate"] >= 0 ? r[sel["Regulate"]] : "",
+  })).filter(r => r.番号 && r.本文);
+  if (!rows.length) { msg($("msgParse"), "err", "番号と振り返りの両方がある行が見つかりませんでした。"); return; }
+  学級 = 一括判定(rows);
+  boardOn();
+};
+$("btnDemo").onclick = () => {
+  const d = 練習学級;
+  $("inKadai").value = d.課題;
+  学級 = 一括判定(d.児童.map(c => ({ 番号: c.番号, 本文: c.本文, Be: c.目標.Be, Do: c.目標.Do, Regulate: c.目標.Regulate })));
+  boardOn();
+};
+
+/* 開いた直後はまっさらに。ブラウザの入力復元（再読み込み・「戻る」）はスクリプトの後に
+   走ることがあるため、少し遅れてもう一度と、bfcache復帰（pageshow）でも実行する */
+function まっさらに(){
+  $("inKadai").value = ""; $("inPaste").value = "";
+  $("msgParse").className = "msg";
+  $("mapArea").style.display = "none";
+  $("btnRun").style.display = "none";
+  $("emptyState").style.display = "";
+  $("resultsBody").style.display = "none";
+  $("btnCsv").disabled = true;
+  const bp = $("btnPrint"); if (bp) bp.disabled = true;
+  学級 = null; 生表 = null;
+  ["sumBody","classAdvice","mxWrap","detailArea","perChild","pairBody","mapSelects","mapSummary"].forEach(id => {
+    const el = $(id); if (el) el.innerHTML = "";
+  });
+}
+まっさらに();
+if (typeof setTimeout === "function") setTimeout(まっさらに, 200);
+if (window.addEventListener) window.addEventListener("pageshow", e => { if (e && e.persisted) まっさらに(); });
+function boardOn(){ 開行 = -1; 並び = "no"; sortBtns();
+  $("emptyState").style.display = "none";
+  $("resultsBody").style.display = "block";
+  $("btnCsv").disabled = false;
+  const bp = $("btnPrint"); if (bp) bp.disabled = false;
+  const w = $("resultsWrap"); if (w) w.open = true;
+  描画();
+  if (w && w.scrollIntoView) w.scrollIntoView({ behavior: "smooth" }); }
+
+/* =====================================================================
+   T4. 指導の手がかり（声かけ・価値づけ）
+   ===================================================================== */
+const 声かけ順 = ["課題関連","成果の自己評価","課題の自己評価","原因帰属","適用","目標関連","確認調節関連","方略言及","満足","適応"];
+function 声かけ提案(c){
+  const 未 = 声かけ順.filter(k => (判定辞書_観点B[k] ? !c.B[k] : !c.A[k]));
+  if (!未.length) return null;
+  const k = 未[0];
+  const d = 判定辞書_観点B[k] || 判定辞書_観点A[k];
+  return { key: k, 文: "「" + d.くわしい + "」が記述できていないので、『" + d.問い + "』のように声をかける。", ヒント: d.ヒント };
+}
+function 価値づけ提案(c){
+  /* 出現しにくい・価値の高い順に、根拠の文つきで */
+  const 順 = ["適応","確認調節関連","原因帰属","適用","方略言及"];
+  for (const k of 順) {
+    if (判定辞書_観点B[k] && c.集.B[k])
+      return { key: k, 引用: c.集.B[k].文,
+        文: "「" + 判定辞書_観点B[k].くわしい + "」の振り返りが具体的ですばらしいので価値づける。学級全体に見本として提示するのもよい。" };
+    if (判定辞書_観点A[k] && c.A[k] && c.集.A[k].文)
+      return { key: k, 引用: c.集.A[k].文,
+        文: "学習中の「確認・調節」まで書けているのは学級でも貴重なので価値づける。全体に見本として紹介するのもよい。" };
+  }
+  return null;
+}
+
+/* =====================================================================
+   T5. ペア提案（CEO決定の2основ：同じ興味／同じ興味で考えが異なる）
+   ・興味語 ＝ 振り返り本文＋Beゴールの学習内容語から、課題の語と学級の大半に共通の語を除いたもの
+   ・考え語 ＝ 原因帰属・適用・適応の文に出てくる語（その子の「考えていること」）
+   ===================================================================== */
+/* ペアの根拠に使わない語：教科を問わず出てくる一般語（1文字語も一律除外する） */
+const ペア除外語 = new Set(["原因","理由","一番","方法","場所","関係","大切","時間","家族","先生",
+  "学習","協力","自分","今日","本時","様子","調査","結果","整理","記録","工夫","説明","発表"]);
+/* ひらがな語のうち内容語でないもの（助詞・補助動詞・よくある言い回し） */
+const ひら機能語 = new Set(["こと","もの","ため","これ","それ","あれ","ここ","そこ","どこ","とき",
+  "ところ","とちゅう","きょう","つぎ","みんな","じぶん","わたし","ぼく","とても","すごく","もっと",
+  "まだ","もう","また","たくさん","すこし","ちょっと","できた","できな","できる","でき","なかった",
+  "ながら","ついて","しまった","ように","よう","そう","した","して","する","です","ます","ました",
+  "たい","ない","いる","ある","なる","なった","かった","おもう","やって","いきたい","うまく","うまくいっ",
+  "よかった","うれし","うれしかった","たのし","たのしかった","むずかし","むずかしかった","がんば",
+  "がんばりました","ほう","ほか","ひと","あと","まえ","なか","うえ","ので","けど","けれど","みたい",
+  "はじめ","おわり","いろいろ","どんな","どうして","なぜ","そのまま","いっしょ",
+  "これから","これまで","もと","とおり","ほど","つもり","はず","ちがい","おかげ","せい"]);
+function ペア語(text, 課題語){
+  /* 漢字語・カタカナ語（課題語との照合は2文字以上の課題語だけ。1文字語（水 等）で
+     部分一致させると「水質」「排水」「浄水場」まで消えてしまうため） */
+  const out = 語抽出(text).filter(w => w.length >= 2 && !ペア除外語.has(w) &&
+    !課題語.some(k => k.length >= 2 && (k.indexOf(w) >= 0 || w.indexOf(k) >= 0)));
+  /* ひらがなの内容語（ごみ・あわ・にごり・よごれ 等）：
+     「助詞（または文頭・句読点）と助詞のあいだ」に立つ2〜4文字だけを名詞らしい語として拾う。
+     漢字の送りがな（数[えるか]・集[めて] 等の動詞断片）は助詞に先行されないため自然に除外される */
+  const re = /(^|[、。！？\s]|[のをがはでとにもへや])([ぁ-んー]{2,4})(?=[のをがはでとにもへや、。！？\s])/g;
+  let m;
+  while ((m = re.exec(text))) {
+    const w = m[2];
+    /* 頭が助詞＝切り出しの失敗、末尾が て/た＝動詞の形。どちらも名詞らしくないので捨てる */
+    if (!/^[がをはにでとのへやも]/.test(w) && !/[てた]$/.test(w) &&
+        !ひら機能語.has(w) && 課題語.indexOf(w) < 0) out.push(w);
+    re.lastIndex = m.index + (m[1] ? m[1].length : 0) + 1;
+  }
+  return Array.from(new Set(out));
+}
+function ペア提案(学級){
+  const all = 学級.子ら.map(c => {
+    const 課題語 = 語抽出(c.課題 || "");   /* その子の学習計画表の課題の語は興味の根拠から外す */
+    const 語 = ペア語(c.本文 + "　" + c.目標.Be, 課題語);
+    const 考え文 = c.結果.文結果.filter(s => s.タグ.some(t => ["原因帰属","適用","適応"].indexOf(t.key) >= 0)).map(s => s.文).join("");
+    const 考え = ペア語(考え文, 課題語);
+    return { c: c, 語: 語, 考え: 考え };
+  });
+  /* 学級の6割以上に出る語は「その課題なら誰でも書く語」なので興味の根拠から外す */
+  const cnt = {};
+  all.forEach(x => Array.from(new Set(x.語)).forEach(w => cnt[w] = (cnt[w] || 0) + 1));
+  const 共通語 = new Set(Object.keys(cnt).filter(w => cnt[w] >= 学級.子ら.length * 0.6));
+  all.forEach(x => { x.語 = x.語.filter(w => !共通語.has(w)); });
+  /* 希少語＝学級の1/4以下しか使っていない語。1語でも共有していれば興味の根拠になる */
+  const 希少 = w => cnt[w] <= Math.max(2, 学級.子ら.length * 0.25) && w.length >= 2;
+
+  const cand = [];
+  for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) {
+    const A = all[i], Bx = all[j];
+    const 共 = A.語.filter(w => Bx.語.indexOf(w) >= 0);
+    if (共.length < 2 && !(共.length === 1 && 希少(共[0]))) continue;
+    const 考共 = A.考え.filter(w => Bx.考え.indexOf(w) >= 0);
+    const 両考え = A.考え.length > 0 && Bx.考え.length > 0;
+    let type = null;
+    if (両考え && 考共.length === 0) type = "diff";       /* 興味は同じ・考えが異なる */
+    else if (考共.length >= 1) type = "near";              /* 興味も考えも近い */
+    else type = "near2";                                    /* 興味が近い（考えの手がかりは片方のみ） */
+    cand.push({ i: i, j: j, 共: 共, 考共: 考共, type: type,
+                score: 共.length + 考共.length + (type === "diff" ? 1 : 0) });
+  }
+  cand.sort((a, b) => b.score - a.score);
+  /* 1人1回まで。上位6組 */
+  const used = new Set(), out = [];
+  for (const p of cand) {
+    if (used.has(p.i) || used.has(p.j)) continue;
+    used.add(p.i); used.add(p.j); out.push(p);
+    if (out.length >= 6) break;
+  }
+  const 残り = all.filter((x, idx) => !used.has(idx) && x.語.length === 0).map(x => x.c.番号);
+  return { all: all, pairs: out, 手がかり不足: 残り };
+}
+
+/* =====================================================================
+   T6. 描画
+   ===================================================================== */
+function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+const 短名 = { 課題関連: "課題", 目標関連: "目標", 確認調節関連: "確認調節", 成果の自己評価: "成果",
+  課題の自己評価: "課題自", 原因帰属: "理由", 適用: "次へ", 適応: "適応", 方略言及: "方略", 満足: "満足" };
+
+function 並べた子ら(){
+  const arr = 学級.子ら.slice();
+  const gv = { S: 0, A: 1, B: 2, C: 3, D: 4 };
+  if (並び === "grade") arr.sort((a, b) => gv[a.段階] - gv[b.段階] || String(a.番号).localeCompare(b.番号, "ja", { numeric: true }));
+  else if (並び === "few") arr.sort((a, b) => (BK.filter(k => a.B[k]).length + AK.filter(k => a.A[k]).length) -
+                                              (BK.filter(k => b.B[k]).length + AK.filter(k => b.A[k]).length));
+  else arr.sort((a, b) => String(a.番号).localeCompare(b.番号, "ja", { numeric: true }));
+  return arr;
+}
+function sortBtns(){
+  Array.prototype.forEach.call(document.querySelectorAll("[data-sort]"), b =>
+    b.classList.toggle("on", b.getAttribute("data-sort") === 並び));
+}
+Array.prototype.forEach.call(document.querySelectorAll("[data-sort]"), b => {
+  b.onclick = () => { 並び = b.getAttribute("data-sort"); 開行 = -1; sortBtns(); 描画(); };
+});
+Array.prototype.forEach.call(document.querySelectorAll("[data-psort]"), b => {
+  b.onclick = () => {
+    指導順 = b.getAttribute("data-psort");
+    Array.prototype.forEach.call(document.querySelectorAll("[data-psort]"), x =>
+      x.classList.toggle("on", x.getAttribute("data-psort") === 指導順));
+    描画();
+  };
+});
+
+function 描画(){
+  const 子ら = 学級.子ら;
+  /* --- Ⅰ 学級のいま --- */
+  const gcnt = { S: 0, A: 0, B: 0, C: 0, D: 0 };
+  子ら.forEach(c => gcnt[c.段階]++);
+  const cover = {};
+  AK.concat(BK).forEach(k => cover[k] = 子ら.filter(c => (判定辞書_観点B[k] ? c.B[k] : c.A[k])).length);
+  const 弱い = 声かけ順.filter(k => k !== "満足" && k !== "適応").sort((a, b) => cover[a] - cover[b])[0];
+  const 弱d = 判定辞書_観点B[弱い] || 判定辞書_観点A[弱い];
+  $("sumBody").innerHTML =
+    '<div class="sumcard"><div class="t">人数</div><div class="v">' + 子ら.length + '人</div></div>' +
+    '<div class="sumcard"><div class="t">段階（見取り用・評定ではない）</div><div class="v">' +
+      ["S","A","B","C","D"].map(g => '<span class="gr ' + g + '">' + g + " " + gcnt[g] + '</span>').join(" ") + '</div>' +
+      '<div class="gnote" style="margin-top:4px">' + ["S","A","B","C","D"].map(g => g + "＝" + 段階定義[g]).join("　") + '</div></div>' +
+    '<div class="sumcard"><div class="t">よく書けている要素</div><div class="v">' +
+      AK.concat(BK).slice().sort((a, b) => cover[b] - cover[a]).slice(0, 3).map(k => 短名[k] + " " + cover[k] + "人").join("／") + '</div></div>' +
+    '<div class="sumcard"><div class="t">まだ少ない要素</div><div class="v">' +
+      AK.concat(BK).slice().sort((a, b) => cover[a] - cover[b]).slice(0, 3).map(k => 短名[k] + " " + cover[k] + "人").join("／") + '</div></div>';
+  $("classAdvice").innerHTML = "<b>あすの学級全体への声かけ（案）</b>：「" + esc(弱d.くわしい) + "」が書けているのは" +
+    cover[弱い] + "人。終末で『" + esc(弱d.問い) + "』と全体に投げかけると、この要素が増えそうです（ヒント：" + esc(弱d.ヒント) + "）。";
+
+  /* --- Ⅱ マトリクス --- */
+  const arr = 並べた子ら();
+  $("mxWrap").innerHTML = '<table class="mx"><thead><tr>' +
+    '<th>番号</th><th>段階</th>' +
+    AK.map(k => '<th class="grp1">' + 短名[k] + '</th>').join("") +
+    BK.map(k => '<th class="grp3">' + 短名[k] + '</th>').join("") +
+    ["I","You","We"].map(k => '<th class="grp4">' + k + '</th>').join("") +
+    '</tr></thead><tbody>' +
+    arr.map((c, idx) => '<tr data-idx="' + idx + '" class="' + (idx === 開行 ? "open" : "") + '">' +
+      '<td><b>' + esc(c.番号) + '</b></td><td><span class="gr ' + c.段階 + '">' + c.段階 + '</span></td>' +
+      AK.map(k => '<td class="' + (c.A[k] ? "on" : "offm") + '">' + (c.A[k] ? "●" : "・") + '</td>').join("") +
+      BK.map(k => '<td class="' + (c.B[k] ? "on" : "offm") + '">' + (c.B[k] ? "●" : "・") + '</td>').join("") +
+      ["I","You","We"].map(k => '<td class="' + (c.C[k] ? "on" : "offm") + '">' + (c.C[k] ? "●" : "・") + '</td>').join("") +
+      '</tr>').join("") + '</tbody></table>';
+  Array.prototype.forEach.call(document.querySelectorAll(".mx tbody tr"), tr => {
+    tr.onclick = () => { 開行 = (開行 === +tr.getAttribute("data-idx")) ? -1 : +tr.getAttribute("data-idx"); 描画(); };
+  });
+  $("detailArea").innerHTML = 開行 >= 0 ? 詳細html(arr[開行]) : "";
+
+  /* --- Ⅲ 一人ひとり --- */
+  const gv = { S: 0, A: 1, B: 2, C: 3, D: 4 };
+  const 要素数 = c => AK.filter(k => c.A[k]).length + BK.filter(k => c.B[k]).length;
+  const 番号順 = (a, b) => String(a.番号).localeCompare(b.番号, "ja", { numeric: true });
+  const 順 = 子ら.slice();
+  if (指導順 === "share") 順.sort((a, b) => gv[a.段階] - gv[b.段階] || 要素数(b) - 要素数(a) || 番号順(a, b));
+  else if (指導順 === "need") 順.sort((a, b) => gv[b.段階] - gv[a.段階] || 要素数(a) - 要素数(b) || 番号順(a, b));
+  else 順.sort(番号順);
+  $("perChild").innerHTML = 順.map(c => {
+    const good = 価値づけ提案(c), next = 声かけ提案(c);
+    let h = '<div class="advice' + (good && (c.段階 === "S" || c.段階 === "A") ? " good" : "") + '">' +
+      '<b>' + esc(c.番号) + '番</b>（<span class="gr ' + c.段階 + '" style="min-width:26px;height:26px;font-size:12px">' + c.段階 + '</span>）　';
+    if (good && (c.段階 === "S" || c.段階 === "A")) {
+      h += esc(good.文) + '<span class="q">根拠：「' + esc(good.引用) + '」</span>';
+      if (next) h += '<div style="margin-top:4px">つぎの一歩：' + esc(next.文) + '</div>';
+    } else if (c.段階 === "D") {
+      h += "読み取れる要素がありませんでした（記述が短い可能性）。まず『きょう、どんなことをしたの？』と<b>事実から聞き取り</b>、書くことへの抵抗を下げる声かけを。";
+    } else {
+      if (next) h += esc(next.文) + "（ヒント：" + esc(next.ヒント) + "）";
+      if (good) h += '<div style="margin-top:4px">よさ：' + esc(good.文) + '<span class="q">根拠：「' + esc(good.引用) + '」</span></div>';
+    }
+    return h + "</div>";
+  }).join("");
+
+  /* --- Ⅳ ペア --- */
+  const P = ペア提案(学級);
+  $("pairBody").innerHTML = (P.pairs.length ? P.pairs.map(p => {
+    const a = P.all[p.i], b = P.all[p.j];
+    const t = p.type === "diff"
+      ? '<span class="type diff">興味は同じ・考えがちがう</span>'
+      : '<span class="type near">興味も考えも近い</span>';
+    let why = "ふたりの振り返りに <b>" + p.共.slice(0, 4).map(w => "「" + esc(w) + "」").join("") + "</b> の学習内容のことばが共通。";
+    if (p.type === "diff") {
+      why += "<br>考えのことばは重なっていません（" + esc(a.c.番号) + "番：" + a.考え.slice(0, 3).map(w => "「" + esc(w) + "」").join("") +
+             "／" + esc(b.c.番号) + "番：" + b.考え.slice(0, 3).map(w => "「" + esc(w) + "」").join("") +
+             "）。<b>たがいの考えを説明し合うと学びが広がりそうです。</b>";
+    } else if (p.考共.length) {
+      why += "<br>考えのことばも <b>" + p.考共.slice(0, 3).map(w => "「" + esc(w) + "」").join("") + "</b> が共通。<b>いっしょに深掘りする協働に向いています。</b>";
+    } else {
+      why += "<br><b>同じ事柄に取り組んでいるので、進み具合を見せ合う相手として。</b>";
+    }
+    return '<div class="paircard"><span class="who">' + esc(a.c.番号) + "番 × " + esc(b.c.番号) + "番</span>" + t +
+           '<div class="why">' + why + '</div></div>';
+  }).join("") : '<p class="foot">学習内容のことばの重なりが2語以上のペアが見つかりませんでした。</p>') +
+  (P.手がかり不足.length ? '<p class="foot">※ ' + P.手がかり不足.map(esc).join("番・") + "番は記述が短く、ことばの手がかりが足りないため提案から外しています。</p>" : "");
+}
+
+function 詳細html(c){
+  return '<div class="detail"><h3>' + esc(c.番号) + '番の学習計画表（どこをそう読んだか）</h3>' +
+    (c.課題 ? '<p class="foot" style="margin:0 0 4px">本時の課題：' + esc(c.課題) + '</p>' : "") +
+    (c.目標.Be || c.目標.Do || c.目標.Regulate
+      ? '<p class="foot" style="margin:0 0 8px">自分目標：Be＝' + esc(c.目標.Be || "−") + '／Do＝' + esc(c.目標.Do || "−") + '／Regulate＝' + esc(c.目標.Regulate || "−") + '</p>' : "") +
+    c.結果.文結果.map(s =>
+      '<div class="sent">' + esc(s.文) + '<span class="kind ' + s.別 + '">' + s.別 + '</span>' +
+      (s.タグ.length ? '<div class="tglst">' + s.タグ.map(t => '<span class="tg">' + esc(判定辞書_観点B[t.key] ? 判定辞書_観点B[t.key].くわしい : (判定辞書_観点C[t.key] ? 判定辞書_観点C[t.key].くわしい : t.key)) + '</span>').join("") + '</div>' : "") +
+      '</div>').join("") +
+    '<p class="foot">※ 機械の読み取りです。実際の見取りとちがう場合は、この判定にとらわれず先生の読みを優先してください。</p></div>';
+}
+
+/* --- CSV書き出し --- */
+$("btnCsv").onclick = () => {
+  const arr = 並べた子ら();
+  const head = ["番号","段階(見取り用・評定ではない)"].concat(AK.map(k => 短名[k]), BK.map(k => 短名[k]), ["I","You","We"], ["声かけ・価値づけ（案）"]);
+  const lines = [head.join(",")].concat(arr.map(c => {
+    const good = 価値づけ提案(c), next = 声かけ提案(c);
+    const advice = (c.段階 === "S" || c.段階 === "A") && good ? good.文 : (next ? next.文 : "");
+    return [c.番号, c.段階].concat(
+      AK.map(k => c.A[k] ? "●" : ""), BK.map(k => c.B[k] ? "●" : ""),
+      ["I","You","We"].map(k => c.C[k] ? "●" : ""),
+      ['"' + advice.replace(/"/g, '""') + '"']).join(",");
+  }));
+  const blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "ふりかえり見取り表.csv";
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+/* =====================================================================
+   T7. 練習用の架空学級データ（原本：学級ダミーデータ_v1.json）
+   すべてAIが生成した架空の記述。実在の児童生徒・学校・地域とは無関係。氏名なし。
+   ===================================================================== */
+const 練習学級 = {
+ "課題": "地域の水をきれいに保つために、自分たちにできることを調べて提案をまとめよう",
+ "児童": [
+  {
+   "番号": "01",
+   "目標": {
+    "Be": "川のごみの多い場所を、写真と数をもとに説明できる",
+    "Do": "班でごみの種類を数えて表に整理する",
+    "Regulate": "調べる前に何を数えるかを決めてから動く"
+   },
+   "本文": "川の写真をくらべて、ごみが多いのは橋の下だと分かった。理由は、休みの日に人が集まる場所だからだと思う。班でごみの種類を数えて表に整理したので、どこに何が多いかがはっきりした。まだ提案の形にはできていない。次は、数えた数字を使って「橋の下にごみ箱をふやす」という提案を書きたい。これからは、調べる前に何を数えるかを決めてから動く進め方に変えていきたい。"
+  },
+  {
+   "番号": "02",
+   "目標": {
+    "Be": "ごみが増える原因を、聞き取りをもとに説明できる",
+    "Do": "川の清掃をしている人にインタビューする",
+    "Regulate": "聞くことを先にメモしてから行く"
+   },
+   "本文": "川の清掃をしている人にインタビューして、ポイ捨てが一番の原因だと分かった。ポスターで呼びかければ減らせると考えた。でも、どこにはるといいかまでは決められなかった。次は、人がよく通る場所を調べてからポスターの場所を決めたい。"
+  },
+  {
+   "番号": "03",
+   "目標": {
+    "Be": "川のごみの種類を調べて、多いものを説明できる",
+    "Do": "拾ったごみを分けて数える",
+    "Regulate": "時間内に数え終える"
+   },
+   "本文": "川のごみを集めて、ペットボトルが多いことが分かった。楽しかったです。"
+  },
+  {
+   "番号": "04",
+   "目標": {
+    "Be": "川のごみの量を数えて記録できる",
+    "Do": "地点ごとに写真をとる",
+    "Regulate": "班の人と分たんする"
+   },
+   "本文": "川のごみを数えることができなかった。"
+  },
+  {
+   "番号": "05",
+   "目標": {
+    "Be": "水をよごす原因を、実験の結果をもとに説明できる",
+    "Do": "油をふきとってから流す実験をする",
+    "Regulate": "調べたことをだれに伝えるかを決めてから動く"
+   },
+   "本文": "台所から流れる油が水をよごす一番の原因だと分かった。理由は、油は水にとけないので下水でも取り切れないからだ。実験で、油を紙でふきとってから流すと、あわの出方がちがうことを表にまとめられた。まだ、家の人に伝える方法までは考えられていない。次は、実験の写真を使って家族に伝えるチラシを作りたい。これからは、調べたことを「だれに伝えるか」まで決めてから実験する進め方にしたい。"
+  },
+  {
+   "番号": "06",
+   "目標": {
+    "Be": "洗剤の量と水のよごれの関係を説明できる",
+    "Do": "洗剤の量をかえる実験をする",
+    "Regulate": "はかる条件をそろえる"
+   },
+   "本文": "洗剤の量をへらす実験をした。少ない洗剤でもあわは十分に出ることが分かった。とちゅうであわの高さをはかる場所がばらばらだと気づいて、はかる位置をそろえた。次は、洗剤の種類を変えてくらべたい。"
+  },
+  {
+   "番号": "07",
+   "目標": {
+    "Be": "洗剤と水のよごれの関係を説明できる",
+    "Do": "家の人に洗剤の使い方を聞く",
+    "Regulate": "時間内にまとめる"
+   },
+   "本文": "洗剤を使いすぎると水がよごれることが分かった。よかったです。"
+  },
+  {
+   "番号": "08",
+   "目標": {
+    "Be": "家庭の水がどこへ行くのかを説明できる",
+    "Do": "家族に聞いて下水の道すじを図にする",
+    "Regulate": "時間の使い方に気を付ける"
+   },
+   "本文": "家で使った水がどこへ行くのかを家族に聞いて、下水道を通ることが分かった。でも、どこできれいになるのかは調べられなかった。時間の使い方がうまくいかなかったからだと思う。次は、下水のしくみを図で整理したい。"
+  },
+  {
+   "番号": "09",
+   "目標": {
+    "Be": "川の三か所の水質のちがいを、数値をもとに説明できる",
+    "Do": "パックテストではかって表に整理する",
+    "Regulate": "条件をそろえてからはかる"
+   },
+   "本文": "パックテストで川の三か所の水をくらべて、下流ほど数値が高いことを表に整理できた。理由は、下流には家や店が多くて生活排水が入るからだと思う。とちゅうで、天気によって数値が変わることに気づいて、同じ日の同じ時間にはかり直した。まだ、メダカがすめる水質かどうかまでは調べられていない。次は、生き物の数と水質をならべてくらべたい。これからは、条件をそろえてからはかる調べ方に変えていきたい。"
+  },
+  {
+   "番号": "10",
+   "目標": {
+    "Be": "生き物のいる場所と水のきれいさの関係を説明できる",
+    "Do": "班で場所ごとに生き物を記録する",
+    "Regulate": "時間内に見回りを終える"
+   },
+   "本文": "川でメダカとザリガニを見つけた。生き物がいる場所は水がきれいだと考えた。班で場所ごとに見つけた生き物を記録した。次は、生き物の数を数えて地図に表したい。"
+  },
+  {
+   "番号": "11",
+   "目標": {
+    "Be": "メダカのいる場所の水のようすを説明できる",
+    "Do": "川の浅いところを観察する",
+    "Regulate": "時間を決めて観察する"
+   },
+   "本文": "メダカを見つけられなかった。"
+  },
+  {
+   "番号": "12",
+   "目標": {
+    "Be": "ホタルのいる場所の水のようすを説明できる",
+    "Do": "水のにごりを調べる",
+    "Regulate": "静かに観察する"
+   },
+   "本文": "ホタルがいる場所の水を調べて、にごりが少ないことが分かった。うれしかった。"
+  },
+  {
+   "番号": "13",
+   "目標": {
+    "Be": "家で使う水の量を、数をもとに説明できる",
+    "Do": "じゃ口から出る水の量を1分間はかる",
+    "Regulate": "家族の協力を先にお願いする"
+   },
+   "本文": "家のじゃ口から出る水の量を1分間はかって、10リットルだと分かった。歯みがきのときに水を止めると、1回で6リットルへらせると計算できた。へらせる水の量を表にまとめた。次は、家族に協力してもらって一週間分をくらべたい。"
+  },
+  {
+   "番号": "14",
+   "目標": {
+    "Be": "学校で使う水のむだを見つけて説明できる",
+    "Do": "手あらい場のようすを数える",
+    "Regulate": "休み時間のうちに数え終える"
+   },
+   "本文": "学校の手あらい場で、水を出しっぱなしにしている人が多いことに気づいて、数を数えて表にした。休み時間のあとが一番多かったのは、みんながいそいでいるからだと思う。次は、手あらい場にはるポスターを作りたい。"
+  },
+  {
+   "番号": "15",
+   "目標": {
+    "Be": "水を大切に使う方法を説明できる",
+    "Do": "家での水の使い方を調べる",
+    "Regulate": "時間を守る"
+   },
+   "本文": "がんばりました。"
+  },
+  {
+   "番号": "16",
+   "目標": {
+    "Be": "家でできる節水の方法を説明できる",
+    "Do": "お風呂の残り湯を使ってみる",
+    "Regulate": "毎日続けられるようにする"
+   },
+   "本文": "お風呂の残り湯をせんたくに使うことができた。でも、毎日続けるのはむずかしかった。"
+  },
+  {
+   "番号": "17",
+   "目標": {
+    "Be": "田んぼの用水と川の水のちがいを説明できる",
+    "Do": "用水を見に行って農家の人に聞く",
+    "Regulate": "聞くことを先に決めておく"
+   },
+   "本文": "田んぼに引く用水の水を見に行って、川より少しにごっていることが分かった。農家の人に聞いて、土が混じるからだと教えてもらった。次は、田植えの時期とそうでない時期でくらべたい。"
+  },
+  {
+   "番号": "18",
+   "目標": {
+    "Be": "工場の排水がきれいになるしくみを説明できる",
+    "Do": "工場を見学してメモをとる",
+    "Regulate": "聞きながら記録する方法を工夫する"
+   },
+   "本文": "工場を見学して、排水は三つの水そうを通してきれいにしてから川に流していることが分かった。においが少なくなるのは、二つ目の水そうで小さな生き物がよごれを食べているからだと教えてもらった。とちゅうで、メモが追いつかないことに気づいて、図でかきながら聞くようにした。まだ、家庭の排水とのちがいまでは整理できていない。次は、工場と家庭のしくみをならべた表にまとめたい。これからは、聞きながら図にする方法を他の調べ学習でも使っていきたい。"
+  },
+  {
+   "番号": "19",
+   "目標": {
+    "Be": "工場の排水のきまりを説明できる",
+    "Do": "工場のパンフレットを読む",
+    "Regulate": "分からないときは先生に聞く"
+   },
+   "本文": "工場のことを調べたけれど、よく分からなかった。"
+  },
+  {
+   "番号": "20",
+   "目標": {
+    "Be": "田んぼの水の道すじを説明できる",
+    "Do": "地図で用水の道すじをたどる",
+    "Regulate": "時間内に地図をかき終える"
+   },
+   "本文": "田んぼの水がどこから来ているのかを地図で調べることができた。楽しかったです。"
+  },
+  {
+   "番号": "21",
+   "目標": {
+    "Be": "浄水場で水がきれいになる工程を説明できる",
+    "Do": "班で工程ごとに分たんしてカードに書き出す",
+    "Regulate": "見学の時間内にカードを書き終える"
+   },
+   "本文": "浄水場を見学して、水がきれいになるまでに五つの工程があることが分かった。班で工程ごとに分たんして、カードに書き出して整理した。次は、じょうろの水でろ過の実験をしてみたい。"
+  },
+  {
+   "番号": "22",
+   "目標": {
+    "Be": "浄水場で働く人の仕事を説明できる",
+    "Do": "働く人に話を聞く",
+    "Regulate": "聞きたいことを先に決めておく"
+   },
+   "本文": "浄水場で働く人に話を聞いて、24時間交代で水を守っていることが分かった。安心して水が飲めるのは、その人たちが守ってくれているからだと思った。まだ、自分たちにできることまでは書けていない。次は、水を大切に使う方法を考えて書きたい。"
+  },
+  {
+   "番号": "23",
+   "目標": {
+    "Be": "浄水場のしくみを図に表せる",
+    "Do": "見学したことを図にまとめる",
+    "Regulate": "時間内にまとめる"
+   },
+   "本文": "浄水場のしくみを図にまとめることができた。"
+  },
+  {
+   "番号": "24",
+   "目標": {
+    "Be": "見学して分かったことをまとめられる",
+    "Do": "メモをもとにまとめる",
+    "Regulate": "時間を守ってまとめる"
+   },
+   "本文": "見学のメモをまとめることができなかった。"
+  }
+ ]
+};;
+
+/* =====================================================================
+   T7. 個人の振り返りの変容の見取り（v2.0新設）
+   ・一人の学習計画表（複数の時間分）を読み込み、時間ごとに方式Aで判定して変容を表示
+   ・写真・PDFのみ方式B（Gemini＝無料キー可／Claude）。判定そのものは常に端末内
+   ===================================================================== */
+let 個人生表 = null, 個人 = null;
+function モード切替(m){
+  $("modeClass").style.display = m === "c" ? "" : "none";
+  $("modePersonal").style.display = m === "p" ? "" : "none";
+  [["modeClassBtn", "c"], ["modePersonalBtn", "p"]].forEach(x => {
+    const b = $(x[0]);
+    if (b && b.classList && b.classList.toggle) b.classList.toggle("on", m === x[1]);
+  });
+}
+$("modeClassBtn").onclick = () => モード切替("c");
+$("modePersonalBtn").onclick = () => モード切替("p");
+
+const 役割P = [
+  { key: "回", 推測: /回|時|日付|月日|No\.?/i },
+  { key: "ふりかえり", 推測: /ふりかえり|振り返り|本文|感想/ },
+  { key: "課題", 推測: /課題|めあて/ },
+  { key: "Be", 推測: /Be|内容の目標|学習内容/i },
+  { key: "Do", 推測: /Do|行動の目標/i },
+  { key: "Regulate", 推測: /Reg|調整の目標|気を付け/i },
+];
+function p列推測(){
+  const sel = {};
+  役割P.forEach(r => sel[r.key] = 個人生表.見出し.findIndex(hd => r.推測.test(hd)));
+  if (sel["ふりかえり"] < 0) {
+    let best = -1, bl = -1;
+    個人生表.見出し.forEach((_, i) => {
+      const used = 役割P.some(r => r.key !== "ふりかえり" && sel[r.key] === i);
+      const len = 個人生表.行.reduce((a, r) => a + (r[i] || "").length, 0);
+      if (!used && len > bl) { bl = len; best = i; }
+    });
+    sel["ふりかえり"] = best;
+  }
+  return sel;
+}
+$("btnParseP").onclick = () => {
+  const t = $("inPasteP").value;
+  if (!t.trim()) { msg($("msgParseP"), "err", "貼り付け欄が空です。表をコピーして貼り付けてください。"); return; }
+  個人生表 = 表parse(t);
+  if (!個人生表 || !個人生表.行.length) { msg($("msgParseP"), "err", "表として読み取れませんでした。表計算ソフト等の表をそのまま貼り付けてください。"); return; }
+  msg($("msgParseP"), "ok", 個人生表.行.length + "時間分を読み取りました。「変容を読み取る」を押してください。");
+  $("btnRunP").style.display = "block";
+};
+$("inFileP").onchange = async e => {
+  const f = e.target.files[0]; e.target.value = "";
+  if (!f) return;
+  if (/\.xlsx$/i.test(f.name)) {
+    try { $("inPasteP").value = await xlsx読み込み(f); $("btnParseP").click(); }
+    catch (err) { msg($("msgParseP"), "err", "Excelファイルを読み取れませんでした。表をコピーして貼り付けるか、CSVで保存し直してお試しください。"); }
+    return;
+  }
+  const 読む = enc => new Promise(ok => { const r = new FileReader(); r.onload = () => ok(String(r.result)); r.readAsText(f, enc); });
+  let t = await 読む("utf-8");
+  if (t.indexOf("\uFFFD") >= 0) t = await 読む("shift-jis");
+  $("inPasteP").value = t;
+  $("btnParseP").click();
+};
+$("btnRunP").onclick = () => {
+  const sel = p列推測();
+  const rows = 個人生表.行.map((r, i) => ({
+    番号: (sel["回"] >= 0 && r[sel["回"]]) ? r[sel["回"]] : "第" + (i + 1) + "回",
+    本文: sel["ふりかえり"] >= 0 ? (r[sel["ふりかえり"]] || "") : "",
+    課題: sel["課題"] >= 0 ? (r[sel["課題"]] || "") : "",
+    Be: sel["Be"] >= 0 ? (r[sel["Be"]] || "") : "",
+    Do: sel["Do"] >= 0 ? (r[sel["Do"]] || "") : "",
+    Regulate: sel["Regulate"] >= 0 ? (r[sel["Regulate"]] || "") : "",
+  })).filter(r => r.本文);
+  if (!rows.length) { msg($("msgParseP"), "err", "ふりかえりの書かれた行が見つかりませんでした。"); return; }
+  個人 = 一括判定(rows).子ら;
+  個人描画();
+};
+
+const 全項目P = AK.concat(BK, ["I", "You", "We"]);
+function p値(c, k){ return AK.indexOf(k) >= 0 ? !!c.A[k] : (BK.indexOf(k) >= 0 ? !!c.B[k] : !!c.C[k]); }
+function p名(k){ return 短名[k] || k; }
+function 個人描画(){
+  $("emptyStateP").style.display = "none";
+  $("resultsBodyP").style.display = "block";
+  $("btnCsvP").disabled = false;
+  const bp = $("btnPrintP"); if (bp) bp.disabled = false;
+  const w = $("resultsWrapP"); if (w) { w.open = true; if (w.scrollIntoView) w.scrollIntoView({ behavior: "smooth" }); }
+  const n = 個人.length;
+
+  /* Ⅰ タイムライン（行=回） */
+  $("tlWrap").innerHTML = '<table class="mx"><thead><tr><th>回</th>' +
+    AK.map(k => '<th class="grp1">' + esc(p名(k)) + '</th>').join("") +
+    BK.map(k => '<th class="grp3">' + esc(p名(k)) + '</th>').join("") +
+    '<th class="grp4">I</th><th class="grp4">You</th><th class="grp4">We</th><th>段階</th></tr></thead><tbody>' +
+    個人.map(c => '<tr><td style="white-space:nowrap">' + esc(c.番号) + '</td>' +
+      全項目P.map(k => '<td class="' + (p値(c, k) ? "on" : "offm") + '">' + (p値(c, k) ? "●" : "・") + '</td>').join("") +
+      '<td><span class="gr ' + c.段階 + '" style="min-width:24px;height:24px;font-size:12px">' + c.段階 + '</span></td></tr>').join("") +
+    '</tbody></table>';
+
+  /* Ⅱ 変容の読み取り（出はじめ・定着・とぎれ） */
+  const のび = [], 気になる = [];
+  全項目P.forEach(k => {
+    const seq = 個人.map(c => p値(c, k));
+    const first = seq.indexOf(true);
+    if (first < 0) return;
+    const 直近 = seq[n - 1];
+    if (first === 0 && seq.every(v => v)) のび.push(p名(k) + "：はじめから毎回書けています（定着）");
+    else if (first > 0 && 直近) のび.push(p名(k) + "：「" + esc(個人[first].番号) + "」から書け始め、直近も続いています");
+    else if (first === n - 1) のび.push(p名(k) + "：直近の「" + esc(個人[n - 1].番号) + "」で<b>はじめて</b>書けました");
+    else if (!直近 && !(n >= 2 && seq[n - 2])) 気になる.push(p名(k) + "：以前（「" + esc(個人[first].番号) + "」など）は書けていましたが、最近は書かれていません");
+  });
+  const 未 = ["原因帰属", "適用", "適応", "確認調節関連"].filter(k => 個人.every(c => !p値(c, k)));
+  if (未.length) 気になる.push("まだ一度も書かれていない要素：" + 未.map(p名).join("・"));
+  const gvP = { S: 0, A: 1, B: 2, C: 3, D: 4 };
+  const 段階推移 = 個人.map(c => c.段階).join(" → ") +
+    (gvP[個人[n - 1].段階] < gvP[個人[0].段階] ? "　（高まってきています）"
+     : gvP[個人[n - 1].段階] > gvP[個人[0].段階] ? "　（直近は要素が少なめです）" : "");
+  $("changeBody").innerHTML =
+    '<div class="advice good"><b>のびてきたこと</b><br>' + (のび.length ? のび.join("<br>") : "（まだ読み取れる変化がありません）") + '</div>' +
+    '<div class="advice"><b>気になること・のびしろ</b><br>' + (気になる.length ? 気になる.join("<br>") : "（特にありません）") + '</div>' +
+    '<div class="foot">段階（見取り用・評定ではない）の推移：' + 段階推移 + '　※回数が増えるほど変容は読み取りやすくなります</div>';
+
+  /* Ⅲ 声かけ（最新回をもとに） */
+  const 最新 = 個人[n - 1];
+  const 初出 = 全項目P.filter(k => p値(最新, k) && (n < 2 || !p値(個人[n - 2], k)) && 個人.slice(0, n - 1).every(c => !p値(c, k)));
+  const good = 価値づけ提案(最新), next = 声かけ提案(最新);
+  let ah = "";
+  if (初出.length) ah += '<div class="advice good">今回はじめて <b>' + 初出.map(p名).join("・") + '</b> が書けました。まずここを本人に伝えて価値づけたいところです。</div>';
+  if (good) ah += '<div class="advice good">' + esc(good.文) + '<span class="q">根拠：「' + esc(good.引用) + '」</span></div>';
+  if (next) ah += '<div class="advice">つぎの一歩：' + esc(next.文) + '（ヒント：' + esc(next.ヒント) + '）</div>';
+  $("personAdvice").innerHTML = ah || '<div class="advice">読み取れる要素が少ないため、まず「きょう、どんなことをしたの？」と事実から聞き取る声かけを。</div>';
+}
+
+/* CSV書き出し（個人） */
+$("btnCsvP").onclick = () => {
+  if (!個人) return;
+  const head = ["回"].concat(AK.map(p名), BK.map(p名), ["I", "You", "We", "段階(見取り用・評定ではない)"]);
+  const lines = [head.join(",")].concat(個人.map(c =>
+    [c.番号].concat(全項目P.map(k => p値(c, k) ? "1" : ""), [c.段階])
+      .map(v => '"' + String(v).replace(/"/g, '""') + '"').join(",")));
+  const blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "変容タイムライン.csv"; a.click();
+};
+
+/* 写真・PDF（方式B：Gemini＝無料キー可／Claude。判定は端末内のまま） */
+const 転写モデルP = { anthropic: "claude-opus-4-8", gemini: "gemini-2.5-flash" };
+const キー名P = { anthropic: "mitori_api_key", gemini: "mitori_api_key_gemini" };
+const AI表示名P = { anthropic: "Claude（Anthropic API）", gemini: "Gemini（Google API）" };
+function AI種類P(){ return $("inAiKindP").value === "anthropic" ? "anthropic" : "gemini"; }
+function キー読込P(){ $("inApiKeyP").value = localStorage.getItem(キー名P[AI種類P()]) || ""; }
+$("inAiKindP").value = localStorage.getItem("mitori_ai_kind_p") || "gemini";
+$("inAiKindP").onchange = () => { try { localStorage.setItem("mitori_ai_kind_p", AI種類P()); } catch (e) {} キー読込P(); };
+キー読込P();
+const 転写指示P = "この画像（またはPDF）は、一人の学習者の学習計画表・振り返りシートです。書かれている文字を読み取り、タブ区切りの表だけを出力してください。1行目は見出し（回\t課題\tBe\tDo\tRegulate\tふりかえり）。2行目以降に、シート内の各時間（回）を1行ずつ。手書きは文脈から丁寧に判読し、読み取れない欄は空欄にしてください。氏名・学校名らしき文字列は出力に含めないでください。表以外の説明文は一切書かないでください。";
+const fileToB64P = f => new Promise(ok => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.readAsDataURL(f); });
+$("inFileImgP").onchange = e => {
+  const fs = Array.prototype.slice.call(e.target.files || []);
+  e.target.value = "";
+  if (fs.length) AI転写P(fs);
+};
+async function AI転写P(files){
+  const kind = AI種類P();
+  const key = $("inApiKeyP").value.trim();
+  if (!key) {
+    const s = $("aiSetP"); if (s) s.open = true;
+    msg($("msgParseP"), "err", "写真・PDFの読み込みには、下の設定でAPIキーを入れてください（表の貼り付け・ファイル読み込みはキーなしで使えます）。");
+    return;
+  }
+  if (!confirm("選んだ " + files.length + " 件を外部AI＝" + AI表示名P[kind] + " に送信して文字に起こします。\n・氏名・学校名が写っているものは送信しないでください\n・Gemini無料キーの場合、送信内容がモデル改善に使われる場合があります\n送信してよろしいですか？")) return;
+  try { localStorage.setItem(キー名P[kind], key); } catch (e) {}
+  msg($("msgParseP"), "ok", "AIで読み取り中…（" + files.length + "件）");
+  for (let fi = 0; fi < files.length; fi++) {
+    const f = files[fi];
+    try {
+      const b64 = await fileToB64P(f);
+      const isPdf = /pdf$/i.test(f.type) || /\.pdf$/i.test(f.name);
+      const mt = isPdf ? "application/pdf" : (f.type || "image/jpeg");
+      let res;
+      if (kind === "gemini") {
+        res = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + 転写モデルP.gemini + ":generateContent", {
+          method: "POST",
+          headers: { "content-type": "application/json", "x-goog-api-key": key },
+          body: JSON.stringify({ contents: [{ parts: [ { inline_data: { mime_type: mt, data: b64 } }, { text: 転写指示P } ] }] }),
+        });
+      } else {
+        const block = isPdf
+          ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: b64 } }
+          : { type: "image", source: { type: "base64", media_type: mt, data: b64 } };
+        res = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: { "content-type": "application/json", "x-api-key": key,
+            "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+          body: JSON.stringify({ model: 転写モデルP.anthropic, max_tokens: 4096,
+            messages: [{ role: "user", content: [block, { type: "text", text: 転写指示P }] }] }),
+        });
+      }
+      if (!res.ok) {
+        const キー系 = res.status === 401 || res.status === 403 || (kind === "gemini" && res.status === 400);
+        msg($("msgParseP"), "err", f.name + "：" + (キー系 ? "APIキーが正しくないようです。設定（AIの種類とキー）を確かめてください。"
+          : "読み取りに失敗しました（エラー " + res.status + "）。時間をおいてお試しください。"));
+        return;
+      }
+      const data = await res.json();
+      let text;
+      if (kind === "gemini") {
+        const cand = (data.candidates || [])[0] || {};
+        text = ((cand.content || {}).parts || []).map(p => p.text || "").join("\n");
+      } else {
+        text = (data.content || []).filter(c => c.type === "text").map(c => c.text).join("\n");
+      }
+      text = text.replace(/```[a-z]*\n?/g, "").trim();
+      if (!text) { msg($("msgParseP"), "err", f.name + "：文字を読み取れませんでした。"); return; }
+      const cur = $("inPasteP").value.trim();
+      if (cur) {   /* 2件目以降は見出し行を落として追記 */
+        const lines = text.split(/\r?\n/);
+        if (/回|課題|ふりかえり/.test(lines[0])) lines.shift();
+        $("inPasteP").value = cur + "\n" + lines.join("\n");
+      } else {
+        $("inPasteP").value = text;
+      }
+    } catch (err) {
+      msg($("msgParseP"), "err", f.name + "：通信に失敗しました。ネット接続とキーを確かめてください。");
+      return;
+    }
+  }
+  msg($("msgParseP"), "ok", files.length + "件をAIで文字に起こしました。内容を確かめて（必要なら直して）「貼り付けた表を読み込む」→「変容を読み取る」を押してください。");
+  $("btnParseP").click();
+}
+
+/* 例：架空の一人（6時間分・成長の物語） */
+const 個人例 = [
+  { 回: "第1回", 課題: "川のようすを観察して、気づいたことをまとめよう", Be: "川のようすを説明できる", Do: "よく見てメモをとる", Regulate: "時間を守る",
+    本文: "川を見に行きました。楽しかったです。" },
+  { 回: "第2回", 課題: "川のごみの種類を調べよう", Be: "ごみの種類を説明できる", Do: "種類ごとに数える", Regulate: "時間内に数え終える",
+    本文: "ごみの種類を数えて、ペットボトルが多いことが分かった。" },
+  { 回: "第3回", 課題: "ごみが多い場所を調べよう", Be: "ごみの多い場所を説明できる", Do: "写真と地図で調べる", Regulate: "分からないときは友だちに聞く",
+    本文: "ごみが多いのは橋の下だと分かった。理由は、人が集まる場所だからだと思う。写真と地図をくらべる方法で調べた。" },
+  { 回: "第4回", 課題: "ごみを減らす方法を考えよう", Be: "ごみを減らす方法を説明できる", Do: "調べたことをカードに書く", Regulate: "時間配分に気を付ける",
+    本文: "ごみ箱をふやすとよいと考えた。でも、理由がまだ書けていない。次は、数えた数字を使って理由を書きたい。" },
+  { 回: "第5回", 課題: "提案の下書きを書こう", Be: "提案を理由つきで書ける", Do: "数字を使って書く", Regulate: "友だちと読み合って直す",
+    本文: "数字を使って提案を書くことができた。友だちに読んでもらい、直すところを教えてもらった。うまく書けたのは、先に数字を選んでから書いたからだと思う。次は、写真も入れたい。" },
+  { 回: "第6回", 課題: "提案を仕上げて発表の準備をしよう", Be: "提案を発表できる形に仕上げられる", Do: "写真と数字をならべる", Regulate: "進み具合を確かめながら進める",
+    本文: "写真と数字をならべて提案を仕上げることができた。とちゅうで時間が足りないと気づいて、写真の数をへらした。これからは、先に組み立てを決めてから書くやり方に変えていきたい。最後までやりきれてうれしかった。" },
+];
+$("btnDemoP").onclick = () => {
+  個人 = 一括判定(個人例.map(c => ({ 番号: c.回, 課題: c.課題, 本文: c.本文, Be: c.Be, Do: c.Do, Regulate: c.Regulate }))).子ら;
+  個人描画();
+};
+
+/* 個人モードの初期化（学級モードと同じ流儀） */
+function まっさらP(){
+  $("inPasteP").value = ""; $("inApiKeyP").value = $("inApiKeyP").value;
+  $("msgParseP").className = "msg";
+  $("btnRunP").style.display = "none";
+  $("emptyStateP").style.display = "";
+  $("resultsBodyP").style.display = "none";
+  $("btnCsvP").disabled = true;
+  const bp = $("btnPrintP"); if (bp) bp.disabled = true;
+  個人生表 = null; 個人 = null;
+  ["tlWrap", "changeBody", "personAdvice"].forEach(id => { const el = $(id); if (el) el.innerHTML = ""; });
+}
+まっさらP();
+モード切替("c");
+if (typeof setTimeout === "function") setTimeout(まっさらP, 200);
+if (window.addEventListener) window.addEventListener("pageshow", e => { if (e && e.persisted) まっさらP(); });
+
+
+</script>
+<script>
+(function(){
+var cur=1;
+var navs=Array.prototype.slice.call(document.querySelectorAll('[data-stepnav]'));
+var panels=Array.prototype.slice.call(document.querySelectorAll('[data-steppanel]'));
+function set(n){cur=n;
+navs.forEach(function(li){var k=+li.getAttribute('data-stepnav');li.classList.toggle('cur',k===n);li.classList.toggle('done',k<n);});
+panels.forEach(function(p){p.classList.toggle('cur',+p.getAttribute('data-steppanel')===n);});}
+navs.forEach(function(li){li.onclick=function(){var p=document.querySelector('[data-steppanel="'+li.getAttribute('data-stepnav')+'"]');if(p)window.scrollTo({top:p.getBoundingClientRect().top+window.pageYOffset-100,behavior:'smooth'});};});
+set(1);
+document.getElementById('inKadai').addEventListener('input',function(){if(cur===1)set(2);});
+document.getElementById('inPaste').addEventListener('focus',function(){if(cur<2)set(2);});
+var rb=document.getElementById('resultsBody');
+new MutationObserver(function(){set(rb.style.display!=='none'?3:1);}).observe(rb,{attributes:true,attributeFilter:['style']});
+document.getElementById('btnCsv').addEventListener('click',function(){set(4);});
+document.getElementById('btnPrint').addEventListener('click',function(){set(4);});
+})();
+</script>
+<script>
+(function(){
+document.getElementById('modePersonalBtn').addEventListener('click',function(){document.body.classList.add('pmode');});
+document.getElementById('modeClassBtn').addEventListener('click',function(){document.body.classList.remove('pmode');});
+var fsBtns=Array.prototype.slice.call(document.querySelectorAll('.fsctl button'));
+function setFs(v){document.body.classList.remove('fs-l','fs-xl');if(v)document.body.classList.add(v);
+fsBtns.forEach(function(x){x.classList.toggle('on',x.getAttribute('data-fs')===v);});
+try{localStorage.setItem('mitori_fs',v);}catch(e){}}
+fsBtns.forEach(function(x){x.onclick=function(){setFs(x.getAttribute('data-fs'));};});
+setFs('fs-xl');
+})();
+</script>
+</body>
+</html>
