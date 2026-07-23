@@ -411,6 +411,7 @@ body.fs-l .help::after{font-size:13.5px}
 <div style="display:flex;gap:8px;flex-wrap:wrap">
 <button class="subbtn" id="btnCsv" disabled>見取り表をCSVで保存（見取り用・評定ではない）</button>
 <button class="subbtn" id="btnPrint" disabled onclick="window.print()">このボードを印刷</button>
+<button class="subbtn" id="btnClear" type="button" style="margin-left:auto">クリア（はじめの画面にもどる）</button>
 </div>
 </div>
 </div>
@@ -443,6 +444,10 @@ body.fs-l .help::after{font-size:13.5px}
       <div><label class="f">APIキー（この端末にのみ、AIごとに保存）</label>
         <input type="password" id="inApiKeyP" placeholder="APIキーを貼り付け" autocomplete="off"></div>
     </div>
+    <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap">
+      <button class="subbtn" type="button" id="btnTestKeyP">接続を確認する</button>
+      <span id="msgTestKeyP" style="font-size:12.5px;font-weight:700"></span>
+    </div>
     <p class="foot" style="margin-top:4px">APIキーの取得（コピーして上の欄に貼り付けます）：<br>
     ・Gemini：<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio − APIキー</a>（Googleアカウントで無料から作成できます）<br>
     ・Claude：<a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Anthropic Console − API Keys</a>（要アカウント・有料）</p>
@@ -474,6 +479,7 @@ body.fs-l .help::after{font-size:13.5px}
   <div style="display:flex;gap:8px;flex-wrap:wrap">
     <button class="subbtn" id="btnCsvP" disabled>変容タイムラインをCSVで保存（見取り用・評定ではない）</button>
     <button class="subbtn" id="btnPrintP" disabled onclick="window.print()">このボードを印刷</button>
+    <button class="subbtn" id="btnClearP" type="button" style="margin-left:auto">クリア（はじめの画面にもどる）</button>
   </div>
 </div>
 
@@ -484,7 +490,7 @@ body.fs-l .help::after{font-size:13.5px}
 </details>
 
 </div><!-- /modePersonal -->
-<p class="foot" style="text-align:center">ふりかえり見取りボード v3.1（試作）／システム開発課／判定のものさし：<code>調整方略リスト（案）14</code>／端末内で完結・通信なし</p>
+<p class="foot" style="text-align:center">ふりかえり見取りボード v3.3（試作）／システム開発課／判定のものさし：<code>調整方略リスト（案）14</code>／端末内で完結・通信なし</p>
 </div>
 <script>
 "use strict";
@@ -503,6 +509,7 @@ const 判定辞書_観点B = {
     表_記述要素: "成果の自己評価（うまくいったこと）",
     サブプロセス: "自己・相互評価", 方略カテゴリー: "メタ認知", フェーズ: "振り返る",
     やさしい: "できたこと", くわしい: "成果の自己評価",
+    教師向け: "できたこと・わかったことが具体的に書かれている",
     ほめ: "できたことが、じぶんの言葉で書けているね！",
     問い: "きょう、できるようになったことは あるかな？",
     ヒント: "「〜できた」「〜が分かった」",
@@ -515,6 +522,7 @@ const 判定辞書_観点B = {
     表_記述要素: "課題の自己評価（うまくいかなかったこと）",
     サブプロセス: "自己・相互評価", 方略カテゴリー: "メタ認知", フェーズ: "振り返る",
     やさしい: "できなかったこと", くわしい: "課題の自己評価",
+    教師向け: "うまくいかなかったことにも目を向けて書かれている",
     ほめ: "うまくいかなかったことから、目をそらさずに書けているね。",
     問い: "うまくいかなかったことや、まだ とちゅうのことは あるかな？",
     ヒント: "「〜が途中になった」「〜できなかった」",
@@ -534,6 +542,7 @@ const 判定辞書_観点B = {
     表_記述要素: "原因帰属（理由）",
     サブプロセス: "原因帰属", 方略カテゴリー: "メタ認知", フェーズ: "振り返る",
     やさしい: "そのわけ（理由）", くわしい: "原因帰属",
+    教師向け: "そのわけ（理由）まで考えて書かれている",
     ほめ: "うまくいった／いかなかった <b>わけ</b> まで書けているのがすごい！",
     問い: "そうなったのは、どうしてだと思う？",
     ヒント: "「〜だから」「理由は〜」",
@@ -545,6 +554,7 @@ const 判定辞書_観点B = {
     表_記述要素: "適用（次に活かすこと）",
     サブプロセス: "適用", 方略カテゴリー: "動機づけ調整", フェーズ: "振り返る",
     やさしい: "つぎにやること", くわしい: "適用",
+    教師向け: "次に活かすことまで考えて書かれている",
     ほめ: "つぎの学習につなげる言葉が書けているね。",
     問い: "つぎの時間には、どんなことを やってみたい？",
     ヒント: "「次は〜したい」「これからは〜」",
@@ -556,6 +566,7 @@ const 判定辞書_観点B = {
     表_記述要素: "適応（学び方そのものを変える）",
     サブプロセス: "適応", 方略カテゴリー: "動機づけ調整", フェーズ: "振り返る",
     やさしい: "学び方をかえる", くわしい: "適応",
+    教師向け: "学び方そのものを見直して書かれている",
     ほめ: "「学び方そのもの」を変えようとしているのが、とても大きい一歩だね。",
     問い: "つぎは、学び方（進め方）そのものを どう変えてみる？",
     ヒント: "「〜というやり方に変える」「〜という進め方にしたい」",
@@ -568,6 +579,7 @@ const 判定辞書_観点B = {
     表_記述要素: "学習方略への言及",
     サブプロセス: "（全フェーズの方略語彙）", 方略カテゴリー: "認知／メタ認知／リソース管理", フェーズ: "実行する",
     やさしい: "つかった方法（ほうりゃく）", くわしい: "学習方略への言及",
+    教師向け: "使った方法（方略）が具体的に書かれている",
     ほめ: "どんな<b>方法</b>で学んだかを、名前をつけて書けているね。",
     問い: "そのとき、どんな方法（やり方）を つかったのかな？",
     ヒント: "「図で」「キーワードを抜き出して」など、方法の名前",
@@ -584,6 +596,7 @@ const 判定辞書_観点B = {
     表_記述要素: "満足・気持ち",
     サブプロセス: "自己・相互満足", 方略カテゴリー: "動機づけ調整", フェーズ: "振り返る",
     やさしい: "うれしかった気もち", くわしい: "自己・相互満足",
+    教師向け: "そのときの気持ちが書かれている",
     ほめ: "学習のあとの気もちが 書けているね。",
     問い: "きょうの学習で、うれしかった・よかったと思えたことは あるかな？",
     ヒント: "「よかったです」「うれしかった」",
@@ -616,16 +629,19 @@ const 判定辞書_観点C = {
 /* --- 観点A：記述外との関連（企画書§2.1の表）------------------------------- */
 const 判定辞書_観点A = {
   課題関連: { やさしい: "きょうの課題とつながっている", くわしい: "課題との関連",
+    教師向け: "本時の課題とつないで書かれている",
     見るもの: "課題に関することが振り返りに書かれているか", フェーズ: "見通す",
     ほめ: "きょうの<b>課題</b>のことが ちゃんと書けているね。",
     問い: "きょうの課題（学習の中みそのもの）については、どんなことが書けそう？",
     ヒント: "課題に出てきた言葉を ひとつ使ってみよう" },
   目標関連: { やさしい: "自分目標とつながっている", くわしい: "目標との関連",
+    教師向け: "自分目標とつないで書かれている",
     見るもの: "目標（Be／Do／Regulate）に関することが書かれているか", フェーズ: "見通す",
     ほめ: "はじめに立てた<b>自分目標</b>と つないで書けているね。",
     問い: "はじめに決めた「自分目標」は、どうだったかな？",
     ヒント: "目標の言葉を そのまま使って ふりかえってみよう" },
   確認調節関連: { やさしい: "とちゅうで気づいて変えたこと", くわしい: "確認・調節との関連",
+    教師向け: "学習の途中で気づいて調整したことが書かれている",
     見るもの: "学習中の気づき・修正（時間配分の見直し、方法の切り替え、援助要請など）", フェーズ: "実行する",
     ほめ: "学習の<b>とちゅう</b>で気づいて動けたことが書けているね。",
     問い: "学習のとちゅうで「あれ？」と思って、変えたことは あったかな？",
@@ -1029,6 +1045,12 @@ async function xlsx読み込み(file){
 /* =====================================================================
    T3. 一括判定
    ===================================================================== */
+/* 文結果の中から、語群のどれかを含む最初の文をそのまま引用する（変容の読み取り・声かけ案の引用に使う） */
+function 語含む文(結果, 語群){
+  if (!語群 || !語群.length) return null;
+  const s = 結果.文結果.find(s => 語群.some(w => s.文.indexOf(w) >= 0));
+  return s ? s.文 : null;
+}
 function 一括判定(rows){
   const 子ら = rows.map(row => {
     const 課題 = String(row.課題 || "").trim() || $("inKadai").value.trim();   /* 表の「課題」列を優先、なければ①の共通課題 */
@@ -1037,8 +1059,18 @@ function 一括判定(rows){
     const A = {}; AK.forEach(k => A[k] = !!集.A[k].有無);
     const B = {}; BK.forEach(k => B[k] = !!集.B[k]);
     const Cx = { I: !!集.C.I, You: !!集.C.You, We: !!集.C.We };
+    /* 目標の内訳（Be＝学習内容／Do＝行動／Regulate＝調整）を、それぞれの語で個別に照合し、
+       どの文でそう読めるかも引用できるようにする（「変容の読み取り」でBe/Doを分けて説明するため） */
+    const 目標部分語 = s => 語抽出(s).filter(g => !結果.課題語.some(k => k.indexOf(g) >= 0 || g.indexOf(k) >= 0));
+    const 目標内訳 = {};
+    [["Be", row.Be], ["Do", row.Do], ["Regulate", row.Regulate]].forEach(([dim, txt]) => {
+      const 語 = 目標部分語(txt || "");
+      const 判定 = 関連判定(row.本文 || "", 語);
+      目標内訳[dim] = { 有無: 判定.有無, 根拠語: 判定.根拠語, 文: 語含む文(結果, 語) };
+    });
+    const 課題引用 = 語含む文(結果, 結果.課題語);
     return { 番号: row.番号, 課題: 課題, 本文: row.本文, 目標: { Be: row.Be || "", Do: row.Do || "", Regulate: row.Regulate || "" },
-             結果: 結果, 集: 集, A: A, B: B, C: Cx, 段階: 段階判定(A, B) };
+             結果: 結果, 集: 集, A: A, B: B, C: Cx, 段階: 段階判定(A, B), 目標内訳: 目標内訳, 課題引用: 課題引用 };
   });
   return { 子ら: 子ら };
 }
@@ -1074,11 +1106,17 @@ function まっさらに(){
   $("resultsBody").style.display = "none";
   $("btnCsv").disabled = true;
   const bp = $("btnPrint"); if (bp) bp.disabled = true;
+  const rw = $("resultsWrap"); if (rw) rw.open = false;
   学級 = null; 生表 = null;
   ["sumBody","classAdvice","mxWrap","detailArea","perChild","pairBody","mapSelects","mapSummary"].forEach(id => {
     const el = $(id); if (el) el.innerHTML = "";
   });
 }
+$("btnClear").onclick = () => {
+  if (!confirm("この学級の見取り結果をクリアして、はじめの画面にもどります。よろしいですか？")) return;
+  まっさらに();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+};
 まっさらに();
 if (typeof setTimeout === "function") setTimeout(まっさらに, 200);
 if (window.addEventListener) window.addEventListener("pageshow", e => { if (e && e.persisted) まっさらに(); });
@@ -1669,37 +1707,91 @@ function 個人描画(){
       '<td><span class="gr ' + c.段階 + '" style="min-width:24px;height:24px;font-size:12px">' + c.段階 + '</span></td></tr>').join("") +
     '</tbody></table>';
 
-  /* Ⅱ 変容の読み取り（出はじめ・定着・とぎれ） */
-  const のび = [], 気になる = [];
-  全項目P.forEach(k => {
-    const seq = 個人.map(c => p値(c, k));
+  /* Ⅱ 変容の読み取り：サブプロセスごとに「いつから・何が・なぜ良いか」を具体的な引用つきで述べる */
+  const 変容観点順 = ["課題関連", "確認調節関連", "方略言及", "成果の自己評価", "課題の自己評価", "原因帰属", "適用", "適応", "満足"];
+  function 変容パターン(seq){
     const first = seq.indexOf(true);
-    if (first < 0) return;
+    if (first < 0) return null;
     const 直近 = seq[n - 1];
-    if (first === 0 && seq.every(v => v)) のび.push(p名(k) + "：はじめから毎回書けています（定着）");
-    else if (first > 0 && 直近) のび.push(p名(k) + "：「" + esc(個人[first].番号) + "」から書け始め、直近も続いています");
-    else if (first === n - 1) のび.push(p名(k) + "：直近の「" + esc(個人[n - 1].番号) + "」で<b>はじめて</b>書けました");
-    else if (!直近 && !(n >= 2 && seq[n - 2])) 気になる.push(p名(k) + "：以前（「" + esc(個人[first].番号) + "」など）は書けていましたが、最近は書かれていません");
+    if (first === 0 && seq.every(v => v)) return "はじめから毎回書けています";
+    if (直近) return "「" + esc(個人[first].番号) + "」から書かれるようになり、その後も書き続けています";
+    if (first === n - 1) return "直近の「" + esc(個人[n - 1].番号) + "」で、はじめて書けました";
+    return "「" + esc(個人[first].番号) + "」ごろは書けていましたが、最近は見られなくなっています";
+  }
+  function 最良引用(該当子ら, get文){
+    let best = null;
+    該当子ら.forEach(c => { const 文 = get文(c); if (文 && (!best || 文.length > best.文.length)) best = { 番号: c.番号, 文: 文 }; });
+    return best;
+  }
+  const 段落 = [];
+
+  /* 目標関連はBe（学習内容）／Do（行動）／Regulate（調整）の内訳まで説明する */
+  {
+    const beSeq = 個人.map(c => c.目標内訳.Be.有無);
+    const doSeq = 個人.map(c => c.目標内訳.Do.有無);
+    const reSeq = 個人.map(c => c.目標内訳.Regulate.有無);
+    const anySeq = 個人.map((c, i) => beSeq[i] || doSeq[i] || reSeq[i]);
+    const パターン = 変容パターン(anySeq);
+    if (パターン) {
+      const both = beSeq.map((v, i) => v && doSeq[i]);
+      const firstBoth = both.indexOf(true);
+      let 内訳文;
+      if (beSeq.some(v => v) && doSeq.some(v => v))
+        内訳文 = "目標は、何ができるようになりたいのかといった学習内容についての記述（Beの視点）と、そのためにどのような行動をしていくのかという記述（Doの視点）が" +
+          (firstBoth >= 0 ? "、「" + esc(個人[firstBoth].番号) + "」から" : "") + "そろって書かれています。";
+      else if (beSeq.some(v => v)) 内訳文 = "目標のうち、学習内容についての記述（Beの視点）は書かれていますが、そのための行動（Doの視点）はまだ書かれていません。";
+      else if (doSeq.some(v => v)) 内訳文 = "目標のうち、行動についての記述（Doの視点）は書かれていますが、何ができるようになりたいのか（Beの視点）はまだ書かれていません。";
+      else 内訳文 = "";
+      const 該当 = 個人.filter((c, i) => anySeq[i]);
+      const 引用 = 最良引用(該当.filter(c => c.目標内訳.Regulate.有無), c => c.目標内訳.Regulate.文) ||
+        最良引用(該当.filter((c, i) => beSeq[i] && doSeq[i]), c => c.目標内訳.Do.文 || c.目標内訳.Be.文) ||
+        最良引用(該当, c => c.目標内訳.Be.文 || c.目標内訳.Do.文 || c.目標内訳.Regulate.文);
+      段落.push('<div class="advice good"><b>目標</b>：' + パターン + '。' + 内訳文 +
+        (引用 ? '特に、「' + esc(引用.番号) + '」の「' + esc(引用.文) + '」という記述が良いと思います。' : '') + '</div>');
+    }
+  }
+
+  /* 目標以外の観点：課題関連・確認調節関連（観点A）、記述要素（観点B） */
+  変容観点順.forEach(k => {
+    const isA = AK.indexOf(k) >= 0;
+    const seq = 個人.map(c => isA ? c.A[k] : c.B[k]);
+    const パターン = 変容パターン(seq);
+    if (!パターン) return;
+    const d = isA ? 判定辞書_観点A[k] : 判定辞書_観点B[k];
+    const 該当 = 個人.filter((c, i) => seq[i]);
+    const 引用 = k === "課題関連" ? 最良引用(該当, c => c.課題引用)
+      : isA ? 最良引用(該当, c => c.集.A[k] && c.集.A[k].文)
+      : 最良引用(該当, c => c.集.B[k] && c.集.B[k].文);
+    段落.push('<div class="advice"><b>' + esc(d.くわしい) + '</b>：' + パターン + '。' + esc(d.教師向け) + 'ことが伝わります。' +
+      (引用 ? '（「' + esc(引用.番号) + '」：「' + esc(引用.文) + '」）' : '') + '</div>');
   });
+
   const 未 = ["原因帰属", "適用", "適応", "確認調節関連"].filter(k => 個人.every(c => !p値(c, k)));
-  if (未.length) 気になる.push("まだ一度も書かれていない要素：" + 未.map(p名).join("・"));
   const gvP = { S: 0, A: 1, B: 2, C: 3, D: 4 };
   const 段階推移 = 個人.map(c => c.段階).join(" → ") +
     (gvP[個人[n - 1].段階] < gvP[個人[0].段階] ? "　（高まってきています）"
      : gvP[個人[n - 1].段階] > gvP[個人[0].段階] ? "　（直近は要素が少なめです）" : "");
-  $("changeBody").innerHTML =
-    '<div class="advice good"><b>のびてきたこと</b><br>' + (のび.length ? のび.join("<br>") : "（まだ読み取れる変化がありません）") + '</div>' +
-    '<div class="advice"><b>気になること・のびしろ</b><br>' + (気になる.length ? 気になる.join("<br>") : "（特にありません）") + '</div>' +
+  $("changeBody").innerHTML = (段落.length ? 段落.join("") : '<div class="advice">まだ読み取れる変化がありません。</div>') +
+    (未.length ? '<div class="advice">まだ一度も書かれていない要素：' + 未.map(p名).join("・") + '</div>' : "") +
     '<div class="foot">段階（見取り用・評定ではない）の推移：' + 段階推移 + '　※回数が増えるほど変容は読み取りやすくなります</div>';
 
-  /* Ⅲ 声かけ（最新回をもとに） */
+  /* Ⅲ 声かけ（最新回でもっとも内容の濃い引用を価値づけ、次の目標を具体的に提案） */
   const 最新 = 個人[n - 1];
-  const 初出 = 全項目P.filter(k => p値(最新, k) && (n < 2 || !p値(個人[n - 2], k)) && 個人.slice(0, n - 1).every(c => !p値(c, k)));
-  const good = 価値づけ提案(最新), next = 声かけ提案(最新);
+  const 全観点 = AK.concat(BK);
+  let 価値づけ候補 = null;
+  全観点.forEach(k => {
+    const isA = AK.indexOf(k) >= 0;
+    if (!(isA ? 最新.A[k] : 最新.B[k])) return;
+    const 文 = k === "課題関連" ? 最新.課題引用 : isA ? (最新.集.A[k] && 最新.集.A[k].文) : (最新.集.B[k] && 最新.集.B[k].文);
+    if (!文) return;
+    if (!価値づけ候補 || 文.length > 価値づけ候補.文.length) 価値づけ候補 = { 文: 文, d: 判定辞書_観点A[k] || 判定辞書_観点B[k] };
+  });
+  const next = 声かけ提案(最新);
   let ah = "";
-  if (初出.length) ah += '<div class="advice good">今回はじめて <b>' + 初出.map(p名).join("・") + '</b> が書けました。まずここを本人に伝えて価値づけたいところです。</div>';
-  if (good) ah += '<div class="advice good">' + esc(good.文) + '<span class="q">根拠：「' + esc(good.引用) + '」</span></div>';
-  if (next) ah += '<div class="advice">つぎの一歩：' + esc(next.文) + '（ヒント：' + esc(next.ヒント) + '）</div>';
+  if (価値づけ候補) ah += '<div class="advice good">「' + esc(最新.番号) + '」の振り返りで、「' + esc(価値づけ候補.文) + '」と、' +
+    esc(価値づけ候補.d.教師向け) + 'ことが素晴らしいです。ぜひ本人に伝えて価値づけたいところです。</div>';
+  if (next) ah += '<div class="advice">次の目標として、' + esc(next.文) + '（ヒント：' + esc(next.ヒント) + '）' +
+    (価値づけ候補 ? 'これまでのように具体的に書けていることを生かして、次はここにも挑戦できるとよいと思います。' : '') + '</div>';
   $("personAdvice").innerHTML = ah || '<div class="advice">読み取れる要素が少ないため、まず「きょう、どんなことをしたの？」と事実から聞き取る声かけを。</div>';
 }
 
@@ -1724,6 +1816,34 @@ function キー読込P(){ $("inApiKeyP").value = localStorage.getItem(キー名P
 $("inAiKindP").value = localStorage.getItem("mitori_ai_kind_p") || "gemini";
 $("inAiKindP").onchange = () => { try { localStorage.setItem("mitori_ai_kind_p", AI種類P()); } catch (e) {} キー読込P(); };
 キー読込P();
+$("btnTestKeyP").onclick = async () => {
+  const kind = AI種類P(), key = $("inApiKeyP").value.trim(), el = $("msgTestKeyP");
+  if (!key) { el.style.color = "#B91C1C"; el.textContent = "APIキーを入力してください。"; return; }
+  el.style.color = "#66707D"; el.textContent = "確認中…";
+  try {
+    let res;
+    if (kind === "gemini") {
+      res = await fetch("https://generativelanguage.googleapis.com/v1beta/models?key=" + encodeURIComponent(key));
+    } else {
+      res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-api-key": key,
+          "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+        body: JSON.stringify({ model: 転写モデルP.anthropic, max_tokens: 1, messages: [{ role: "user", content: "hi" }] }),
+      });
+    }
+    if (res.ok) {
+      try { localStorage.setItem(キー名P[kind], key); } catch (e) {}
+      el.style.color = "#16A34A"; el.textContent = AI表示名P[kind] + " に接続できました。";
+    } else {
+      const キー系 = res.status === 401 || res.status === 403 || (kind === "gemini" && res.status === 400);
+      el.style.color = "#B91C1C";
+      el.textContent = キー系 ? "APIキーが正しくないようです。" : "接続に失敗しました（エラー " + res.status + "）。";
+    }
+  } catch (err) {
+    el.style.color = "#B91C1C"; el.textContent = "通信に失敗しました。ネット接続を確かめてください。";
+  }
+};
 const 転写指示P = "この画像（またはPDF）は、一人の学習者の学習計画表・振り返りシートです。書かれている文字を読み取り、タブ区切りの表だけを出力してください。1行目は見出し（回\t課題\tBe\tDo\tRegulate\tふりかえり）。2行目以降に、シート内の各時間（回）を1行ずつ。手書きは文脈から丁寧に判読し、読み取れない欄は空欄にしてください。氏名・学校名らしき文字列は出力に含めないでください。表以外の説明文は一切書かないでください。";
 const fileToB64P = f => new Promise(ok => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.readAsDataURL(f); });
 $("inFileImgP").onchange = e => {
@@ -1829,9 +1949,15 @@ function まっさらP(){
   $("resultsBodyP").style.display = "none";
   $("btnCsvP").disabled = true;
   const bp = $("btnPrintP"); if (bp) bp.disabled = true;
+  const rwp = $("resultsWrapP"); if (rwp) rwp.open = false;
   個人生表 = null; 個人 = null;
   ["tlWrap", "changeBody", "personAdvice"].forEach(id => { const el = $(id); if (el) el.innerHTML = ""; });
 }
+$("btnClearP").onclick = () => {
+  if (!confirm("この子の見取り結果をクリアして、はじめの画面にもどります。よろしいですか？")) return;
+  まっさらP();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+};
 まっさらP();
 モード切替("c");
 if (typeof setTimeout === "function") setTimeout(まっさらP, 200);
