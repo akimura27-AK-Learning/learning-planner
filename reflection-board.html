@@ -490,7 +490,7 @@ body.fs-l .help::after{font-size:13.5px}
 </details>
 
 </div><!-- /modePersonal -->
-<p class="foot" style="text-align:center">ふりかえり見取りボード v3.3（試作）／システム開発課／判定のものさし：<code>調整方略リスト（案）14</code>／端末内で完結・通信なし</p>
+<p class="foot" style="text-align:center">ふりかえり見取りボード v3.6（試作）／システム開発課／判定のものさし：<code>調整方略リスト（案）14</code>／端末内で完結・通信なし</p>
 </div>
 <script>
 "use strict";
@@ -658,6 +658,48 @@ const 判定辞書_観点A = {
   },
 };
 
+/* --- 目標文の内訳を読み分ける（企画書§2.1のBe／Do／Regulateゴール）-----------
+   「目標」が1つの欄にまとめて書かれていても、その文の中から
+   Be（できるようになりたいこと）・Do（そのためにすること）・Regulate（気を付けること）を読み分ける。
+   欄が分かれているときはそちらを優先し、この読み分けは使わない。
+   ※方式B（AI）へ転用する際は、この3つの説明文がそのままタグ定義になる */
+const 判定辞書_目標内訳 = {
+  Be: { 名: "Be（できるようになりたいこと）", 説明: "学習内容についてどうなりたいかの目標",
+        手がかり: [/できるように/, /(説明|表現|発表|判断|活用|操作|分類)でき/, /(分|わ)かるように/,
+                   /理解(する|できる|を深め)/, /(表せ|書け|言え|使え|解け|求められ|作れ)る/,
+                   /仕上げ(る|られ)/, /(身に付|身につ)け/, /(考え|見方|考え方)を(もて|持て|深め)/] },
+  Do: { 名: "Do（そのためにすること）", 説明: "そのためにどのような行動・方法をとるかの目標",
+        /* 「発表」の“表”を図表の手がかりと取り違えないよう、判定前に伏せ字にする */
+        前処理: [[/発表/g, "〓"]],
+        手がかり: [/調べ/, /数え/, /集め/, /整理/, /分類/, /記録/, /観察/, /実験/, /話し合/, /相談/,
+                   /見比べ/, /くらべ/, /(なら|並)べ/, /書き出/, /読(む|み)/, /かき出/,
+                   /(図|表|グラフ|写真|地図|カード|メモ|付箋|樹形図|キーワード)(を|で|に|と)/,
+                   /班で/, /みんなで/, /ペアで/, /インタビュー/, /役割分担/, /(を|で)(使|つか)(う|って|い)/] },
+  Regulate: { 名: "Regulate（気を付けること）", 説明: "時間や進め方など、学習の調整についての目標",
+        手がかり: [/時間/, /時計/, /配分/, /[0-9０-９]+分/, /分以内/, /(進み具合|進捗)/,
+                   /気を(付|つ)け/, /守(る|って)/, /(困っ|分からな|わからな)(たら|いときは)/,
+                   /最後まで/, /やりきる/, /見直/, /確かめ(ながら|て)/, /集中/, /ペース/] },
+};
+/* まとめて書かれた目標文を、句点で区切って3つの視点に振り分ける。
+   1文には1つの視点だけを与える（Regulate→Be→Doの順に見る）。
+   ・Regulateの手がかり（時間・進め方）がもっともはっきりしている
+   ・Beは「〜できるように」など文末の到達表現で決まるため、文中の道具名（写真・表など）より優先する
+   ・どれにも当たらない文は、学習内容の目標（Be）とみなす */
+function 目標を分解(text){
+  const out = { Be: [], Do: [], Regulate: [] };
+  const 節 = String(text || "").split(/[。．\n]/).map(s => s.trim()).filter(s => s);
+  節.forEach(s => {
+    const 当たり = ["Regulate", "Be", "Do"].find(k => {
+      const d = 判定辞書_目標内訳[k];
+      let t = s;
+      if (d.前処理) for (const [r, rep] of d.前処理) t = t.replace(r, rep);
+      return d.手がかり.some(r => r.test(t));
+    });
+    out[当たり || "Be"].push(s);
+  });
+  return { Be: out.Be.join("。"), Do: out.Do.join("。"), Regulate: out.Regulate.join("。") };
+}
+
 /* --- §2.4：内容／調整の2大別 ---------------------------------------------- */
 const 判定辞書_内容調整 = {
   内容: { 説明: "教科の中身（学習内容の理解・成果）についての記述", 色: "赤系" },
@@ -710,7 +752,8 @@ function 読み取る(入力){
   const 本文 = String(入力.本文 || "");
   const 文リスト = 文分割(本文);
   const 課題語 = 語抽出(入力.課題);
-  const 目標全語 = 語抽出([入力.Be,入力.Do, input_or(入力.Regulate)].join("　"));
+  /* 目標は Be/Do/Regulate に分けて書かれていても、「自分目標」1列にまとめて書かれていても読む */
+  const 目標全語 = 語抽出([入力.Be, 入力.Do, input_or(入力.Regulate), input_or(入力.目標)].join("　"));
   /* 目標固有語＝目標の語から、課題の語と重なるもの（部分一致を含む）を除いたもの
      ── 課題関連と目標関連が同じ語で二重に立つのを防ぐ */
   const 目標語 = 目標全語.filter(g => !課題語.some(k => k.indexOf(g) >= 0 || g.indexOf(k) >= 0));
@@ -775,7 +818,7 @@ function 読み取る(入力){
 
   const A = {
     課題関連: { 有無: !!入力.課題 && 課題関連.有無, 根拠: 課題関連.根拠語.join("・") },
-    目標関連: { 有無: (!!入力.Be || !!入力.Do || !!入力.Regulate) && 目標直接.有無, 根拠: 目標直接.根拠語.join("・") },
+    目標関連: { 有無: (!!入力.Be || !!入力.Do || !!入力.Regulate || !!入力.目標) && 目標直接.有無, 根拠: 目標直接.根拠語.join("・") },
     確認調節関連: { 有無: 確認調節文.length > 0, 根拠: 確認調節文.map(s => s.確認調節).join("・"),
                     文: 確認調節文.length ? 確認調節文[0].文 : "" },
   };
@@ -870,13 +913,20 @@ const 役割 = [
   { key: "Be", 必須: false, 推測: /Be|内容の目標|学習内容/i },
   { key: "Do", 必須: false, 推測: /Do|行動の目標/i },
   { key: "Regulate", 必須: false, 推測: /Reg|調整の目標|気を付け/i },
+  /* Be/Do/Regulateに分けず「自分目標」1列にまとめている表にも対応する */
+  { key: "目標", 必須: false, 推測: /目標/ },
 ];
 function 列推測(){
   const sel = {};
-  役割.forEach(r => {
+  /* 「目標」（まとめて1列）は最後に決める：Be/Do/Regulateの列が別にあるときは
+     そちらを優先し、同じ列を二重に取らないようにするため */
+  役割.filter(r => r.key !== "目標").forEach(r => {
     let hit = 生表.見出し.findIndex(h => r.推測.test(h));
     sel[r.key] = hit;
   });
+  const 目標使用済み = new Set(Object.keys(sel).map(k => sel[k]).filter(v => v >= 0));
+  const 目標定義 = 役割.filter(r => r.key === "目標")[0];
+  sel["目標"] = 生表.見出し.findIndex((h, i) => !目標使用済み.has(i) && 目標定義.推測.test(h));
   /* 見出しなしの保険：1列目=番号、割り当て済み以外で一番文字数の多い列=ふりかえり */
   if (sel["番号"] < 0) sel["番号"] = 0;
   if (sel["ふりかえり"] < 0) {
@@ -1054,7 +1104,12 @@ function 語含む文(結果, 語群){
 function 一括判定(rows){
   const 子ら = rows.map(row => {
     const 課題 = String(row.課題 || "").trim() || $("inKadai").value.trim();   /* 表の「課題」列を優先、なければ①の共通課題 */
-    const 結果 = 読み取る({ 課題: 課題, Be: row.Be || "", Do: row.Do || "", Regulate: row.Regulate || "", 本文: row.本文 });
+    const 目標まとめ = String(row.目標 || "").trim();   /* Be/Do/Regulateに分けていない「目標」1列 */
+    /* 欄が分かれていればそれを使う。1列にまとまっているときは、その文の中からBe/Do/Regulateを読み分ける */
+    let be = row.Be || "", ドゥ = row.Do || "", reg = row.Regulate || "";
+    const 読み分けた = !(be || ドゥ || reg) && !!目標まとめ;
+    if (読み分けた) { const d = 目標を分解(目標まとめ); be = d.Be; ドゥ = d.Do; reg = d.Regulate; }
+    const 結果 = 読み取る({ 課題: 課題, Be: be, Do: ドゥ, Regulate: reg, 目標: 目標まとめ, 本文: row.本文 });
     const 集 = 集計(結果, new Set());
     const A = {}; AK.forEach(k => A[k] = !!集.A[k].有無);
     const B = {}; BK.forEach(k => B[k] = !!集.B[k]);
@@ -1063,13 +1118,15 @@ function 一括判定(rows){
        どの文でそう読めるかも引用できるようにする（「変容の読み取り」でBe/Doを分けて説明するため） */
     const 目標部分語 = s => 語抽出(s).filter(g => !結果.課題語.some(k => k.indexOf(g) >= 0 || g.indexOf(k) >= 0));
     const 目標内訳 = {};
-    [["Be", row.Be], ["Do", row.Do], ["Regulate", row.Regulate]].forEach(([dim, txt]) => {
+    [["Be", be], ["Do", ドゥ], ["Regulate", reg], ["まとめ", 目標まとめ]].forEach(([dim, txt]) => {
       const 語 = 目標部分語(txt || "");
       const 判定 = 関連判定(row.本文 || "", 語);
-      目標内訳[dim] = { 有無: 判定.有無, 根拠語: 判定.根拠語, 文: 語含む文(結果, 語) };
+      /* 目標にあり＝その視点が目標そのものに書かれているか／有無＝それが振り返りに反映されているか */
+      目標内訳[dim] = { 目標にあり: !!String(txt || "").trim(), 有無: 判定.有無, 根拠語: 判定.根拠語, 文: 語含む文(結果, 語) };
     });
+    目標内訳.読み分けた = 読み分けた;   /* 1列の目標文から自動で読み分けたことを画面に添えるため */
     const 課題引用 = 語含む文(結果, 結果.課題語);
-    return { 番号: row.番号, 課題: 課題, 本文: row.本文, 目標: { Be: row.Be || "", Do: row.Do || "", Regulate: row.Regulate || "" },
+    return { 番号: row.番号, 課題: 課題, 本文: row.本文, 目標: { Be: be, Do: ドゥ, Regulate: reg, まとめ: 目標まとめ },
              結果: 結果, 集: 集, A: A, B: B, C: Cx, 段階: 段階判定(A, B), 目標内訳: 目標内訳, 課題引用: 課題引用 };
   });
   return { 子ら: 子ら };
@@ -1083,6 +1140,7 @@ $("btnRun").onclick = () => {
     課題: sel["課題"] >= 0 ? r[sel["課題"]] : "",
     Be: sel["Be"] >= 0 ? r[sel["Be"]] : "", Do: sel["Do"] >= 0 ? r[sel["Do"]] : "",
     Regulate: sel["Regulate"] >= 0 ? r[sel["Regulate"]] : "",
+    目標: sel["目標"] >= 0 ? r[sel["目標"]] : "",
   })).filter(r => r.番号 && r.本文);
   if (!rows.length) { msg($("msgParse"), "err", "番号と振り返りの両方がある行が見つかりませんでした。"); return; }
   学級 = 一括判定(rows);
@@ -1194,7 +1252,7 @@ function ペア語(text, 課題語){
 function ペア提案(学級){
   const all = 学級.子ら.map(c => {
     const 課題語 = 語抽出(c.課題 || "");   /* その子の学習計画表の課題の語は興味の根拠から外す */
-    const 語 = ペア語(c.本文 + "　" + c.目標.Be, 課題語);
+    const 語 = ペア語(c.本文 + "　" + (c.目標.Be || c.目標.まとめ || ""), 課題語);
     const 考え文 = c.結果.文結果.filter(s => s.タグ.some(t => ["原因帰属","適用","適応"].indexOf(t.key) >= 0)).map(s => s.文).join("");
     const 考え = ペア語(考え文, 課題語);
     return { c: c, 語: 語, 考え: 考え };
@@ -1356,7 +1414,9 @@ function 詳細html(c){
   return '<div class="detail"><h3>' + esc(c.番号) + '番の学習計画表（どこをそう読んだか）</h3>' +
     (c.課題 ? '<p class="foot" style="margin:0 0 4px">本時の課題：' + esc(c.課題) + '</p>' : "") +
     (c.目標.Be || c.目標.Do || c.目標.Regulate
-      ? '<p class="foot" style="margin:0 0 8px">自分目標：Be＝' + esc(c.目標.Be || "−") + '／Do＝' + esc(c.目標.Do || "−") + '／Regulate＝' + esc(c.目標.Regulate || "−") + '</p>' : "") +
+      ? '<p class="foot" style="margin:0 0 8px">目標：Be＝' + esc(c.目標.Be || "−") + '／Do＝' + esc(c.目標.Do || "−") + '／Regulate＝' + esc(c.目標.Regulate || "−") +
+        (c.目標内訳 && c.目標内訳.読み分けた ? '（1つの欄の目標文から自動で読み分け）' : '') + '</p>'
+      : (c.目標.まとめ ? '<p class="foot" style="margin:0 0 8px">目標：' + esc(c.目標.まとめ) + '</p>' : "")) +
     c.結果.文結果.map(s =>
       '<div class="sent">' + esc(s.文) + '<span class="kind ' + s.別 + '">' + s.別 + '</span>' +
       (s.タグ.length ? '<div class="tglst">' + s.タグ.map(t => '<span class="tg">' + esc(判定辞書_観点B[t.key] ? 判定辞書_観点B[t.key].くわしい : (判定辞書_観点C[t.key] ? 判定辞書_観点C[t.key].くわしい : t.key)) + '</span>').join("") + '</div>' : "") +
@@ -1634,10 +1694,22 @@ const 役割P = [
   { key: "Be", 推測: /Be|内容の目標|学習内容/i },
   { key: "Do", 推測: /Do|行動の目標/i },
   { key: "Regulate", 推測: /Reg|調整の目標|気を付け/i },
+  /* Be/Do/Regulateに分けず「自分目標」1列にまとめている表にも対応する */
+  { key: "目標", 推測: /目標/ },
 ];
 function p列推測(){
   const sel = {};
-  役割P.forEach(r => sel[r.key] = 個人生表.見出し.findIndex(hd => r.推測.test(hd)));
+  /* 「回」と「目標（まとめて1列）」は最後に決める：
+     ・「回」は判定の手がかりに“時”が入っているため「本時の課題」とも一致してしまう
+     ・「目標」はBe/Do/Regulateの列が別にあるときはそちらを優先したい
+     いずれも、ほかの役割が取った列を避けてから選ぶことで誤読しないようにする */
+  役割P.filter(r => r.key !== "回" && r.key !== "目標").forEach(r => sel[r.key] = 個人生表.見出し.findIndex(hd => r.推測.test(hd)));
+  let 使用済み = new Set(Object.keys(sel).map(k => sel[k]).filter(v => v >= 0));
+  const 目標定義P = 役割P.filter(r => r.key === "目標")[0];
+  sel["目標"] = 個人生表.見出し.findIndex((hd, i) => !使用済み.has(i) && 目標定義P.推測.test(hd));
+  使用済み = new Set(Object.keys(sel).map(k => sel[k]).filter(v => v >= 0));
+  const 回定義 = 役割P.filter(r => r.key === "回")[0];
+  sel["回"] = 個人生表.見出し.findIndex((hd, i) => !使用済み.has(i) && 回定義.推測.test(hd));
   if (sel["ふりかえり"] < 0) {
     let best = -1, bl = -1;
     個人生表.見出し.forEach((_, i) => {
@@ -1680,6 +1752,7 @@ $("btnRunP").onclick = () => {
     Be: sel["Be"] >= 0 ? (r[sel["Be"]] || "") : "",
     Do: sel["Do"] >= 0 ? (r[sel["Do"]] || "") : "",
     Regulate: sel["Regulate"] >= 0 ? (r[sel["Regulate"]] || "") : "",
+    目標: sel["目標"] >= 0 ? (r[sel["目標"]] || "") : "",
   })).filter(r => r.本文);
   if (!rows.length) { msg($("msgParseP"), "err", "ふりかえりの書かれた行が見つかりませんでした。"); return; }
   個人 = 一括判定(rows).子ら;
@@ -1725,29 +1798,42 @@ function 個人描画(){
   }
   const 段落 = [];
 
-  /* 目標関連はBe（学習内容）／Do（行動）／Regulate（調整）の内訳まで説明する */
+  /* 目標関連：Be（学習内容）／Do（行動）／Regulate（調整）の内訳ごとに評価する。
+     欄が分かれていない表でも、目標文から読み分けた結果を同じように使う。
+     「目標そのものに書かれていない」のか「目標にはあるが振り返りに出てこない」のかを区別して述べる */
   {
+    const 内訳定義 = [
+      ["Be", "何ができるようになりたいのかという学習内容についての記述（Beの視点）"],
+      ["Do", "そのためにどのような行動をしていくのかという記述（Doの視点）"],
+      ["Regulate", "時間や進め方など、学習の調整についての記述（Regulateの視点）"],
+    ];
     const beSeq = 個人.map(c => c.目標内訳.Be.有無);
     const doSeq = 個人.map(c => c.目標内訳.Do.有無);
     const reSeq = 個人.map(c => c.目標内訳.Regulate.有無);
     const anySeq = 個人.map((c, i) => beSeq[i] || doSeq[i] || reSeq[i]);
     const パターン = 変容パターン(anySeq);
     if (パターン) {
-      const both = beSeq.map((v, i) => v && doSeq[i]);
-      const firstBoth = both.indexOf(true);
-      let 内訳文;
-      if (beSeq.some(v => v) && doSeq.some(v => v))
-        内訳文 = "目標は、何ができるようになりたいのかといった学習内容についての記述（Beの視点）と、そのためにどのような行動をしていくのかという記述（Doの視点）が" +
-          (firstBoth >= 0 ? "、「" + esc(個人[firstBoth].番号) + "」から" : "") + "そろって書かれています。";
-      else if (beSeq.some(v => v)) 内訳文 = "目標のうち、学習内容についての記述（Beの視点）は書かれていますが、そのための行動（Doの視点）はまだ書かれていません。";
-      else if (doSeq.some(v => v)) 内訳文 = "目標のうち、行動についての記述（Doの視点）は書かれていますが、何ができるようになりたいのか（Beの視点）はまだ書かれていません。";
-      else 内訳文 = "";
+      const 反映 = 内訳定義.filter(([k]) => 個人.some(c => c.目標内訳[k].有無));
+      const 目標のみ = 内訳定義.filter(([k]) => !個人.some(c => c.目標内訳[k].有無) && 個人.some(c => c.目標内訳[k].目標にあり));
+      const 目標になし = 内訳定義.filter(([k]) => !個人.some(c => c.目標内訳[k].目標にあり));
+      /* 初めてBeとDoの両方がそろって振り返られた回 */
+      const firstBoth = beSeq.map((v, i) => v && doSeq[i]).indexOf(true);
+      let 内訳文 = "";
+      if (反映.length) {
+        内訳文 += "目標は、" + 反映.map(x => x[1]).join("と") +
+          (反映.length >= 2 && firstBoth >= 0 ? "が、「" + esc(個人[firstBoth].番号) + "」から" : "が") + "振り返りに書かれています。";
+      }
+      if (目標のみ.length) 内訳文 += "いっぽう、" + 目標のみ.map(x => x[1]).join("・") + "は、目標には立てていますが振り返りには出てきていません。";
+      if (目標になし.length) 内訳文 += "また、" + 目標になし.map(x => x[1]).join("・") + "は、目標そのものに書かれていません。";
       const 該当 = 個人.filter((c, i) => anySeq[i]);
       const 引用 = 最良引用(該当.filter(c => c.目標内訳.Regulate.有無), c => c.目標内訳.Regulate.文) ||
         最良引用(該当.filter((c, i) => beSeq[i] && doSeq[i]), c => c.目標内訳.Do.文 || c.目標内訳.Be.文) ||
         最良引用(該当, c => c.目標内訳.Be.文 || c.目標内訳.Do.文 || c.目標内訳.Regulate.文);
       段落.push('<div class="advice good"><b>目標</b>：' + パターン + '。' + 内訳文 +
-        (引用 ? '特に、「' + esc(引用.番号) + '」の「' + esc(引用.文) + '」という記述が良いと思います。' : '') + '</div>');
+        (引用 ? '特に、「' + esc(引用.番号) + '」の「' + esc(引用.文) + '」という記述が良いと思います。' : '') +
+        (個人.some(c => c.目標内訳.読み分けた)
+          ? '<span class="q">※この表は目標が1つの欄にまとめて書かれているため、その文からBe・Do・Regulateを自動で読み分けて評価しています。' +
+            '読み分けが実際とちがうときは、目標を3つの欄に分けた書式をお使いください。</span>' : '') + '</div>');
     }
   }
 
