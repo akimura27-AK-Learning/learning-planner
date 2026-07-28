@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="robots" content="noindex,nofollow">
-<title>方略パズル（仮称）プロトタイプ v2（モニター版）</title>
+<title>方略パズル（仮称）プロトタイプ v3（モニター版）</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Zen+Maru+Gothic:wght@700;900&display=swap" rel="stylesheet">
 <style>
@@ -39,6 +39,11 @@ h2.ttl{font-size:17px;line-height:1.7;margin:10px 0 4px}
 #scTitle{align-items:center;justify-content:center;text-align:center;padding:24px}
 #scTitle .logo{font-size:30px;letter-spacing:.1em;color:var(--gold);text-shadow:0 4px 0 #6b3d00;line-height:1.5}
 #scTitle .sub{font-size:12px;color:#c3c9e8;margin:10px 0 4px;line-height:2}
+.entry{display:flex;flex-direction:column;gap:10px;align-items:stretch;width:100%;max-width:290px}
+button.sub{background:#171531;border-color:#6b7399;box-shadow:0 4px 0 #0b0a1c;font-size:12.5px;padding:10px 14px;color:#c7cdea}
+.entrynote{font-size:9.5px;color:#7d85ad;line-height:1.8;margin-top:2px}
+.tutohead{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-right:118px}
+button.skip{background:transparent;border:2px solid #4b5484;box-shadow:none;font-size:10px;padding:5px 9px;color:#9aa3c7;border-radius:7px}
 .optrow{display:flex;gap:8px;justify-content:center;margin:14px 0 6px;flex-wrap:wrap}
 .opt{font-size:11.5px;padding:9px 14px;border:2px solid #6b7399;border-radius:8px;background:#171531;color:#aab2d8;cursor:pointer}
 .opt.on{border-color:var(--gold);background:#3a2a05;color:#ffe9b8}
@@ -79,7 +84,7 @@ h2.ttl{font-size:17px;line-height:1.7;margin:10px 0 4px}
 #scBattle{display:none;flex-direction:column;height:100%}
 #scBattle.on{display:flex}
 .btop{flex:0 0 auto;padding:8px 10px 4px}
-.btopbar{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:10.5px;padding-right:74px}
+.btopbar{display:flex;justify-content:flex-start;align-items:center;gap:10px;font-size:10.5px;padding-right:132px;flex-wrap:nowrap;overflow:hidden}
 .hpwrap{margin-top:6px}
 .hplabel{display:flex;justify-content:space-between;font-size:10.5px;color:#dfe3f7;margin-bottom:3px}
 .hpbar{height:12px;background:#241f3d;border:2px solid #fff;border-radius:6px;overflow:hidden}
@@ -98,6 +103,14 @@ h2.ttl{font-size:17px;line-height:1.7;margin:10px 0 4px}
 .timerbar{height:9px;background:#241f3d;border:2px solid #fff;border-radius:5px;overflow:hidden}
 .timerfill{height:100%;width:100%;background:linear-gradient(90deg,#22d3ee,#a3e635)}
 .timerhint{font-size:10px;color:#9aa3c7;text-align:center;margin-top:4px;height:14px}
+.grabname{flex:0 0 auto;height:26px;margin:0 8px 4px;display:flex;align-items:center;justify-content:center;gap:6px;
+  font-size:11.5px;line-height:1.3;color:#fff;background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.14);
+  border-radius:8px;overflow:hidden;white-space:nowrap;transition:background .15s,border-color .15s}
+.grabname.on{background:rgba(255,255,255,.12)}
+.grabname .gdot{width:12px;height:12px;border-radius:4px;flex:0 0 auto;border:1px solid rgba(255,255,255,.7)}
+.grabname .gcat{font-size:9.5px;color:#c3c9e8;flex:0 0 auto}
+.grabname .gname{overflow:hidden;text-overflow:ellipsis}
+#tutoGrab{margin:8px 0 0;height:26px}
 #boardWrap{flex:0 0 auto;position:relative;margin:0 auto;touch-action:none}
 .drop{position:absolute;left:0;top:0;display:flex;align-items:center;justify-content:center;transition:transform .13s linear;will-change:transform}
 .drop canvas{display:block;border-radius:22%}
@@ -214,15 +227,23 @@ h2.ttl{font-size:17px;line-height:1.7;margin:10px 0 4px}
       <div class="opt" data-mode="slow" id="optSlow"></div>
     </div>
     <div style="font-size:10.5px;color:#8d95bd;line-height:2;margin:8px 0 16px" id="titleRule"></div>
-    <button class="gold" id="btnStart"></button>
+    <div class="entry">
+      <button class="gold" id="btnQuick"></button>
+      <button class="sub" id="btnTuto"></button>
+      <div class="entrynote" id="entryNote"></div>
+    </div>
   </div>
 
   <!-- れんしゅう -->
   <div class="screen" id="scTuto"><div class="pad">
-    <div class="tutostep" id="tutoStep"></div>
+    <div class="tutohead">
+      <span class="tutostep" id="tutoStep"></span>
+      <button class="skip" id="btnSkipTuto"></button>
+    </div>
     <h2 class="ttl" id="tutoTtl"></h2>
     <div class="lead" id="tutoLead"></div>
     <div id="tutoBoard"></div>
+    <div class="grabname" id="tutoGrab"></div>
     <div class="dqwin tutobox" id="tutoBox" style="display:none"></div>
     <div class="foot" id="tutoFoot"></div>
   </div></div>
@@ -279,6 +300,7 @@ h2.ttl{font-size:17px;line-height:1.7;margin:10px 0 4px}
       <div class="timerbar"><div class="timerfill" id="timerFill"></div></div>
       <div class="timerhint" id="timerHint"></div>
     </div>
+    <div class="grabname" id="grabName"></div>
     <div id="boardWrap"></div>
     <div class="deckbar" id="deckBar"></div>
   </div>
@@ -306,7 +328,7 @@ h2.ttl{font-size:17px;line-height:1.7;margin:10px 0 4px}
 
 <script>
 /* ============================================================
-   方略パズル（仮称）プロトタイプ v2
+   方略パズル（仮称）プロトタイプ v3
    v2の主眼＝入口をやさしくする
      ①はじめに「1手だけ動かす」れんしゅうを置き、説明を後ろに回す
      ②カテゴリー名を子どものことばに（しらべる／たしかめる／やる気／じゅんび／きもち）
@@ -420,33 +442,225 @@ const BAT=["................","................","..m..........m..",".mmm.......
 const SPRDEF={imp:[IMP,PAL_IMP],ghost:[GHOST,PAL_GHOST],bat:[BAT,PAL_BAT]};
 function enemySprite(key,scale){ const d=SPRDEF[key]; return makeSprite(d[0],d[1],scale); }
 
+/* ドロップの絵柄：32×32ドット。w＝白／l＝うすい白（つや・ガラス）／d＝かげ／k＝こい黒 の4階調 */
+const ART_N=32;
 const DROP_ART=[
-  ["..www...",".w...w..","w.....w.","w.....w.",".w...w..","..www.w.",".....ww.","......ww"],
-  ["........","..wwww..",".w....w.","w..ww..w","w..ww..w",".w....w.","..wwww..","........"],
-  ["...w....","..www...","wwwwwwww",".wwwww..","..www...",".ww.ww..","ww...ww.","........"],
-  ["..wwww..",".w....w.","w..w...w","w..w...w","w..www.w","w......w",".w....w.","..wwww.."],
-  [".ww..ww.","wwwwwwww","wwwwwwww","wwwwwwww",".wwwwww.","..wwww..","...ww...","........"],
+  /* 認知：しらべる（虫めがね） */[
+  "................................",
+  ".........dddddddd...............",
+  "......ddddwwwwwwdddd............",
+  ".....ddwwwwwwwwwwwwdd...........",
+  "....ddwwwwwwllwwwwwwdd..........",
+  "...ddwwwwllllllllwwwwdd.........",
+  "..ddwwwllllllllllllwwwdd........",
+  "..dwwwllllwwllllllllwwwd........",
+  "..dwwwlllwwwllllllllwwwd........",
+  ".ddwwlllwwwllllllllllwwdd.......",
+  ".dwwwllwwwlllllllllllwwwd.......",
+  ".dwwwlllwllllllllllllwwwd.......",
+  ".dwwllllllllllllllllllwwd.......",
+  ".dwwllllllllllllllllllwwd.......",
+  ".dwwwllllllllllllllllwwwd.......",
+  ".dwwwllllllllllllllllwwwd.......",
+  ".ddwwllllllllllllllllwwdd.......",
+  "..dwwwllllllllllllllwwwd........",
+  "..dwwwllllllllllllllwwwdd.......",
+  "..ddwwwllllllllllllwwwwwdd......",
+  "...ddwwwwllllllllwwwwwwwwdd.....",
+  "....ddwwwwwwllwwwwwwwwwwwwdd....",
+  ".....ddwwwwwwwwwwwwwwwwwwwwdd...",
+  "......ddddwwwwwwdddwwwwwwwwwdd..",
+  ".........dddddddd.ddwwwwwwwwwdd.",
+  "...................ddwwwwwwwwwdd",
+  "....................ddwwwwwwwwwd",
+  ".....................ddwwwwwwwwd",
+  "......................ddwwwwwwwd",
+  ".......................ddwwwwwwd",
+  "........................ddwwwwdd",
+  ".........................dddddd."
+  ],
+  /* メタ認知：たしかめる（目） */[
+  "................................",
+  "................................",
+  "................................",
+  "................................",
+  "................................",
+  "................................",
+  "...........dddddddddd...........",
+  ".........dddwwwwwwwwddd.........",
+  "........ddwwwwwwwwwwwwdd........",
+  ".......ddwwwwwllllwwwwwdd.......",
+  "......ddwwwllddddddllwwwdd......",
+  ".....ddwwwlddwdddddddlwwwdd.....",
+  "....ddwwllldwwwddddddlllwwdd....",
+  "...ddwwlllddwwwkkkddddlllwwdd...",
+  "..ddwwllllddwwwkkkkdddllllwwdd..",
+  "..dwwllllldddkkkkkkdddlllllwwd..",
+  "..dwwllllldddkkkkkkdddlllllwwd..",
+  "..ddwwlllldddkkkkkkdddllllwwdd..",
+  "...ddwwlllddddkkkkddddlllwwdd...",
+  "....ddwwlllddddddddddlllwwdd....",
+  ".....ddwwwlddddddddddlwwwdd.....",
+  "......ddwwwllddddddllwwwdd......",
+  ".......ddwwwwwllllwwwwwdd.......",
+  "........ddwwwwwwwwwwwwdd........",
+  ".........dddwwwwwwwwddd.........",
+  "...........dddddddddd...........",
+  "................................",
+  "................................",
+  "................................",
+  "................................",
+  "................................",
+  "................................"
+  ],
+  /* 動機づけ調整：やる気（ほのお） */[
+  "..............ddd...............",
+  ".............ddwd...............",
+  "............ddwwd...............",
+  "............dwwwdd..............",
+  "...........ddwwwwd..............",
+  "...........dwwwwwd...ddd........",
+  "...........dwwwwwd..ddwd........",
+  "..........ddwwwwwddddwwd........",
+  "..........dwwwwwwwddwwwd........",
+  "..........dwwwwwwwdwwwwd........",
+  ".........ddwwwwwwwwwwwwd........",
+  "........ddwwwwwlwwwwwwwdd.......",
+  ".......ddwwwwwllwwwwwwwwd.......",
+  "......ddwwwwwwlllwwwwwwwdd......",
+  "......dwwwwwwllllwwwwwwwwdd.....",
+  "......dwwwwwllllllwwwwwwwwd.....",
+  ".....ddwwwwwllllllwwwwwwwwd.....",
+  ".....dwwwwwllllllllwwwwwwwd.....",
+  "....ddwwwwwllllllllwwwwwwwd.....",
+  "....dwwwwwwllllllllwwwwwwwd.....",
+  "....ddwwwwwllllllllwwwwwwwd.....",
+  ".....dwwwwwllllllllwwwwwwwd.....",
+  ".....dwwwwwlllllllwwwwwwwwd.....",
+  ".....dwwwwwlllllllwwwwwwwdd.....",
+  ".....dwwwwwwlllllwwwwwwwdd......",
+  ".....ddwwwwwwlllwwwwwwwwd.......",
+  "......ddwwwwwwwwwwwwwwwdd.......",
+  ".......ddwwwwwwwwwwwwddd........",
+  "........ddwwwwwwwwwwdd..........",
+  ".........dddddwwwwddd...........",
+  ".............dddddd.............",
+  "................................"
+  ],
+  /* リソース管理：じゅんび（とけい） */[
+  "................................",
+  "...........dddddddddd...........",
+  "........ddddwwwwwwwwdddd........",
+  ".......ddwwwwwwwwwwwwwwdd.......",
+  ".....dddwwwwwllddllwwwwwddd.....",
+  "....ddwwwwwllllddllllwwwwwdd....",
+  "....dwwwwldllllddlllldlwwwwd....",
+  "...ddwwwllddlllddlllddllwwwdd...",
+  "..ddwwwllllllllddllllllllwwwdd..",
+  "..dwwwlllllllllddlllllllllwwwd..",
+  "..dwwwddlllllllddlllllllddwwwd..",
+  ".ddwwlldlllllllddllllllldllwwdd.",
+  ".dwwwllllllllllddllllllllllwwwd.",
+  ".dwwlllllllllllddlllllllllllwwd.",
+  ".dwwlllllllllllddlllllllllllwwd.",
+  ".dwwddddlllllldddddddddlddddwwd.",
+  ".dwwddddlllllldddddddddlddddwwd.",
+  ".dwwlllllllllllddlllllllllllwwd.",
+  ".dwwllllllllllllllllllllllllwwd.",
+  ".dwwwllllllllllllllllllllllwwwd.",
+  ".ddwwlldlllllllllllllllldllwwdd.",
+  "..dwwwddllllllllllllllllddwwwd..",
+  "..dwwwllllllllllllllllllllwwwd..",
+  "..ddwwwllllllllllllllllllwwwdd..",
+  "...ddwwwllddlllddlllddllwwwdd...",
+  "....dwwwwldllllddlllldlwwwwd....",
+  "....ddwwwwwllllddllllwwwwwdd....",
+  ".....dddwwwwwllddllwwwwwddd.....",
+  ".......ddwwwwwwwwwwwwwwdd.......",
+  "........ddddwwwwwwwwdddd........",
+  "...........dddddddddd...........",
+  "................................"
+  ],
+  /* 情動調整：きもち（ハート） */[
+  "................................",
+  "................................",
+  "................................",
+  "................................",
+  "......ddddddddd..ddddddddd......",
+  ".....ddwwwwwwwddddwwwwwwwdd.....",
+  "....ddwwwwllllwddwwwwwwwwwdd....",
+  "...ddwwlllllllwwwwwwwwwwwwwdd...",
+  "...dwwlllllllwwwwwwwwwwwwwwwd...",
+  "...dwwlllllwwwwwwwwwwwwwwwwwd...",
+  "...dwwlllllwwwwwwwwwwwwwwwwwd...",
+  "...dwwwlllwwwwwwwwwwwwwwwwwwd...",
+  "...dwwwwwwwwwwwwwwwwwwwwwwwwd...",
+  "...dwwwwwwwwwwwwwwwwwwwwwwwwd...",
+  "...dwwwwwwwwwwwwwwwwwwwwwwwwd...",
+  "...ddwwwwwwwwwwwwwwwwwwwwwwdd...",
+  "....ddwwwwwwwwwwwwwwwwwwwwdd....",
+  ".....ddwwwwwwwwwwwwwwwwwwdd.....",
+  "......ddwwwwwwwwwwwwwwwwdd......",
+  ".......ddwwwwwwwwwwwwwwdd.......",
+  "........ddwwwwwwwwwwwwdd........",
+  ".........ddwwwwwwwwwwdd.........",
+  "..........dwwwwwwwwwwd..........",
+  "..........ddwwwwwwwwdd..........",
+  "...........ddwwwwwwdd...........",
+  "............ddwwwwdd............",
+  ".............dwwwwd.............",
+  ".............ddwwdd.............",
+  "..............dddd..............",
+  "................................",
+  "................................",
+  "................................"
+  ],
 ];
+
+
+const ART_COL={ w:'rgba(255,255,255,.97)', l:'rgba(255,255,255,.55)', d:'rgba(0,0,0,.34)', k:'rgba(0,0,0,.62)' };
+
 const dropIconCache={};
-function dropCanvas(ci,size){
-  if(!dropIconCache[ci]) dropIconCache[ci]=buildDrop(ci,96);
-  const c=document.createElement('canvas'); c.width=size; c.height=size;
+const DPR = Math.min(3, Math.max(1, window.devicePixelRatio||1));   // Retina でもドットがにじまないように
+/* size は CSS上の大きさ。中身は DPR 倍で描く */
+function dropCanvas(ci,size,withLabel){
+  const W=Math.round(size*DPR);
+  const key=ci+'_'+W+'_'+(withLabel?1:0);
+  if(!dropIconCache[key]) dropIconCache[key]=buildDrop(ci,W,!!withLabel);
+  const c=document.createElement('canvas'); c.width=W; c.height=W;
+  c.style.width=size+'px'; c.style.height=size+'px';
   const g=c.getContext('2d'); g.imageSmoothingEnabled=false;
-  g.drawImage(dropIconCache[ci],0,0,size,size);
+  g.drawImage(dropIconCache[key],0,0);
+  if(withLabel) drawCatLabel(g,ci,W);
   return c;
 }
-function buildDrop(ci,size){
-  const c=document.createElement('canvas'); c.width=size; c.height=size;
-  const g=c.getContext('2d'), cat=CATS[ci], r=size*0.22;
-  g.fillStyle=cat.color; roundRect(g,1,1,size-2,size-2,r); g.fill();
-  const grad=g.createLinearGradient(0,0,0,size);
+/* なかま名は描画のたびに入れる（ことば切替で変わるため） */
+function drawCatLabel(g,ci,W){
+  const name=catName(CATS[ci].key);
+  let fs=Math.max(7*DPR,Math.round(W*0.165));
+  g.textAlign='center'; g.textBaseline='middle';
+  for(let i=0;i<14;i++){ g.font=`${fs}px "DotGothic16","Zen Maru Gothic",sans-serif`;
+    if(g.measureText(name).width<=W*0.88 || fs<=7*DPR) break; fs--; }
+  const bh=fs+Math.round(W*0.06), by=W-bh-Math.round(W*0.055);
+  g.fillStyle='rgba(0,0,0,.46)';
+  roundRect(g,W*0.06,by,W*0.88,bh,bh/2); g.fill();
+  g.fillStyle='#fff'; g.fillText(name,W/2,by+bh/2+0.5);
+}
+function buildDrop(ci,W,withLabel){
+  const c=document.createElement('canvas'); c.width=W; c.height=W;
+  const g=c.getContext('2d'), cat=CATS[ci], r=W*0.22;
+  g.fillStyle=cat.color; roundRect(g,1,1,W-2,W-2,r); g.fill();
+  const grad=g.createLinearGradient(0,0,0,W);
   grad.addColorStop(0,'rgba(255,255,255,.42)'); grad.addColorStop(.5,'rgba(255,255,255,0)'); grad.addColorStop(1,'rgba(0,0,0,.30)');
-  g.fillStyle=grad; roundRect(g,1,1,size-2,size-2,r); g.fill();
-  g.strokeStyle='rgba(255,255,255,.85)'; g.lineWidth=Math.max(2,size*0.055); roundRect(g,1.5,1.5,size-3,size-3,r); g.stroke();
-  const art=DROP_ART[ci], px=Math.max(2,Math.floor(size*0.075)), aw=8*px;
-  const ox=Math.round((size-aw)/2), oy=Math.round((size-aw)/2);
-  g.fillStyle='rgba(255,255,255,.95)';
-  art.forEach((row,y)=>{ for(let x=0;x<8;x++){ if(row[x]==='w') g.fillRect(ox+x*px,oy+y*px,px,px); } });
+  g.fillStyle=grad; roundRect(g,1,1,W-2,W-2,r); g.fill();
+  g.strokeStyle='rgba(255,255,255,.85)'; g.lineWidth=Math.max(2,W*0.055); roundRect(g,1.5,1.5,W-3,W-3,r); g.stroke();
+  /* 1ドットは必ず整数ピクセルの正方形にする（にじみ防止） */
+  const artFrac = withLabel ? 0.64 : 0.78;
+  const px=Math.max(1,Math.floor(W*artFrac/ART_N)), aw=ART_N*px;
+  const ox=Math.round((W-aw)/2), oy=Math.round((withLabel? W*0.305 : W*0.5) - aw/2);
+  const art=DROP_ART[ci];
+  for(let y=0;y<ART_N;y++){ const row=art[y];
+    for(let x=0;x<ART_N;x++){ const col=ART_COL[row[x]]; if(col){ g.fillStyle=col; g.fillRect(ox+x*px,oy+y*px,px,px); } } }
   return c;
 }
 function roundRect(g,x,y,w,h,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); }
@@ -459,9 +673,17 @@ const G={
   eIndex:0, enemy:null, eHp:0, pHp:5, pMax:5,
   guessCat:null, guessHit:false,
   grid:[], els:[], busy:false, held:null, timer:null, tStart:0, turn:0,
-  tutoStep:0, tGrid:[], tEls:[], tHeld:null, tBusy:false,
+  tutoStep:0, tGrid:[], tEls:[], tHeld:null, tBusy:false, seenTuto:false,
   rec:{catDmg:{}, maxCombo:0, mixCount:0, moves:0, total:0, bestMix:null, bestMixDmg:0, guesses:[]},
 };
+
+/* ---------- れんしゅうを済ませたかどうかの記録（端末内） ----------
+   1人1台の想定。2回目からはれんしゅうを自動でとばす。
+   保存できない環境（プライベートモード等）では、毎回「はじめて」の扱いになるだけで支障はない。 */
+const SAVE_KEY='houryaku_puzzle_v1';
+function loadSave(){ try{ return JSON.parse(localStorage.getItem(SAVE_KEY))||{}; }catch(e){ return {}; } }
+function markTutoSeen(){ try{ const o=loadSave(); o.tuto=1; localStorage.setItem(SAVE_KEY,JSON.stringify(o)); }catch(e){} G.seenTuto=true; }
+function forgetTuto(){ try{ const o=loadSave(); delete o.tuto; localStorage.setItem(SAVE_KEY,JSON.stringify(o)); }catch(e){} G.seenTuto=false; }
 
 /* ---------- ことば ---------- */
 function E(easy,full){ return G.easy?easy:full; }
@@ -481,6 +703,21 @@ function cardInner(key){
   const c=CARD[key];
   if(G.easy) return `<span class="cname">${c.easy}</span><span class="cofficial">${chip(c.cat)}${c.title}</span>`;
   return `<span class="cname">${chip(c.cat)}${c.title}</span><span class="cfull">${c.full}</span>`;
+}
+
+/* ---------- つかんだドロップの方略名を出す ---------- */
+function showGrabName(ci,elId){
+  const el=document.getElementById(elId||'grabName'); if(!el) return;
+  const cat=CATS[ci], c=CARD[G.deck[cat.key]||BASE_DECK[cat.key]];
+  el.classList.add('on');
+  el.innerHTML=`<span class="gdot" style="background:${cat.color}"></span>`
+    + `<span class="gcat">${catName(cat.key)}</span>`
+    + `<span class="gname">${G.easy?c.easy:c.title}</span>`;
+}
+function clearGrabName(elId){
+  const el=document.getElementById(elId||'grabName'); if(!el) return;
+  el.classList.remove('on');
+  el.innerHTML=`<span class="gcat">${E('たまを つかむと、その わざの 名前が ここに 出るよ','ドロップをつかむと、その方略名がここに出ます')}</span>`;
 }
 
 /* ---------- 画面 ---------- */
@@ -513,7 +750,7 @@ function rerender(){
 function paintTitle(){
   document.getElementById('titleSub').innerHTML =
     E('〜 わざは、あわせると つよい 〜','〜 方略は、組み合わせると強い 〜')
-    + '<br><span style="font-size:10px;color:#8d95bd">プロトタイプ v2／教材課 D氏</span>';
+    + '<br><span style="font-size:10px;color:#8d95bd">プロトタイプ v3／教材課 D氏</span>';
   const lg=document.getElementById('catLegend'); lg.innerHTML='';
   CATS.forEach((cat,i)=>{
     const d=document.createElement('div'); d.className='clg';
@@ -527,13 +764,26 @@ function paintTitle(){
   document.getElementById('titleRule').innerHTML =
     E('たまの 色は、5つの わざの なかま。<br>そろえて 消す＝わざを つかう。<br>いろんな なかまを いっしょに つかうほど つよい。',
       'ドロップの色は、5つの方略カテゴリー。<br>そろえて消す＝方略を使う。<br>いろいろな方略を同時に使うほど強くなります。');
-  document.getElementById('btnStart').textContent=E('▶ まず さわってみる','▶ はじめる（れんしゅうから）');
+  const seen=G.seenTuto;
+  document.getElementById('btnQuick').textContent = seen
+    ? E('▶ はじめる','▶ はじめる')
+    : E('▶ はじめる（まず さわってみる）','▶ はじめる（練習から）');
+  document.getElementById('btnTuto').textContent = seen
+    ? E('🖐 もう一度 れんしゅうする','🖐 もう一度 練習する')
+    : E('れんしゅうを とばして はじめる','練習をとばしてはじめる');
+  document.getElementById('entryNote').textContent = seen
+    ? E('れんしゅうは すみ。すぐ はじめられるよ。','練習は済みです。すぐはじめられます。')
+    : E('はじめてなので、まず みじかい れんしゅうから。つぎからは すぐ はじめられるよ。','はじめてなので、まず短い練習から。次からはすぐはじめられます。');
 }
 document.querySelectorAll('#modeRow .opt').forEach(o=>o.addEventListener('click',()=>{
   document.querySelectorAll('#modeRow .opt').forEach(x=>x.classList.remove('on'));
   o.classList.add('on'); G.mode=o.dataset.mode; SFX.confirm();
 }));
-document.getElementById('btnStart').addEventListener('click',()=>{ ac(); SFX.confirm(); G.tutoStep=0; startTuto(); });
+document.getElementById('btnQuick').addEventListener('click',()=>{ ac(); SFX.confirm();
+  if(G.seenTuto){ startGoal(); } else { G.tutoStep=0; tutoBoard.dataset.built=''; startTuto(); } });
+document.getElementById('btnTuto').addEventListener('click',()=>{ ac(); SFX.confirm();
+  if(G.seenTuto){ G.tutoStep=0; tutoBoard.dataset.built=''; startTuto(); } else { startGoal(); } });
+document.getElementById('btnSkipTuto').addEventListener('click',()=>{ SFX.confirm(); startGoal(); });
 document.getElementById('btnAgain').addEventListener('click',()=>location.reload());
 
 /* ============================================================ れんしゅう（さわってから、ことば） ============================================================ */
@@ -561,6 +811,7 @@ function startTuto(){ paintTuto(); show('scTuto'); }
 function paintTuto(){
   const t=TUTO[G.tutoStep];
   document.getElementById('tutoStep').textContent=E(`れんしゅう ${G.tutoStep+1} / ${TUTO.length}`,`練習 ${G.tutoStep+1} / ${TUTO.length}`);
+  document.getElementById('btnSkipTuto').textContent=E('とばす →','練習をとばす →');
   document.getElementById('tutoTtl').textContent=E(t.ttlE,t.ttlF);
   document.getElementById('tutoLead').innerHTML=E(t.leadE,t.leadF);
   const box=document.getElementById('tutoBox');
@@ -577,6 +828,13 @@ function paintTuto(){
     foot.appendChild(b);
   }
   if(!tutoBoard.dataset.built){ buildTuto(); }
+  else {
+    const size=Math.max(18,TCELL-6);
+    G.tEls.forEach(row=>row.forEach(el=>{ if(!el) return;
+      const cv=dropCanvas(+el.dataset.ci,size,true); cv.style.width=size+'px'; cv.style.height=size+'px';
+      el.replaceChild(cv,el.querySelector('canvas')); }));
+  }
+  if(!G.tHeld) clearGrabName('tutoGrab');
 }
 function buildTuto(){
   const t=TUTO[G.tutoStep];
@@ -588,6 +846,7 @@ function buildTuto(){
   document.getElementById('tutoBox').style.display='none';
   document.getElementById('tutoBox').dataset.done='0';
   document.getElementById('tutoFoot').innerHTML=''; document.getElementById('tutoFoot').dataset.done='0';
+  clearGrabName('tutoGrab');
   for(let r=0;r<t.rows;r++){ const row=[]; for(let c=0;c<t.cols;c++){ row.push(mkTuto(G.tGrid[r][c],r,c)); } G.tEls.push(row); }
   // 目印（リング＋やじるし）
   const ring=document.createElement('div'); ring.className='ring'; ring.id='tutoRing';
@@ -599,9 +858,9 @@ function buildTuto(){
   tutoBoard.appendChild(ar);
 }
 function mkTuto(ci,r,c){
-  const d=document.createElement('div'); d.className='drop';
+  const d=document.createElement('div'); d.className='drop'; d.dataset.ci=ci;
   const size=Math.max(18,TCELL-6);
-  const cv=dropCanvas(ci,size); cv.style.width=size+'px'; cv.style.height=size+'px';
+  const cv=dropCanvas(ci,size,true); cv.style.width=size+'px'; cv.style.height=size+'px';
   d.appendChild(cv); d.style.width=TCELL+'px'; d.style.height=TCELL+'px';
   d.style.transform=`translate(${c*TCELL}px,${r*TCELL}px)`;
   tutoBoard.appendChild(d); return d;
@@ -614,7 +873,8 @@ function tCellAt(e){
 tutoBoard.addEventListener('pointerdown',e=>{
   if(G.tBusy) return; const p=tCellAt(e); if(!p) return;
   G.tHeld=p; G.tEls[p.r][p.c].classList.add('held'); G.tEls[p.r][p.c].style.zIndex=20;
-  tutoBoard.setPointerCapture(e.pointerId); SFX.grab(); e.preventDefault();
+  tutoBoard.setPointerCapture(e.pointerId); SFX.grab();
+  showGrabName(+G.tEls[p.r][p.c].dataset.ci,'tutoGrab'); e.preventDefault();
 });
 tutoBoard.addEventListener('pointermove',e=>{
   if(!G.tHeld||G.tBusy) return; const p=tCellAt(e); if(!p) return;
@@ -651,7 +911,7 @@ function checkTuto(){
 }
 
 /* ============================================================ ①めあて ============================================================ */
-function startGoal(){ paintGoal(); show('scGoal'); }
+function startGoal(){ markTutoSeen(); paintGoal(); show('scGoal'); }
 function paintGoal(){
   document.getElementById('goalPhase').textContent=E('見とおす','見通す');
   document.getElementById('goalTtl').textContent=E('きょうは、どんな 学びに したい？','きょうは、どんな学びにしたい？');
@@ -767,6 +1027,8 @@ function paintBattle(){
   document.getElementById('timerHint').textContent = (G.mode==='slow')
     ? E('じっくりモード：時間の せいげんは ないよ','じっくりモード：時間制限はありません')
     : E('たまを つかむと 7びょうの タイマーが はじまるよ','ドロップをつかむと7秒のタイマーがはじまります');
+  if(G.els.length) refreshDropArt();
+  if(!G.held) clearGrabName();
 }
 function buildDeckBar(){
   const bar=document.getElementById('deckBar'); bar.innerHTML='';
@@ -792,17 +1054,27 @@ function newGrid(){
   renderAll();
 }
 function makeDropEl(ci){
-  const d=document.createElement('div'); d.className='drop';
+  const d=document.createElement('div'); d.className='drop'; d.dataset.ci=ci;
   const size=Math.max(18,CELL-6);
-  const cv=dropCanvas(ci,size); cv.style.width=size+'px'; cv.style.height=size+'px';
+  const cv=dropCanvas(ci,size,true); cv.style.width=size+'px'; cv.style.height=size+'px';
   d.appendChild(cv); boardWrap.appendChild(d); return d;
+}
+/* ことば切替や画面幅の変化で、なかま名を描き直す */
+function refreshDropArt(){
+  const size=Math.max(18,CELL-6);
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+    const el=G.els[r][c]; if(!el) continue;
+    const cv=dropCanvas(+el.dataset.ci,size,true); cv.style.width=size+'px'; cv.style.height=size+'px';
+    el.replaceChild(cv,el.querySelector('canvas'));
+  }
 }
 function setElPos(el,r,c){ el.style.width=CELL+'px'; el.style.height=CELL+'px'; el.style.transform=`translate(${c*CELL}px,${r*CELL}px)`; }
 function renderAll(){
+  const size=Math.max(18,CELL-6);
   for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
     const el=G.els[r][c]; if(!el) continue;
-    const size=Math.max(18,CELL-6);
-    const cv=el.querySelector('canvas'); cv.style.width=size+'px'; cv.style.height=size+'px';
+    const cv=el.querySelector('canvas');
+    if(cv.width!==Math.round(size*DPR)){ el.replaceChild(dropCanvas(+el.dataset.ci,size,true),cv); }
     setElPos(el,r,c);
   }
 }
@@ -810,8 +1082,9 @@ boardWrap.addEventListener('pointerdown',e=>{
   if(G.busy) return; const p=cellAt(e); if(!p) return;
   G.held=p; const el=G.els[p.r][p.c]; el.classList.add('held'); el.style.zIndex=20;
   boardWrap.setPointerCapture(e.pointerId); SFX.grab();
+  showGrabName(+el.dataset.ci);
   if(G.mode!=='slow'&&!G.timer){ G.tStart=performance.now(); G.timer=requestAnimationFrame(tickTimer);
-    document.getElementById('timerHint').textContent=E('うごかしている あいだに たまを そろえよう','動かしているあいだにドロップをそろえよう'); }
+  }
   e.preventDefault();
 });
 boardWrap.addEventListener('pointermove',e=>{
@@ -1021,10 +1294,11 @@ window.addEventListener('resize',()=>{
 });
 
 /* ---------- 初期化 ---------- */
+G.seenTuto = !!loadSave().tuto;
 paintToggle(); paintTitle();
 
 /* ---------- テスト用フック（Playwright検証で使用） ---------- */
-window.__PZ={G,CATS,CARD,TUTO,findMatches,matchesOf,resolveBoard,
+window.__PZ={G,CATS,CARD,TUTO,findMatches,matchesOf,resolveBoard,loadSave,forgetTuto,markTutoSeen,
   setGrid(rows){ rows.forEach((row,r)=>row.forEach((v,c)=>{ G.grid[r][c]=v; const old=G.els[r][c]; if(old) old.remove(); G.els[r][c]=makeDropEl(v); })); renderAll(); },
   forceResolve(){ return resolveBoard(); },
   solveTuto(){ const t=TUTO[G.tutoStep], a=t.from, b=t.to;
