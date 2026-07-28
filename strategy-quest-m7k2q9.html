@@ -213,6 +213,33 @@ canvas{image-rendering:pixelated;}
   padding:10px 26px; box-shadow:0 4px 0 #8a5a06;
 }
 .bt-next:active{ transform:translateY(3px); box-shadow:none }
+/* ===== 人生のロードマップ（現実世界の ひとつ上の階層） ===== */
+#roadmap{ z-index:12; background:#0d1424; transition:opacity .55s ease; }
+#roadmap.hide{ opacity:0; pointer-events:none; }
+#roadCanvas{ width:100%; height:100%; display:block; }
+.road-title{ position:absolute; top:10px; left:10px; font-size:12px; padding:6px 12px; }
+#roadPanel{
+  position:absolute; left:10px; right:10px; bottom:10px; padding:8px 11px;
+  font-size:12px; line-height:1.7;
+  background:rgba(10,14,35,.90);
+}
+#roadPanel .rp-stage{ color:#ffd166; font-size:13.5px; }
+#roadPanel .rp-age{ color:#8890b8; font-size:10.5px; margin-left:6px; }
+#roadPanel .rp-cap{ color:#fff; }
+#roadPanel .rp-note{ color:#9aa3c7; font-size:10.5px; line-height:1.6; margin-top:3px; }
+#roadPanel .rp-scenes{ display:flex; flex-wrap:wrap; gap:4px; margin-top:6px; }
+#roadPanel .rp-chip{
+  font-size:9.5px; padding:1px 6px; border-radius:4px; color:#dfe3f7; line-height:1.6;
+  background:rgba(255,255,255,.09); border:1px solid rgba(255,255,255,.22);
+}
+#roadPanel .rp-chip.on{ background:var(--green); border-color:#fff; color:#fff; }
+#roadBtn{
+  display:block; margin:8px auto 1px; font-family:"DotGothic16",monospace; font-size:12.5px;
+  color:#fff; background:var(--gold); border:3px solid #fff; border-radius:9px;
+  padding:7px 18px; box-shadow:0 4px 0 #8a5a06;
+}
+#roadBtn:active{ transform:translateY(3px); box-shadow:none }
+
 /* ===== 音の オン・オフ ===== */
 #soundBtn{
   position:absolute; right:8px; top:8px; z-index:60;
@@ -329,6 +356,13 @@ canvas{image-rendering:pixelated;}
       <div id="diceFace">？</div>
       <button id="diceBtn">サイコロを ふる</button>
     </div>
+  </div>
+
+  <!-- ⓪ 人生のロードマップ（いちばん上の階層・自動で進む） -->
+  <div id="roadmap" class="layer">
+    <canvas id="roadCanvas"></canvas>
+    <div class="dqwin road-title">人生の ロードマップ</div>
+    <div class="dqwin" id="roadPanel"></div>
   </div>
 
   <!-- ② 脳内ダイブ演出 -->
@@ -1033,6 +1067,503 @@ function showBanner(html, buttons, col){
 }
 
 /* ============================================================
+   ⓪ 人生のロードマップ（現実世界の ひとつ上の階層）
+   生まれ→幼稚園→小学校→中学校→高校→大学→仕事。
+   自由に行き先をえらぶ画面ではなく、「いま人生のここにいる」ことを
+   自動で見せる画面。生まれ・幼稚園は動きだけで通りすぎる。
+   ============================================================ */
+const LIFE = [
+  {key:'birth',  name:'生まれる', age:'0さい',      state:'move',
+   cap:'生まれた。ここから きみの ものがたりが はじまる。'},
+  {key:'kinder', name:'幼稚園',   age:'3〜5さい',   state:'move',
+   cap:'幼稚園。あそびの なかで、たくさんの ことを 学んだ。'},
+  {key:'elem',   name:'小学校',   age:'6〜12さい',  state:'play',
+   cap:'小学校に 入学した。ここから ぼうけんが はじまる！',
+   scenes:['授業','家庭学習','友達関係','運動会','クラブ活動','総合的な学習','修学旅行','学芸会']},
+  {key:'junior', name:'中学校',   age:'13〜15さい', state:'soon',
+   cap:'中学校。学びも 人とのかかわりも、ぐんと ひろがる。',
+   scenes:['授業','定期テスト','部活動','委員会','進路を えらぶ']},
+  {key:'high',   name:'高校',     age:'16〜18さい', state:'soon',
+   cap:'高校。じぶんで えらぶ ことが 多くなる。',
+   scenes:['授業','受験の勉強','部活動','アルバイト','進路を きめる']},
+  {key:'univ',   name:'大学',     age:'19〜22さい', state:'soon',
+   cap:'大学。学びたいことを、じぶんで 深めていく。',
+   scenes:['講義','ゼミ・研究','サークル','アルバイト','就職の活動']},
+  {key:'work',   name:'仕事',     age:'23さい〜',   state:'soon',
+   cap:'仕事。学びは ここで おわらず、ずっと つづいていく。',
+   scenes:['仕事を すすめる','学びなおす','チームで 進める','くらしとの バランス']},
+];
+/* 480×640を基準にした位置（左右にふりながら 手前から奥へ のぼっていく道）
+   下の1/4は説明パネルが出るので、道はそこに入らないように置く */
+const LIFE_POS = [
+  [0.22,0.660],[0.67,0.594],[0.22,0.528],[0.70,0.462],
+  [0.25,0.396],[0.70,0.330],[0.41,0.268],
+];
+const ROAD_HZ = 0.21;      // 地平線の高さ（画面の高さに対する比）
+
+const roadEl     = document.getElementById('roadmap');
+const roadCanvas = document.getElementById('roadCanvas');
+const rctx       = roadCanvas.getContext('2d');
+const roadPanel  = document.getElementById('roadPanel');
+const life = { pos:0, idx:0, walking:false, cleared:new Set() };
+let roadRaf = null, roadT = 0, roadVisible = false, roadPathCache = null;
+
+function roadFit(){
+  const r = stageEl.getBoundingClientRect();
+  fitHiDPI(roadCanvas, rctx, r.width, r.height);
+}
+/* 決まった値を返す“乱数”（毎フレーム同じ絵になるように） */
+function seeded(i, seed){ const x = Math.sin(i*127.1 + seed*311.7)*43758.5453; return x - Math.floor(x); }
+
+/* --- 節をなめらかにつなぐ曲線（Catmull-Rom） --- */
+function crPoint(p0,p1,p2,p3,t){
+  const t2=t*t, t3=t2*t;
+  return {
+    x:0.5*((2*p1.x)+(-p0.x+p2.x)*t+(2*p0.x-5*p1.x+4*p2.x-p3.x)*t2+(-p0.x+3*p1.x-3*p2.x+p3.x)*t3),
+    y:0.5*((2*p1.y)+(-p0.y+p2.y)*t+(2*p0.y-5*p1.y+4*p2.y-p3.y)*t2+(-p0.y+3*p1.y-3*p2.y+p3.y)*t3)
+  };
+}
+function roadPath(w,h){
+  if(roadPathCache && roadPathCache.w===w && roadPathCache.h===h) return roadPathCache;
+  const nodes = LIFE_POS.map(([rx,ry])=>({x:rx*w, y:ry*h}));
+  const P = [nodes[0], ...nodes, nodes[nodes.length-1]];
+  const pts = [], idx = [], SAMP = 26;
+  for(let i=1;i<P.length-2;i++){
+    idx.push(pts.length);
+    for(let k=0;k<SAMP;k++) pts.push(crPoint(P[i-1],P[i],P[i+1],P[i+2],k/SAMP));
+  }
+  idx.push(pts.length);
+  pts.push(nodes[nodes.length-1]);
+  roadPathCache = {w,h,pts,idx,nodes};
+  return roadPathCache;
+}
+/* 節番号（小数OK）から道の上の座標を求める */
+function roadPointAt(f,w,h){
+  const P = roadPath(w,h);
+  const i = Math.max(0, Math.min(LIFE.length-2, Math.floor(f)));
+  const k = Math.round(P.idx[i] + (P.idx[i+1]-P.idx[i])*(f-i));
+  return P.pts[Math.max(0, Math.min(P.pts.length-1, k))];
+}
+
+/* ---------------- 背景の部品 ---------------- */
+function roundRectPath(x,y,w,h,r){
+  rctx.beginPath();
+  rctx.moveTo(x+r,y); rctx.lineTo(x+w-r,y); rctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  rctx.lineTo(x+w,y+h-r); rctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  rctx.lineTo(x+r,y+h); rctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  rctx.lineTo(x,y+r); rctx.quadraticCurveTo(x,y,x+r,y);
+  rctx.closePath();
+}
+function softShadow(x,y,rx,ry){
+  for(let i=3;i>=1;i--){
+    rctx.fillStyle = `rgba(20,30,20,${0.055*i})`;
+    rctx.beginPath(); rctx.ellipse(x, y, rx*(1+i*0.16), ry*(1+i*0.16), 0, 0, Math.PI*2); rctx.fill();
+  }
+}
+function cloud(x,y,r,alpha){
+  rctx.save();
+  rctx.fillStyle = `rgba(255,255,255,${alpha})`;
+  [[0,0,1],[-0.55,0.14,0.72],[0.58,0.16,0.66],[-0.24,-0.2,0.7],[0.28,-0.16,0.62]].forEach(([dx,dy,sc])=>{
+    rctx.beginPath(); rctx.ellipse(x+r*dx, y+r*dy*0.9, r*sc*0.62, r*sc*0.34, 0, 0, Math.PI*2); rctx.fill();
+  });
+  rctx.restore();
+}
+/* 遠くの山なみ（上ほど淡い色にして 奥行きを出す） */
+function ridge(w, topY, baseY, c0, c1, count, seed, snow){
+  const g = rctx.createLinearGradient(0,topY,0,baseY);
+  g.addColorStop(0,c0); g.addColorStop(1,c1);
+  rctx.fillStyle = g;
+  const n = count*2, span = baseY-topY, peaks = [];
+  rctx.beginPath(); rctx.moveTo(-4, baseY+3);
+  for(let i=0;i<=n;i++){
+    const r = seeded(i,seed), r2 = seeded(i,seed+41), r3 = seeded(i,seed+77);
+    // 峰は左右にずらして 山のかたむきを 非対称にする（三角形の並びに見えないように）
+    const x = w*i/n + (i%2===1 ? (r3-0.5)*(w/n)*0.85 : 0);
+    const y = (i%2===1) ? topY + span*(0.02 + r*0.44)      // 峰（高さはまちまち）
+                        : baseY - span*(0.02 + r2*0.34);   // 谷
+    if(i%2===1) peaks.push([x, y, (y-topY)/span]);
+    rctx.lineTo(x, y);
+  }
+  rctx.lineTo(w+4, baseY+3); rctx.closePath(); rctx.fill();
+  if(snow){
+    // 高い峰だけ 雪をのせる
+    peaks.filter(pk=>pk[2] < 0.30).forEach(([x,y])=>{
+      rctx.fillStyle = 'rgba(255,255,255,.62)';
+      rctx.beginPath(); rctx.moveTo(x, y+span*0.01);
+      rctx.lineTo(x-span*0.085, y+span*0.16); rctx.lineTo(x-span*0.02, y+span*0.11);
+      rctx.lineTo(x+span*0.035, y+span*0.17); rctx.lineTo(x+span*0.09, y+span*0.15);
+      rctx.closePath(); rctx.fill();
+    });
+  }
+}
+function tree(x,y,sc){
+  softShadow(x, y+2*sc, 9*sc, 3.4*sc);
+  rctx.fillStyle = '#6B4A2A';
+  rctx.fillRect(x-1.6*sc, y-9*sc, 3.2*sc, 9*sc);
+  const g = rctx.createRadialGradient(x-3*sc, y-17*sc, 1, x, y-13*sc, 11*sc);
+  g.addColorStop(0,'#7FCB74'); g.addColorStop(0.6,'#4E9B52'); g.addColorStop(1,'#33713C');
+  rctx.fillStyle = g;
+  [[0,-13,8],[-5,-9.5,6],[5,-9.5,6],[0,-19,6.4]].forEach(([dx,dy,r])=>{
+    rctx.beginPath(); rctx.arc(x+dx*sc, y+dy*sc, r*sc, 0, Math.PI*2); rctx.fill();
+  });
+}
+
+/* ---------------- ステージごとの建物 ----------------
+   （x,y）は地面につく足もと。scで大きさを変える。 */
+function lmBirth(x,y,sc){                      // 生まれる：あかりのついた小さな家
+  softShadow(x, y+1, 20*sc, 5*sc);
+  let g = rctx.createLinearGradient(x-14*sc, y-20*sc, x+14*sc, y);
+  g.addColorStop(0,'#FBF3E0'); g.addColorStop(1,'#DCCBAC');
+  rctx.fillStyle=g; rctx.fillRect(x-13*sc, y-20*sc, 26*sc, 20*sc);
+  g = rctx.createLinearGradient(x, y-33*sc, x, y-19*sc);
+  g.addColorStop(0,'#EE8A6E'); g.addColorStop(1,'#B8493A');
+  rctx.fillStyle=g;
+  rctx.beginPath(); rctx.moveTo(x-17*sc, y-19*sc); rctx.lineTo(x, y-33*sc); rctx.lineTo(x+17*sc, y-19*sc); rctx.closePath(); rctx.fill();
+  rctx.fillStyle='#B8493A'; rctx.fillRect(x+7*sc, y-32*sc, 4*sc, 8*sc);
+  rctx.fillStyle='#FFD98A'; rctx.fillRect(x-8*sc, y-14*sc, 7*sc, 7*sc);
+  rctx.fillStyle='#8B6B3D'; rctx.fillRect(x+2*sc, y-12*sc, 7*sc, 12*sc);
+}
+function lmKinder(x,y,sc){                     // 幼稚園：黄色い屋根の園舎とボール
+  softShadow(x, y+1, 24*sc, 5.5*sc);
+  let g = rctx.createLinearGradient(x-18*sc, y-17*sc, x+18*sc, y);
+  g.addColorStop(0,'#FFFBEC'); g.addColorStop(1,'#E4D6B8');
+  rctx.fillStyle=g; rctx.fillRect(x-17*sc, y-17*sc, 34*sc, 17*sc);
+  g = rctx.createLinearGradient(x, y-28*sc, x, y-16*sc);
+  g.addColorStop(0,'#FFD563'); g.addColorStop(1,'#E39A18');
+  rctx.fillStyle=g;
+  rctx.beginPath(); rctx.moveTo(x-20*sc, y-16*sc); rctx.lineTo(x, y-28*sc); rctx.lineTo(x+20*sc, y-16*sc); rctx.closePath(); rctx.fill();
+  rctx.fillStyle='#9FD8F0';
+  [-11,-1,9].forEach(dx=> rctx.fillRect(x+dx*sc, y-12*sc, 7*sc, 6*sc));
+  rctx.fillStyle='#F06A6A'; rctx.fillRect(x-3*sc, y-6*sc, 7*sc, 6*sc);
+  rctx.fillStyle='#EF6C8B'; rctx.beginPath(); rctx.arc(x+24*sc, y-3*sc, 3.4*sc, 0, Math.PI*2); rctx.fill();
+}
+function schoolBuilding(x,y,sc,roofC0,roofC1,rows,cols,flag){
+  const bw = 40*sc, bh = (7+rows*7)*sc;
+  softShadow(x, y+1, bw*0.62, 5.5*sc);
+  let g = rctx.createLinearGradient(x-bw/2, y-bh, x+bw/2, y);
+  g.addColorStop(0,'#F6F1E2'); g.addColorStop(0.55,'#E7DFC9'); g.addColorStop(1,'#CFC4A6');
+  rctx.fillStyle=g; rctx.fillRect(x-bw/2, y-bh, bw, bh);
+  g = rctx.createLinearGradient(x, y-bh-7*sc, x, y-bh);
+  g.addColorStop(0,roofC0); g.addColorStop(1,roofC1);
+  rctx.fillStyle=g; rctx.fillRect(x-bw/2-2*sc, y-bh-6*sc, bw+4*sc, 6*sc);
+  for(let r=0;r<rows;r++){
+    for(let c=0;c<cols;c++){
+      const wx = x-bw/2+4*sc + c*((bw-8*sc)/cols), wy = y-bh+6*sc + r*7*sc;
+      rctx.fillStyle = ((r*cols+c)%5===1) ? '#FFE9A8' : '#9CC6DF';
+      rctx.fillRect(wx, wy, (bw-8*sc)/cols-2*sc, 4.6*sc);
+    }
+  }
+  rctx.fillStyle='#6E5B3A'; rctx.fillRect(x-4*sc, y-7*sc, 8*sc, 7*sc);
+  if(flag){
+    rctx.strokeStyle='#C8CBD4'; rctx.lineWidth=1.3*sc;
+    rctx.beginPath(); rctx.moveTo(x+bw/2+6*sc, y); rctx.lineTo(x+bw/2+6*sc, y-26*sc); rctx.stroke();
+    rctx.fillStyle=flag;
+    rctx.beginPath(); rctx.moveTo(x+bw/2+6*sc, y-26*sc); rctx.lineTo(x+bw/2+17*sc, y-22.5*sc); rctx.lineTo(x+bw/2+6*sc, y-19*sc); rctx.closePath(); rctx.fill();
+  }
+}
+function clockFace(x,y,r){
+  rctx.fillStyle='#F8F3E2'; rctx.beginPath(); rctx.arc(x,y,r,0,Math.PI*2); rctx.fill();
+  rctx.strokeStyle='#8C7A5C'; rctx.lineWidth=Math.max(0.8,r*0.16); rctx.stroke();
+  rctx.strokeStyle='#3E4657'; rctx.lineWidth=Math.max(0.9,r*0.19);
+  rctx.beginPath(); rctx.moveTo(x,y); rctx.lineTo(x, y-r*0.62);
+  rctx.moveTo(x,y); rctx.lineTo(x+r*0.46, y+r*0.14); rctx.stroke();
+}
+function lmElem(x,y,sc){   schoolBuilding(x,y,sc,'#7FB3E8','#3C6FA8',3,6,'#EF6C8B'); }
+function lmJunior(x,y,sc){ schoolBuilding(x,y,sc,'#9AA7B8','#5A6577',4,6,'#7FD6A0'); }
+function lmHigh(x,y,sc){                       // 高校：時計のついた校舎
+  schoolBuilding(x,y,sc,'#D98A6A','#9E4A34',4,7,'#8FB6E8');
+  clockFace(x, y-(7+4*7)*sc-13*sc, 4.6*sc);
+  rctx.fillStyle='#EFE7D2';
+  rctx.beginPath(); rctx.moveTo(x-7*sc, y-(7+4*7)*sc-8*sc); rctx.lineTo(x, y-(7+4*7)*sc-19*sc); rctx.lineTo(x+7*sc, y-(7+4*7)*sc-8*sc); rctx.closePath(); rctx.fill();
+  clockFace(x, y-(7+4*7)*sc-12*sc, 4.2*sc);
+}
+function lmUniv(x,y,sc){                       // 大学：時計塔のある建物
+  softShadow(x, y+1, 28*sc, 6*sc);
+  let g = rctx.createLinearGradient(x-24*sc, y-24*sc, x+24*sc, y);
+  g.addColorStop(0,'#F3ECDB'); g.addColorStop(1,'#C6BAA0');
+  rctx.fillStyle=g; rctx.fillRect(x-24*sc, y-24*sc, 48*sc, 24*sc);
+  rctx.fillStyle='#A8917B'; rctx.fillRect(x-26*sc, y-26*sc, 52*sc, 3*sc);
+  g = rctx.createLinearGradient(x-9*sc, y-52*sc, x+9*sc, y-24*sc);
+  g.addColorStop(0,'#F8F2E2'); g.addColorStop(1,'#CDC0A6');
+  rctx.fillStyle=g; rctx.fillRect(x-9*sc, y-52*sc, 18*sc, 28*sc);
+  rctx.fillStyle='#7C4A63';
+  rctx.beginPath(); rctx.moveTo(x-11*sc, y-52*sc); rctx.lineTo(x, y-62*sc); rctx.lineTo(x+11*sc, y-52*sc); rctx.closePath(); rctx.fill();
+  rctx.fillStyle='#F6F0DE'; rctx.beginPath(); rctx.arc(x, y-44*sc, 5.2*sc, 0, Math.PI*2); rctx.fill();
+  rctx.strokeStyle='#4A5568'; rctx.lineWidth=1.2*sc;
+  rctx.beginPath(); rctx.moveTo(x,y-44*sc); rctx.lineTo(x, y-48*sc); rctx.moveTo(x,y-44*sc); rctx.lineTo(x+3.4*sc, y-44*sc); rctx.stroke();
+  rctx.fillStyle='#9CC6DF';
+  for(let c=0;c<5;c++){ rctx.fillRect(x-21*sc + c*9*sc, y-18*sc, 6*sc, 7*sc); rctx.fillRect(x-21*sc + c*9*sc, y-9*sc, 6*sc, 7*sc); }
+}
+function lmWork(x,y,sc){                       // 仕事：あかりのついたビル
+  softShadow(x, y+1, 30*sc, 6*sc);
+  [[-20,34,'#8AA0BC','#5B7089'],[2,52,'#9CB2CC','#6B819B'],[22,26,'#7E93AF','#526580']].forEach(([dx,bh,c0,c1],i)=>{
+    const bw = 17*sc;
+    const g = rctx.createLinearGradient(x+dx*sc-bw/2, y-bh*sc, x+dx*sc+bw/2, y);
+    g.addColorStop(0,c0); g.addColorStop(1,c1);
+    rctx.fillStyle=g; rctx.fillRect(x+dx*sc-bw/2, y-bh*sc, bw, bh*sc);
+    for(let r=0;r<Math.floor(bh/9);r++) for(let c=0;c<2;c++){
+      rctx.fillStyle = seeded(r*3+c+i*7, 4) > 0.45 ? '#FFE9A8' : 'rgba(220,235,250,.5)';
+      rctx.fillRect(x+dx*sc-bw/2+3.5*sc + c*7*sc, y-bh*sc+5*sc + r*9*sc, 4.6*sc, 4.6*sc);
+    }
+  });
+}
+const LM = {birth:lmBirth, kinder:lmKinder, elem:lmElem, junior:lmJunior, high:lmHigh, univ:lmUniv, work:lmWork};
+
+/* ---------------- ロードマップの描画 ---------------- */
+function drawRoadmap(){
+  const w = roadCanvas.cssW, h = roadCanvas.cssH;
+  if(!w || !h) return;
+  const HZ = h*ROAD_HZ;                                // 地平線
+  const P  = roadPath(w,h);
+
+  /* 空 */
+  let g = rctx.createLinearGradient(0,0,0,HZ*1.05);
+  g.addColorStop(0,'#5D93D8'); g.addColorStop(0.5,'#A6CCEC'); g.addColorStop(1,'#FCE8C2');
+  rctx.fillStyle=g; rctx.fillRect(0,0,w,HZ+2);
+  /* 朝日 */
+  const sx=w*0.74, sy=HZ*0.50, sr=h*0.23;
+  g = rctx.createRadialGradient(sx,sy,0,sx,sy,sr);
+  g.addColorStop(0,'rgba(255,247,216,.95)'); g.addColorStop(0.32,'rgba(255,226,164,.42)'); g.addColorStop(1,'rgba(255,222,152,0)');
+  rctx.fillStyle=g; rctx.beginPath(); rctx.arc(sx,sy,sr,0,Math.PI*2); rctx.fill();
+  rctx.fillStyle='#FFF8DA'; rctx.beginPath(); rctx.arc(sx,sy,h*0.024,0,Math.PI*2); rctx.fill();
+  /* 雲（ゆっくり流れる） */
+  const drift = (roadT*4)%(w+240);
+  cloud((w*0.16+drift)%(w+240)-120, HZ*0.28, w*0.20, .55);
+  cloud((w*0.62+drift*0.6)%(w+240)-120, HZ*0.17, w*0.15, .40);
+  cloud((w*0.88+drift*0.35)%(w+240)-120, HZ*0.64, w*0.22, .30);
+  /* 山なみ（奥→手前） */
+  ridge(w, HZ*0.30, HZ+6,  '#AEC2D8','#C6D4E2', 6, 3,  true);
+  ridge(w, HZ*0.52, HZ+9,  '#93AEBE','#AAC0C6', 7, 11, true);
+  ridge(w, HZ*0.74, HZ+12, '#7E9E92','#96B3A4', 9, 29, false);
+
+  /* 地面 */
+  g = rctx.createLinearGradient(0,HZ-2,0,h);
+  g.addColorStop(0,'#9CC783'); g.addColorStop(0.35,'#84B76C'); g.addColorStop(1,'#5C9150');
+  rctx.fillStyle=g; rctx.fillRect(0,HZ-2,w,h-HZ+2);
+  /* 遠くの畑（横のしま模様）と、ところどころの畑地 */
+  for(let i=0;i<6;i++){
+    rctx.fillStyle = i%2 ? 'rgba(255,255,255,.07)' : 'rgba(60,110,60,.08)';
+    rctx.fillRect(0, HZ + i*(h*0.016), w, h*0.016);
+  }
+  for(let i=0;i<7;i++){
+    const y = HZ + (h-HZ)*(0.10+seeded(i,21)*0.70), x = w*seeded(i,22);
+    const bw = w*(0.10+seeded(i,23)*0.16), bh = h*(0.014+seeded(i,24)*0.026);
+    rctx.fillStyle = seeded(i,25)>0.5 ? 'rgba(150,190,120,.30)' : 'rgba(110,160,105,.28)';
+    rctx.beginPath(); rctx.ellipse(x, y, bw, bh, 0, 0, Math.PI*2); rctx.fill();
+  }
+  /* 草の点々 */
+  for(let i=0;i<260;i++){
+    const t = seeded(i,1), u = seeded(i,2);
+    const y = HZ + (h-HZ)*Math.pow(u,0.75), x = w*t;
+    const sc = 0.4 + (y-HZ)/(h-HZ);
+    rctx.fillStyle = seeded(i,3)>0.5 ? 'rgba(255,255,255,.13)' : 'rgba(45,95,50,.16)';
+    rctx.fillRect(x, y, 2.2*sc, 1.4*sc);
+  }
+
+  /* 道（下ほど太く＝手前ほど太く見せる） */
+  const wAt = y => 8 + 21*Math.max(0, Math.min(1,(y-HZ)/(h-HZ)));
+  for(let pass=0; pass<3; pass++){
+    rctx.lineCap='round'; rctx.lineJoin='round';
+    for(let i=1;i<P.pts.length;i++){
+      const a=P.pts[i-1], b=P.pts[i], lw=wAt(a.y);
+      if(pass===0){ rctx.strokeStyle='rgba(60,80,55,.20)'; rctx.lineWidth=lw+6; }
+      else if(pass===1){ rctx.strokeStyle='#C9B78C'; rctx.lineWidth=lw; }
+      else { rctx.strokeStyle='#E6D9B4'; rctx.lineWidth=lw*0.52; }
+      rctx.beginPath(); rctx.moveTo(a.x,a.y); rctx.lineTo(b.x,b.y); rctx.stroke();
+    }
+  }
+  /* 小石 */
+  for(let i=6;i<P.pts.length;i+=7){
+    const q=P.pts[i], sc=wAt(q.y)/22, o=(seeded(i,5)-0.5)*wAt(q.y)*0.5;
+    rctx.fillStyle='rgba(120,105,75,.35)';
+    rctx.beginPath(); rctx.ellipse(q.x+o, q.y, 1.7*sc, 1.1*sc, 0, 0, Math.PI*2); rctx.fill();
+  }
+
+  /* 木・しげみ・花（道の上に置かないよう、道からの きょりを見てから置く） */
+  const far = (x,y)=>{
+    let d = 1e9;
+    for(let i=0;i<P.pts.length;i+=3){
+      const q=P.pts[i], dx=q.x-x, dy=(q.y-y)*1.6;
+      d = Math.min(d, dx*dx+dy*dy);
+    }
+    return d > 34*34;
+  };
+  for(let i=0;i<58;i++){
+    const y = HZ + (h-HZ)*Math.pow(seeded(i,7), 0.85);
+    const x = w*seeded(i,8);
+    if(x<10 || x>w-10 || !far(x,y)) continue;
+    const sc = 0.40 + (y-HZ)/(h-HZ)*0.95;
+    if(seeded(i,9) > 0.34) tree(x,y,sc);
+    else {                                        // しげみ
+      softShadow(x,y+1,8*sc,3*sc);
+      const g2 = rctx.createRadialGradient(x-2*sc,y-6*sc,1,x,y-4*sc,8*sc);
+      g2.addColorStop(0,'#8CD183'); g2.addColorStop(1,'#3F7F46');
+      rctx.fillStyle=g2;
+      [[-4,-3,4.6],[0,-5,5.4],[4,-3,4.2]].forEach(([dx,dy,r])=>{
+        rctx.beginPath(); rctx.arc(x+dx*sc,y+dy*sc,r*sc,0,Math.PI*2); rctx.fill(); });
+    }
+  }
+  for(let i=0;i<90;i++){                          // 小さな花
+    const y = HZ + (h-HZ)*Math.pow(seeded(i,12), 0.8);
+    const x = w*seeded(i,13);
+    if(x<6 || x>w-6 || !far(x,y)) continue;
+    const sc = 0.5 + (y-HZ)/(h-HZ)*0.8;
+    rctx.fillStyle = ['#FFF1A8','#FFC7D9','#FFFFFF','#CDE7FF'][i%4];
+    rctx.beginPath(); rctx.arc(x, y-1.5*sc, 1.5*sc, 0, Math.PI*2); rctx.fill();
+  }
+
+  /* ステージ（奥から手前へ重ねる） */
+  const order = LIFE.map((s,i)=>i).sort((a,b)=>LIFE_POS[a][1]-LIFE_POS[b][1]);
+  order.forEach(i=>{
+    const st = LIFE[i], n = P.nodes[i];
+    const sc = 0.52 + (n.y-HZ)/(h-HZ)*0.62;
+    const past = i < life.idx, here = i === life.idx;
+    const labelLeft = LIFE_POS[i][0] > 0.5;              // 名前の札を左に出すか
+    const bdx = (labelLeft ? 1 : -1) * 30 * sc;          // 建物は札の反対がわへ
+    rctx.save();
+    if(!past && !here) rctx.globalAlpha = 0.62;          // これからのステージは うすく
+    LM[st.key](n.x + bdx, n.y, sc);
+    rctx.restore();
+    /* いまいる場所の 光のわ */
+    if(here && !life.walking){
+      const pulse = 0.5 + Math.sin(roadT*2.6)*0.5;
+      rctx.strokeStyle = `rgba(255,214,102,${0.35+pulse*0.45})`;
+      rctx.lineWidth = 2.4;
+      rctx.beginPath(); rctx.ellipse(n.x, n.y+2, (26+pulse*5)*sc, (9+pulse*2)*sc, 0, 0, Math.PI*2); rctx.stroke();
+    }
+    /* 名前の札（道の反対がわに置く） */
+    const label = st.name;
+    rctx.font = `${Math.round(11*Math.min(1.25,sc+0.35))}px DotGothic16, monospace`;
+    const tw = rctx.measureText(label).width;
+    const leftSide = labelLeft;
+    const px = leftSide ? n.x - 20*sc - tw - 14 : n.x + 20*sc;
+    const py = n.y - 16*sc;
+    rctx.fillStyle = past ? 'rgba(22,34,56,.72)' : here ? 'rgba(234,88,12,.95)' : 'rgba(30,44,70,.70)';
+    roundRectPath(px, py, tw+13+(past?13:0), 19, 5); rctx.fill();
+    if(here){ rctx.strokeStyle='#fff'; rctx.lineWidth=1.6; rctx.stroke(); }
+    rctx.fillStyle = past ? 'rgba(255,255,255,.72)' : '#fff';
+    rctx.textBaseline='middle';
+    rctx.fillText(label, px+6.5, py+10.5);
+    if(past){
+      rctx.fillStyle='#7EE79B'; rctx.font='11px DotGothic16, monospace';
+      rctx.fillText('✓', px+tw+10, py+10.5);
+    }
+  });
+
+  /* きみのコマ（歩くほど大きくなる＝成長） */
+  const q = roadPointAt(life.pos, w, h);
+  const gsc = 0.62 + life.pos*0.045;
+  const spr = SPR.heroUp[ life.walking ? (Math.floor(roadT*7)%2) : 0 ];
+  softShadow(q.x, q.y+1, 9*gsc, 3.2*gsc);
+  rctx.imageSmoothingEnabled = false;
+  rctx.drawImage(spr, Math.round(q.x-spr.lw*gsc/2), Math.round(q.y-spr.lh*gsc+3), spr.lw*gsc, spr.lh*gsc);
+  /* 「いま ここ」のふきだし */
+  if(!life.walking){
+    const bob = Math.sin(roadT*3)*2;
+    rctx.font='10.5px DotGothic16, monospace';
+    const t2='いま ここ', tw2=rctx.measureText(t2).width;
+    const bx=q.x-tw2/2-7, by=q.y-spr.lh*gsc-20+bob;
+    rctx.fillStyle='rgba(234,88,12,.95)';
+    roundRectPath(bx,by,tw2+14,17,5); rctx.fill();
+    rctx.strokeStyle='#fff'; rctx.lineWidth=1.6; rctx.stroke();
+    rctx.fillStyle='#fff'; rctx.textBaseline='middle'; rctx.fillText(t2, bx+7, by+9);
+    rctx.fillStyle='rgba(234,88,12,.95)';
+    rctx.beginPath(); rctx.moveTo(q.x-4,by+17); rctx.lineTo(q.x+4,by+17); rctx.lineTo(q.x,by+22); rctx.closePath(); rctx.fill();
+  }
+
+  /* まわりを少し暗くして、まん中に目がいくように */
+  g = rctx.createRadialGradient(w*0.5,h*0.5,h*0.28,w*0.5,h*0.5,h*0.78);
+  g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(8,12,26,.42)');
+  rctx.fillStyle=g; rctx.fillRect(0,0,w,h);
+}
+
+function roadLoop(){
+  if(!roadVisible){ roadRaf=null; return; }
+  roadT += 0.016;
+  roadFit();
+  drawRoadmap();
+  roadRaf = requestAnimationFrame(roadLoop);
+}
+
+/* ---------------- 進み方（自動） ---------------- */
+function roadWalk(to, done){
+  const from = life.pos, dur = 950*Math.abs(to-from);
+  const t0 = performance.now();
+  life.walking = true;
+  (function step(){
+    const k = Math.min(1, (performance.now()-t0)/dur);
+    const e = k<0.5 ? 2*k*k : 1-Math.pow(-2*k+2,2)/2;   // ゆっくり動き出して ゆっくり止まる
+    life.pos = from + (to-from)*e;
+    if(k<1) requestAnimationFrame(step);
+    else { life.pos=to; life.idx=to; life.walking=false; SFX.hop(); done && done(); }
+  })();
+}
+function roadCaption(text){
+  roadPanel.innerHTML = `<div class="rp-cap">${text}</div>`;
+}
+function roadShowPanel(i){
+  const st = LIFE[i];
+  const chips = (st.scenes||[]).map(sc=>{
+    const on = (st.state==='play');
+    return `<span class="rp-chip${on?' on':''}">${sc}</span>`;
+  }).join('');
+  let note, btn;
+  if(st.state==='play'){
+    note = 'この ステージの 場面を すすめよう。';
+    btn  = `<button id="roadBtn">${st.name}ステージへ すすむ</button>`;
+  } else {
+    note = 'このステージは これから つくられます。<br>いまは 小学校ステージを あそべます。';
+    btn  = `<button id="roadBtn">小学校に もどって あそぶ</button>`;
+  }
+  roadPanel.innerHTML =
+    `<div><span class="rp-stage">${st.name}</span><span class="rp-age">${st.age}</span></div>
+     <div class="rp-cap">${st.cap}</div>
+     <div class="rp-scenes">${chips}</div>
+     <div class="rp-note">${note}</div>${btn}`;
+  const b = document.getElementById('roadBtn');
+  b.onclick = ()=>{
+    SFX.confirm();
+    if(st.state==='play'){ hideRoadmap(); }
+    else { roadPanel.innerHTML = `<div class="rp-cap">小学校に もどろう。</div>`; roadWalk(2, ()=>hideRoadmap()); }
+  };
+}
+function showRoadmap(mode){
+  roadVisible = true;
+  roadEl.classList.remove('hide');
+  diceBtn.disabled = true;
+  roadFit();
+  if(!roadRaf) roadRaf = requestAnimationFrame(roadLoop);
+  if(mode==='intro'){
+    life.pos = 0; life.idx = 0;
+    roadCaption(LIFE[0].cap);
+    setTimeout(()=>roadWalk(1, ()=>{
+      roadCaption(LIFE[1].cap);
+      setTimeout(()=>roadWalk(2, ()=>{
+        roadCaption(LIFE[2].cap);
+        setTimeout(()=>roadShowPanel(2), 1000);
+      }), 1600);
+    }), 1300);
+  } else {
+    const to = Math.min(LIFE.length-1, life.idx+1);
+    roadCaption('小学校ステージの たびを やりきった！');
+    setTimeout(()=>roadWalk(to, ()=>roadShowPanel(to)), 1200);
+  }
+}
+function hideRoadmap(){
+  roadEl.classList.add('hide');
+  diceBtn.disabled = false;
+  setTimeout(()=>{ roadVisible = false; }, 600);
+  startAudio();
+  boardSay('サイコロを ふって すすもう！<br><span style="color:#8890b8;font-size:11px">イベントマスに とまると、あたまの中の ぼうけんが はじまるよ</span>');
+}
+/* 小学校ステージを ゴールしたら ロードマップへ もどって 次のステージへ */
+function advanceLife(){
+  life.cleared.add('elem');
+  board.pos = 0; board.cleared.clear();
+  showRoadmap('next');
+}
+
+/* ============================================================
    ① すごろくボード（現実世界）
    ============================================================ */
 const boardCanvas = document.getElementById('boardCanvas');
@@ -1382,8 +1913,8 @@ function arriveSquare(){
     SFX.victory();
     showBanner(
       `<div class="bn-text">ゴール！</div>
-       <div class="bn-sub">小学校ステージの たびは ここまで。<br>のこりのクエストと つぎのステージ（中学校）は 本編で！</div>`,
-      [{label:'もういちど あそぶ', fn:()=>{ board.pos=0; board.cleared.clear(); diceBtn.disabled=false; boardSay('サイコロを ふって すすもう！'); }}]
+       <div class="bn-sub">小学校ステージの たびは ここまで。<br>人生の ロードマップに もどって、つぎの ステージを 見てみよう。</div>`,
+      [{label:'ロードマップへ', gold:true, fn:advanceLife}]
     );
   } else {
     diceBtn.disabled = false;
@@ -2570,6 +3101,7 @@ applySound();
 fitBoard();
 boardSay('サイコロを ふって すすもう！<br><span style="color:#8890b8;font-size:11px">イベントマスに とまると、あたまの中の ぼうけんが はじまるよ</span>');
 requestAnimationFrame(drawBoard);
+showRoadmap('intro');   // まず人生のロードマップを見せ、自動で小学校まで進む
 </script>
 </body>
 </html>
