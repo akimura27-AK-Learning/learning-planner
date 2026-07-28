@@ -190,6 +190,11 @@ h2.ttl{font-size:17px;line-height:1.7;margin:10px 0 4px}
     else { msg.textContent = "ちがうみたいです。もういちど たしかめてみてね。"; input.select(); }
   }
   document.getElementById("mgate-btn").addEventListener("click", tryOpen);
+  // ゲーム本体が w/a/s/d や Enter を移動・決定に使い preventDefault することがあるため、
+  // 入力欄のキー操作は本体へ渡さない（これをしないと「a」などが打てない）
+  ["keydown","keyup","keypress","input"].forEach(function(type){
+    input.addEventListener(type, function(e){ e.stopPropagation(); });
+  });
   input.addEventListener("keydown", function(e){ if(e.key === "Enter"){ e.preventDefault(); tryOpen(); } });
   setTimeout(function(){ try{ input.focus(); }catch(e){} }, 300);
 })();
