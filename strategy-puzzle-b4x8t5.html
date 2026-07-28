@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="robots" content="noindex,nofollow">
+<title>方略パズル（仮称）プロトタイプ v2（モニター版）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Zen+Maru+Gothic:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root{ --win:#0a0e23; --gold:#F59E0B; --purple:#7C3AED; }
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
+html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+body{font-family:"DotGothic16","Zen Maru Gothic",sans-serif;background:#14101f;color:#fff;display:flex;align-items:center;justify-content:center}
+#stage{position:relative;width:100%;max-width:460px;height:100%;max-height:900px;background:#0d0a18;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 0 0 6px #1c1730,0 20px 40px rgba(0,0,0,.5)}
+@media (min-width:481px) and (min-height:700px){ #stage{border-radius:18px} }
+canvas{image-rendering:pixelated}
+
+.dqwin{background:var(--win);border:3px solid #fff;border-radius:8px;box-shadow:0 0 0 3px var(--win);color:#fff;font-family:"DotGothic16",monospace}
+button{font-family:"DotGothic16",monospace;color:#fff;background:var(--purple);border:3px solid #fff;border-radius:10px;padding:11px 20px;font-size:14px;box-shadow:0 4px 0 #4c1d95;cursor:pointer}
+button.gold{background:var(--gold);box-shadow:0 4px 0 #8a5a06}
+button:active{transform:translateY(3px);box-shadow:none}
+button:disabled{opacity:.45}
+
+/* ことば切替（つねに右上） */
+#wordToggle{position:absolute;top:8px;right:8px;z-index:60;font-size:10px;padding:6px 10px;background:#171531;border:2px solid #6b7399;box-shadow:none;border-radius:8px;color:#c3c9e8}
+#wordToggle.easy{border-color:var(--gold);color:#ffe9b8;background:#3a2a05}
+
+.screen{position:absolute;inset:0;display:none;flex-direction:column;overflow-y:auto;overscroll-behavior:contain}
+.screen.on{display:flex}
+.pad{padding:16px 14px 22px}
+.phasechip{display:inline-block;font-size:11px;padding:5px 10px;border-radius:6px;border:2px solid #fff;letter-spacing:.08em}
+.ph-mi{background:#2563EB}.ph-ji{background:#16A34A}.ph-fu{background:#EA580C}
+h2.ttl{font-size:17px;line-height:1.7;margin:10px 0 4px}
+.lead{font-size:11.5px;line-height:1.95;color:#c3c9e8;margin-bottom:10px}
+.lead b{color:#ffd54a}
+
+/* タイトル */
+#scTitle{align-items:center;justify-content:center;text-align:center;padding:24px}
+#scTitle .logo{font-size:30px;letter-spacing:.1em;color:var(--gold);text-shadow:0 4px 0 #6b3d00;line-height:1.5}
+#scTitle .sub{font-size:12px;color:#c3c9e8;margin:10px 0 4px;line-height:2}
+.optrow{display:flex;gap:8px;justify-content:center;margin:14px 0 6px;flex-wrap:wrap}
+.opt{font-size:11.5px;padding:9px 14px;border:2px solid #6b7399;border-radius:8px;background:#171531;color:#aab2d8;cursor:pointer}
+.opt.on{border-color:var(--gold);background:#3a2a05;color:#ffe9b8}
+.catlegend{display:flex;gap:6px;justify-content:center;margin:14px 0 4px;flex-wrap:wrap}
+.clg{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:9.5px;color:#c3c9e8;width:58px}
+
+/* カード */
+.cardbtn{display:block;width:100%;text-align:left;padding:11px 12px;margin-bottom:9px;font-size:12.5px;line-height:1.7;background:#171531;border:3px solid #4b5484;box-shadow:0 4px 0 #0b0a1c}
+.cardbtn.sel{border-color:var(--gold);background:#2a2140}
+.cchip{display:inline-block;font-size:9.5px;padding:2px 7px;border-radius:5px;margin-right:6px;vertical-align:1px}
+.cname{font-size:13.5px;color:#fff;display:block;line-height:1.65}
+.cofficial{display:block;font-size:9.5px;color:#98a0c8;margin-top:6px;line-height:1.6}
+.cfull{display:block;font-size:10px;color:#a9b0d6;margin-top:5px;line-height:1.7}
+.goalq{display:block;font-size:11px;color:#ffd08a;margin-bottom:6px}
+
+/* れんしゅう */
+#scTuto .pad{padding:14px}
+#tutoBoard{position:relative;margin:10px auto 0;touch-action:none}
+.tutobox{font-size:12px;line-height:1.95;padding:11px 12px;margin-top:12px}
+.tutobox b{color:#ffd54a}
+.tutostep{font-size:10px;color:#8d95bd;letter-spacing:.1em}
+#tutoArrow{position:absolute;z-index:15;width:28px;height:28px;line-height:28px;text-align:center;font-size:24px;color:#ffd54a;pointer-events:none;
+  text-shadow:0 0 8px #000,0 0 14px #F59E0B,0 2px 0 #000;animation:bob .8s infinite alternate}
+@keyframes bob{from{transform:translateY(0)}to{transform:translateY(-7px)}}
+.ring{position:absolute;z-index:14;border:3px dashed #ffd54a;border-radius:14px;pointer-events:none;animation:pulse 1s infinite alternate}
+@keyframes pulse{from{opacity:.45}to{opacity:1}}
+
+/* みたて */
+.enemyline{display:flex;gap:10px;align-items:flex-start;margin:8px 0 12px}
+.serif{flex:1;font-size:12.5px;line-height:1.95;padding:10px 11px}
+.serif .who{font-size:10px;color:#ffd08a;display:block;margin-bottom:4px}
+.catgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.catbtn{padding:10px 8px;font-size:11.5px;line-height:1.6;border:3px solid #4b5484;background:#171531;box-shadow:0 4px 0 #0b0a1c;text-align:center}
+.catbtn .cn{display:block;font-size:13px;margin-top:4px}
+.catbtn .cd{display:block;font-size:9.5px;color:#a9b0d6;margin-top:4px;line-height:1.6}
+
+/* バトル */
+#scBattle{display:none;flex-direction:column;height:100%}
+#scBattle.on{display:flex}
+.btop{flex:0 0 auto;padding:8px 10px 4px}
+.btopbar{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:10.5px;padding-right:74px}
+.hpwrap{margin-top:6px}
+.hplabel{display:flex;justify-content:space-between;font-size:10.5px;color:#dfe3f7;margin-bottom:3px}
+.hpbar{height:12px;background:#241f3d;border:2px solid #fff;border-radius:6px;overflow:hidden}
+.hpfill{height:100%;background:linear-gradient(90deg,#f43f5e,#fb7185);transition:width .35s ease}
+.emid{flex:1 1 auto;position:relative;display:flex;align-items:center;justify-content:center;min-height:96px;
+  background:linear-gradient(180deg,#0d0a18 0%,#171130 42%,#241a48 68%,#33265e 88%,#3d2f6b 100%);
+  border-bottom:3px solid #2b2350;box-shadow:inset 0 -14px 26px -12px rgba(0,0,0,.9)}
+#enemyCv{display:block}
+.emid.shake{animation:shk .3s}
+@keyframes shk{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+.hearts{font-size:14px;letter-spacing:2px;color:#ff8fa8}
+.floatmsg{position:absolute;left:0;right:0;top:6px;text-align:center;font-size:12.5px;color:#ffe9b8;pointer-events:none;padding:0 8px}
+.combotxt{position:absolute;left:0;right:0;top:32%;text-align:center;font-size:24px;color:#fff;text-shadow:0 0 14px #F59E0B,0 3px 0 #8a5a06;opacity:0;pointer-events:none}
+.dmgtxt{position:absolute;left:0;right:0;bottom:6px;text-align:center;font-size:20px;color:#ffd54a;text-shadow:0 3px 0 #6b3d00;opacity:0;pointer-events:none}
+.timerwrap{flex:0 0 auto;padding:0 10px 5px}
+.timerbar{height:9px;background:#241f3d;border:2px solid #fff;border-radius:5px;overflow:hidden}
+.timerfill{height:100%;width:100%;background:linear-gradient(90deg,#22d3ee,#a3e635)}
+.timerhint{font-size:10px;color:#9aa3c7;text-align:center;margin-top:4px;height:14px}
+#boardWrap{flex:0 0 auto;position:relative;margin:0 auto;touch-action:none}
+.drop{position:absolute;left:0;top:0;display:flex;align-items:center;justify-content:center;transition:transform .13s linear;will-change:transform}
+.drop canvas{display:block;border-radius:22%}
+.drop.held canvas{box-shadow:0 0 0 3px #fff,0 0 16px #fff;opacity:.9}
+.drop.pop{animation:pop .22s ease forwards}
+@keyframes pop{0%{transform:scale(1)}60%{transform:scale(1.3);filter:brightness(2)}100%{transform:scale(0);opacity:0}}
+.deckbar{flex:0 0 auto;display:flex;gap:3px;padding:5px 8px 8px;justify-content:center}
+.dchip{flex:1;font-size:8.5px;line-height:1.35;text-align:center;padding:4px 2px;border-radius:5px;border:2px solid rgba(255,255,255,.5);color:#fff;min-width:0;overflow:hidden}
+
+/* 振り返り */
+.stat{display:flex;justify-content:space-between;font-size:11.5px;padding:7px 10px;border-bottom:1px dashed #3b4370;line-height:1.7}
+.stat b{color:var(--gold)}
+.barrow{display:flex;align-items:center;gap:7px;margin:6px 0;font-size:10.5px}
+.barrow .bn{flex:0 0 80px;text-align:right;color:#dfe3f7}
+.barrow .bb{display:block;flex:1;height:13px;background:#241f3d;border:2px solid #4b5484;border-radius:5px;overflow:hidden}
+.barrow .bf{display:block;height:100%;width:0;transition:width .6s ease}
+.barrow .bv{flex:0 0 46px;font-size:10px;color:#a9b0d6}
+.note{font-size:11.5px;line-height:2;padding:11px 12px;margin:10px 0}
+.note b{color:#ffd54a}
+.foot{text-align:center;padding:12px 0 6px}
+</style>
+</head>
+<body>
+<!-- ▼▼ モニター版の入口（あいことば）　※モニター版_作成スクリプト.py が自動で挿入 ▼▼ -->
+<div id="mgate" role="dialog" aria-modal="true" aria-label="あいことばの入力">
+  <div id="mgate-card">
+    <p id="mgate-badge">モニター版</p>
+    <h1 id="mgate-title">方略パズル<br>（プロトタイプ）</h1>
+    <p id="mgate-lead">あそんでみて、きづいたことを おしえてください。</p>
+    <label id="mgate-label" for="mgate-input">あいことば</label>
+    <input id="mgate-input" type="text" inputmode="latin" autocomplete="off"
+           autocapitalize="off" autocorrect="off" spellcheck="false"
+           placeholder="ここに入力してね">
+    <p id="mgate-msg" aria-live="polite"></p>
+    <button id="mgate-btn" type="button">はじめる</button>
+    <p id="mgate-note">あいことばは、おしらせした人にきいてください。<br>
+      きづいたこと・こまったことは、LINEにコメントしてください。</p>
+  </div>
+</div>
+<style>
+#mgate{
+  position:fixed; inset:0; z-index:2147483647;
+  display:flex; align-items:center; justify-content:center;
+  padding:20px; background:#14101f;
+  font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif;
+  overflow:auto;
+}
+#mgate-card{
+  width:100%; max-width:360px; background:#FAF9F4; color:#273041;
+  border-radius:20px; padding:28px 24px 24px; text-align:center;
+  box-shadow:0 18px 40px rgba(0,0,0,.45);
+}
+#mgate-badge{
+  display:inline-block; margin:0 0 14px; padding:4px 14px;
+  background:#F59E0B; color:#fff; border-radius:999px;
+  font-size:12px; font-weight:700; letter-spacing:.08em;
+}
+#mgate-title{ margin:0 0 10px; font-size:19px; font-weight:900; line-height:1.5; }
+#mgate-lead{ margin:0 0 22px; font-size:13px; line-height:1.8; color:#5b6472; }
+#mgate-label{ display:block; margin:0 0 8px; font-size:13px; font-weight:700; }
+#mgate-input{
+  width:100%; padding:13px 14px; font-size:17px; text-align:center;
+  border:2px solid #E3DDCB; border-radius:12px; background:#fff; color:#273041;
+  font-family:inherit; user-select:text; -webkit-user-select:text;
+}
+#mgate-input:focus{ outline:none; border-color:#2563EB; }
+#mgate-msg{ min-height:1.6em; margin:10px 0 0; font-size:13px; color:#2563EB; line-height:1.6; }
+#mgate-btn{
+  width:100%; margin:12px 0 0; padding:14px; font-size:16px; font-weight:700;
+  color:#fff; background:#2563EB; border:none; border-radius:12px;
+  font-family:inherit; cursor:pointer; box-shadow:0 4px 0 #1d4ed8;
+}
+#mgate-btn:active{ transform:translateY(2px); box-shadow:0 2px 0 #1d4ed8; }
+#mgate-note{ margin:18px 0 0; font-size:11.5px; line-height:1.9; color:#8a8f99; }
+</style>
+<script>
+(function(){
+  var KEY = "sp-monitor", WANT = 1841026764;
+  var gate = document.getElementById("mgate");
+  function h32(s){ var h=5381; for(var i=0;i<s.length;i++){ h=(((h*33)>>>0) ^ s.charCodeAt(i))>>>0; } return h; }
+  function store(v){ try{ localStorage.setItem(KEY, v); }catch(e){} }
+  function open(){ if(gate && gate.parentNode){ gate.parentNode.removeChild(gate); } }
+  try{ if(localStorage.getItem(KEY) === "ok"){ open(); return; } }catch(e){}
+  var input = document.getElementById("mgate-input");
+  var msg = document.getElementById("mgate-msg");
+  function tryOpen(){
+    var v = (input.value || "").trim().toLowerCase();
+    if(!v){ msg.textContent = "あいことばを 入力してください。"; return; }
+    if(h32(v) === WANT){ store("ok"); msg.textContent = "ようこそ！ はじめます。"; setTimeout(open, 250); }
+    else { msg.textContent = "ちがうみたいです。もういちど たしかめてみてね。"; input.select(); }
+  }
+  document.getElementById("mgate-btn").addEventListener("click", tryOpen);
+  input.addEventListener("keydown", function(e){ if(e.key === "Enter"){ e.preventDefault(); tryOpen(); } });
+  setTimeout(function(){ try{ input.focus(); }catch(e){} }, 300);
+})();
+</script>
+<!-- ▲▲ モニター版の入口（あいことば） ▲▲ -->
+
+<div id="stage">
+  <button id="wordToggle" class="easy">あa やさしいことば</button>
+
+  <!-- タイトル -->
+  <div class="screen on" id="scTitle">
+    <div class="logo">方略パズル</div>
+    <div class="sub" id="titleSub"></div>
+    <div class="catlegend" id="catLegend"></div>
+    <div class="optrow" id="modeRow">
+      <div class="opt on" data-mode="normal" id="optNormal"></div>
+      <div class="opt" data-mode="slow" id="optSlow"></div>
+    </div>
+    <div style="font-size:10.5px;color:#8d95bd;line-height:2;margin:8px 0 16px" id="titleRule"></div>
+    <button class="gold" id="btnStart"></button>
+  </div>
+
+  <!-- れんしゅう -->
+  <div class="screen" id="scTuto"><div class="pad">
+    <div class="tutostep" id="tutoStep"></div>
+    <h2 class="ttl" id="tutoTtl"></h2>
+    <div class="lead" id="tutoLead"></div>
+    <div id="tutoBoard"></div>
+    <div class="dqwin tutobox" id="tutoBox" style="display:none"></div>
+    <div class="foot" id="tutoFoot"></div>
+  </div></div>
+
+  <!-- ①めあて -->
+  <div class="screen" id="scGoal"><div class="pad">
+    <span class="phasechip ph-mi" id="goalPhase"></span>
+    <h2 class="ttl" id="goalTtl"></h2>
+    <div class="lead" id="goalLead"></div>
+    <div id="goalList"></div>
+  </div></div>
+
+  <!-- ②もちもの -->
+  <div class="screen" id="scDeck"><div class="pad">
+    <span class="phasechip ph-mi" id="deckPhase"></span>
+    <h2 class="ttl" id="deckTtl"></h2>
+    <div class="lead" id="deckLead"></div>
+    <div id="deckList"></div>
+    <div class="foot"><button class="gold" id="btnDeckGo"></button></div>
+  </div></div>
+
+  <!-- ③どれがきくかな？ -->
+  <div class="screen" id="scGuess"><div class="pad">
+    <span class="phasechip ph-mi" id="guessPhase"></span>
+    <h2 class="ttl" id="guessTtl"></h2>
+    <div class="enemyline">
+      <div id="guessSprite"></div>
+      <div class="dqwin serif"><span class="who" id="guessWho"></span><span id="guessSerif"></span></div>
+    </div>
+    <div class="lead" id="guessLead"></div>
+    <div class="catgrid" id="guessGrid"></div>
+    <div id="guessResult" style="display:none">
+      <div class="dqwin note" id="guessNote"></div>
+      <div class="foot"><button class="gold" id="btnGuessGo"></button></div>
+    </div>
+  </div></div>
+
+  <!-- ④バトル -->
+  <div class="screen" id="scBattle">
+    <div class="btop">
+      <div class="btopbar"><span class="phasechip ph-ji" id="btPhase"></span><span class="hearts" id="pHearts"></span></div>
+      <div class="hpwrap">
+        <div class="hplabel"><span id="eName">—</span><span id="eHpTxt"></span></div>
+        <div class="hpbar"><div class="hpfill" id="eHpFill" style="width:100%"></div></div>
+      </div>
+    </div>
+    <div class="emid" id="eMid">
+      <canvas id="enemyCv"></canvas>
+      <div class="floatmsg" id="eSerif"></div>
+      <div class="combotxt" id="comboTxt"></div>
+      <div class="dmgtxt" id="dmgTxt"></div>
+    </div>
+    <div class="timerwrap">
+      <div class="timerbar"><div class="timerfill" id="timerFill"></div></div>
+      <div class="timerhint" id="timerHint"></div>
+    </div>
+    <div id="boardWrap"></div>
+    <div class="deckbar" id="deckBar"></div>
+  </div>
+
+  <!-- ⑤振り返り -->
+  <div class="screen" id="scLook"><div class="pad">
+    <span class="phasechip ph-fu" id="lookPhase"></span>
+    <h2 class="ttl" id="lookTtl"></h2>
+    <div class="lead" id="lookLead"></div>
+    <div class="dqwin" style="padding:4px 2px" id="lookStats"></div>
+    <h2 class="ttl" style="font-size:14px;margin-top:16px" id="lookBarsTtl"></h2>
+    <div id="lookBars"></div>
+    <div class="dqwin note" id="lookInsight"></div>
+    <h2 class="ttl" style="font-size:14px;margin-top:14px" id="lookPickTtl"></h2>
+    <div id="lookPick"></div>
+  </div></div>
+
+  <!-- ⑥おわり -->
+  <div class="screen" id="scEnd"><div class="pad" style="text-align:center;padding-top:40px">
+    <div style="font-size:22px;color:var(--gold);line-height:1.8" id="endTtl"></div>
+    <div class="dqwin note" id="endNote" style="text-align:left;margin-top:18px"></div>
+    <div class="foot"><button class="gold" id="btnAgain"></button></div>
+  </div></div>
+</div>
+
+<script>
+/* ============================================================
+   方略パズル（仮称）プロトタイプ v2
+   v2の主眼＝入口をやさしくする
+     ①はじめに「1手だけ動かす」れんしゅうを置き、説明を後ろに回す
+     ②カテゴリー名を子どものことばに（しらべる／たしかめる／やる気／じゅんび／きもち）
+     ③カードは「やさしい一言」を大きく、正式な方略名は小さく必ず併記
+     ④専門語の言いかえ（リーダー→きょうのいちばん／デッキ→もちもの／みたて→どれがきくかな？）
+     ⑤「やさしいことば／くわしいことば」の切替を全画面に用意
+   ・カードの名称・説明文・問いは公開版 self.html（全46枚）と完全一致（機械照合済み）
+   ・画像／音声ファイルは使わない（ドット絵は文字列から描画、SFXはWebAudio合成）
+   ============================================================ */
+
+/* ---------- カテゴリー（＝ドロップの色） ---------- */
+const CATS = [
+  {key:'認知',        easy:'しらべる',   color:'#2563EB', dark:'#14337a', hint:'しらべて つなげる'},
+  {key:'メタ認知',    easy:'たしかめる', color:'#16A34A', dark:'#0d5c28', hint:'いまの ようすを たしかめる'},
+  {key:'動機づけ調整',easy:'やる気',     color:'#EA580C', dark:'#7c2d12', hint:'やる気を つくる'},
+  {key:'リソース管理',easy:'じゅんび',   color:'#0891B2', dark:'#0a4d5e', hint:'時間や まわりを ととのえる'},
+  {key:'情動調整',    easy:'きもち',     color:'#DB2777', dark:'#701a3c', hint:'気もちを ととのえる'},
+];
+const CI = {}; CATS.forEach((c,i)=>CI[c.key]=i);
+
+/* ---------- 実カードデータ（self.html の46枚と完全一致）＋やさしい一言（本作で追加） ---------- */
+const CARD = {
+  分けて理解 :{title:'課題を分けて理解する', full:'課題を分解し，それらの関係を考え，解決策を検討して課題の意味を正確に理解する', cat:'認知', phase:'見通す', q:'課題が難しくて理解しづらいときはどうする?', easy:'大きい もんだいを 小さく 分けて 考える'},
+  優先順位  :{title:'やりたいことの優先順位を考える', full:'生成した目標を振り返り，優先順位を考える', cat:'メタ認知', phase:'見通す', q:'やることが多くて迷うときはどうする?', easy:'どれから やるかを 決める'},
+  解決後   :{title:'解決後にできることを考える', full:'課題を解決するとどのようなことがわかるのか，できるようになるのかを考え，前向きな気持ちを高める', cat:'動機づけ調整', phase:'見通す', q:'課題に対してやる気ができないときはどうする?', easy:'できるように なることを 思いうかべる'},
+  時間配分準備:{title:'時間配分を決めて準備する', full:'短期課題・目標を達成するための時間配分を決め，今後の学習の準備をする', cat:'リソース管理', phase:'見通す', q:'学習を時間内に終えるためにどうする?', easy:'どこまでを 何分で やるかを 決める'},
+  気持ち切替 :{title:'気持ちを切りかえる', full:'不快な感情が生じた際，どうすれば解決できるか（学習から一旦離れる等）を考え，調節する', cat:'情動調整', phase:'実行する', q:'学習中にいやな気持ちになったときにはどうする?', easy:'いやな 気もちを 切りかえる'},
+  関連づける :{title:'情報を関連づける', full:'情報を関連付けて理解を深める（関連ごとにカテゴリーを生成し，ラベルを付ける）', cat:'認知', phase:'実行する', q:'集めた情報を整理して理解を深めるにはどうする?', easy:'しらべた ことを つなげて まとめる'},
+  やり方確認 :{title:'学習のやり方が良いかを確かめる', full:'実行している方法・方略が適切かを自らに問いかけ，振り返り確認する', cat:'メタ認知', phase:'実行する', q:'今のやり方が合っているか確かめるにはどうする?', easy:'いまの やり方で いいか たしかめる'},
+  挑戦と考え :{title:'挑戦と考えて前向きになる', full:'困難な課題をやりがいのある挑戦であると考え，学習に対する前向きな気持ちを高める', cat:'動機づけ調整', phase:'実行する', q:'難しい課題を前向きにとらえるにはどうする?', easy:'むずかしいのは チャンスだと 考える'},
+  環境調節  :{title:'学習環境を調節する', full:'これまでよりも学習が進みやすい物的・人的環境に調節する', cat:'リソース管理', phase:'実行する', q:'もっと学習を進めやすくするにはどうする?', easy:'まわりを 学びやすく ととのえる'},
+  気持ち原因 :{title:'気持ちの原因を考え調節する', full:'不快な感情が生じた際の動作や体の反応に目を向け，その原因や理由・意味を考え，調節する', cat:'情動調整', phase:'実行する', q:'いやな気持ちの原因に向き合うにはどうする?', easy:'なんで いやなのかを 考えて ととのえる'},
+  成果と課題 :{title:'学習の成果と課題を考える', full:'学習の課題・目標と学習結果を比較し，自らの学習活動の成果と課題を考え，自己評価する', cat:'メタ認知', phase:'振り返る', q:'学習の課題・目標について振り返るにはどうする?', easy:'できたこと・つぎの かだいを 考える'},
+  やり方成果 :{title:'やり方の成果と課題を考える', full:'効果的で効率的な方法・方略で学べたのかについて考え，自己評価する', cat:'メタ認知', phase:'振り返る', q:'学習のやり方について振り返るにはどうする?', easy:'やり方は よかったか ふりかえる'},
+  満足    :{title:'満足できた所を見つける', full:'自己評価の成果・課題を基に，自らの学習に対して満足できるところを見つけ，前向きな気持ちを高める', cat:'動機づけ調整', phase:'振り返る', q:'学習を前向きにふり返るにはどうする?', easy:'よく できた ところを 見つける'},
+  次に活かす :{title:'次に活かすことを決める', full:'次の学習に活かすことを決め，次の学習に対する前向きな気持ちを高める', cat:'動機づけ調整', phase:'振り返る', q:'今回の学びを次に活かすにはどうする?', easy:'つぎに いかす ことを 決める'},
+  学び方見直し:{title:'学び方をどう変えれば良いかを考える', full:'次の学習に向けて，自らの学び方をどのように変化させれば良いかを考える', cat:'動機づけ調整', phase:'振り返る', q:'次に向けて学び方を見直すにはどうする?', easy:'つぎは 学び方を どう変えるか 考える'},
+};
+
+/* ---------- めあて（＝きょうのいちばん／リーダー） ---------- */
+const GOALS = [
+  {easy:'むずかしい もんだいを ときほぐしたい', full:'むずかしい課題を、ときほぐしたい', card:'分けて理解'},
+  {easy:'やることを せいりして、まよわず すすみたい', full:'やることを整理して、迷わず進みたい', card:'優先順位'},
+  {easy:'やる気を 高めて、はじめたい', full:'やる気を高めて、取りかかりたい', card:'解決後'},
+  {easy:'時間の中で、おわらせたい', full:'時間の中で、終わらせたい', card:'時間配分準備'},
+  {easy:'気もちを ととのえて、おちついて 学びたい', full:'気持ちをととのえて、落ちついて学びたい', card:'気持ち切替'},
+];
+const BASE_DECK = {'認知':'関連づける','メタ認知':'やり方確認','動機づけ調整':'挑戦と考え','リソース管理':'環境調節','情動調整':'気持ち原因'};
+
+/* ---------- つまずき（敵） ---------- */
+const ENEMIES = [
+  {name:'ゆうわくインプ', spr:'imp', hp:1400, weak:'リソース管理', resist:'認知',
+   serif:'ちょっとだけ、動画を見てからでいいんじゃない？',
+   hintE:'あそびたい 気もちが 先に 出てきたみたい。', hintF:'あそびたい気持ちが先に出てきたようだ。',
+   lines:['あとで やればいいよ〜','ほら、そっちのほうが たのしいよ'],
+   whyE:'ゆうわくには、時間や まわりを ととのえる わざ（じゅんび）が よく きくよ。',
+   whyF:'ゆうわくには、時間や場所のじゅんびをととのえる方略（リソース管理）が よく効きます。'},
+  {name:'フアンゴースト', spr:'ghost', hp:1800, weak:'メタ認知', resist:'情動調整',
+   serif:'このやり方で合ってるのかな…わからなくなってきた。',
+   hintE:'すすんでは いるけれど、たしかめる ものさしが 見えていないみたい。', hintF:'進んでいるのに、たしかめるものさしが見えていないようだ。',
+   lines:['ほんとうに これでいいの…？','だれかに 聞いたほうが…'],
+   whyE:'ふあんには、いまの やり方を たしかめる わざ（たしかめる）が よく きくよ。',
+   whyF:'ふあんには、いまのやり方やめあてをたしかめる方略（メタ認知）が よく効きます。'},
+  {name:'アキアキバット', spr:'bat', hp:2400, weak:'動機づけ調整', resist:'リソース管理',
+   serif:'もう あきた。おなじことの くりかえしだし。',
+   hintE:'やることは わかっている。つづける りゆうが しぼんできたみたい。', hintF:'やることはわかっている。つづける理由がしぼんできたようだ。',
+   lines:['まだ やるの〜？','べつに いまじゃなくても…'],
+   whyE:'あきには、この先に できるように なることを 思いうかべる わざ（やる気）が よく きくよ。',
+   whyF:'あきには、この学びの先にあるものを見つけ直す方略（動機づけ調整）が よく効きます。'},
+];
+
+/* ============================================================ 効果音 ============================================================ */
+let AC=null;
+function ac(){ if(!AC){ try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){} } return AC; }
+function tone(freq,dur,type='square',vol=0.07,when=0,slideTo=null){
+  const a=ac(); if(!a) return;
+  const t0=a.currentTime+when, o=a.createOscillator(), g=a.createGain();
+  o.type=type; o.frequency.setValueAtTime(freq,t0);
+  if(slideTo) o.frequency.linearRampToValueAtTime(slideTo,t0+dur);
+  g.gain.setValueAtTime(vol,t0); g.gain.exponentialRampToValueAtTime(0.001,t0+dur);
+  o.connect(g).connect(a.destination); o.start(t0); o.stop(t0+dur+0.02);
+}
+const SFX={
+  confirm(){ tone(660,.07); tone(990,.08,'square',.06,.06); },
+  grab(){ tone(523,.04,'square',.05); },
+  swap(){ tone(392,.035,'square',.04); },
+  combo(n){ tone(660+Math.min(n,12)*60,.1,'square',.08); },
+  hit(){ tone(880,.12,'square',.08,0,220); },
+  damage(){ tone(140,.22,'sawtooth',.09,0,60); },
+  rescue(){ tone(523,.1,'triangle',.07); tone(659,.12,'triangle',.07,.1); },
+  victory(){ [523,659,784,1046].forEach((f,i)=>tone(f,.14,'square',.07,i*.11)); },
+  appear(){ tone(220,.1,'square',.07); tone(165,.14,'square',.07,.09); },
+  timeup(){ tone(330,.18,'square',.06,0,180); },
+};
+
+/* ============================================================ ドット絵 ============================================================ */
+function makeSprite(rowsRaw,pal,scale){
+  const S=scale||3, w=rowsRaw.reduce((a,r)=>Math.max(a,r.length),0);
+  const rows=rowsRaw.map(r=>{ if(r.length===w) return r; const pad=w-r.length,l=Math.floor(pad/2); return '.'.repeat(l)+r+'.'.repeat(pad-l); });
+  const c=document.createElement('canvas'); c.width=w*S; c.height=rows.length*S;
+  const g=c.getContext('2d');
+  rows.forEach((row,y)=>{ for(let x=0;x<w;x++){ const col=pal[row[x]]; if(col){ g.fillStyle=col; g.fillRect(x*S,y*S,S,S);} } });
+  return c;
+}
+const PAL_IMP={k:'#2A1140',p:'#A855F7',P:'#6B21A8',w:'#FFFFFF',e:'#2A1140',h:'#F5C842'};
+const IMP=["................","..h..........h..","..hh........hh..","...kkkkkkkkkk...","..kppppppppppk..","..kpppppppppppk.",".kppwwwppwwwppk.",".kppweppwepppk..",".kpppppppppppk..",".kppPPPPPPPPppk.",".kpppppppppppk..","..kppppppppppk..","...kkpppppkkk...","....kPk..kPk....","................","................"];
+const PAL_GHOST={k:'#123044',g:'#7DD3E8',G:'#3E97B5',w:'#FFFFFF',e:'#123044'};
+const GHOST=["................",".....kkkkkk.....","....kgggggggk...","...kgggggggggk..","..kgggggggggggk.","..kggwwgggwwggk.","..kggwegggweggk.","..kgggggggggggk.","..kggggGGGggggk.","..kgggGGGGGgggk.","..kgggggggggggk.","..kgggggggggggk.","..kggkggkggkggk.","...kk..kk..kk...","................","................"];
+const PAL_BAT={k:'#2B1B10',b:'#C98A4B',B:'#8A5A2B',m:'#6B4423',w:'#FFFFFF',e:'#2B1B10'};
+const BAT=["................","................","..m..........m..",".mmm........mmm.","mmmmm.kkkk.mmmmm","mmmmmkbbbbkmmmmm","mmmmkbbbbbbkmmmm",".mmmkbwwbwwbkmm.","..mmkbwebwebkmm.","...mkbbbbbbkm...","....kbbwwbbk....","....kbbbbbbk....",".....kbbbbk.....","......kkkk......","................","................"];
+const SPRDEF={imp:[IMP,PAL_IMP],ghost:[GHOST,PAL_GHOST],bat:[BAT,PAL_BAT]};
+function enemySprite(key,scale){ const d=SPRDEF[key]; return makeSprite(d[0],d[1],scale); }
+
+const DROP_ART=[
+  ["..www...",".w...w..","w.....w.","w.....w.",".w...w..","..www.w.",".....ww.","......ww"],
+  ["........","..wwww..",".w....w.","w..ww..w","w..ww..w",".w....w.","..wwww..","........"],
+  ["...w....","..www...","wwwwwwww",".wwwww..","..www...",".ww.ww..","ww...ww.","........"],
+  ["..wwww..",".w....w.","w..w...w","w..w...w","w..www.w","w......w",".w....w.","..wwww.."],
+  [".ww..ww.","wwwwwwww","wwwwwwww","wwwwwwww",".wwwwww.","..wwww..","...ww...","........"],
+];
+const dropIconCache={};
+function dropCanvas(ci,size){
+  if(!dropIconCache[ci]) dropIconCache[ci]=buildDrop(ci,96);
+  const c=document.createElement('canvas'); c.width=size; c.height=size;
+  const g=c.getContext('2d'); g.imageSmoothingEnabled=false;
+  g.drawImage(dropIconCache[ci],0,0,size,size);
+  return c;
+}
+function buildDrop(ci,size){
+  const c=document.createElement('canvas'); c.width=size; c.height=size;
+  const g=c.getContext('2d'), cat=CATS[ci], r=size*0.22;
+  g.fillStyle=cat.color; roundRect(g,1,1,size-2,size-2,r); g.fill();
+  const grad=g.createLinearGradient(0,0,0,size);
+  grad.addColorStop(0,'rgba(255,255,255,.42)'); grad.addColorStop(.5,'rgba(255,255,255,0)'); grad.addColorStop(1,'rgba(0,0,0,.30)');
+  g.fillStyle=grad; roundRect(g,1,1,size-2,size-2,r); g.fill();
+  g.strokeStyle='rgba(255,255,255,.85)'; g.lineWidth=Math.max(2,size*0.055); roundRect(g,1.5,1.5,size-3,size-3,r); g.stroke();
+  const art=DROP_ART[ci], px=Math.max(2,Math.floor(size*0.075)), aw=8*px;
+  const ox=Math.round((size-aw)/2), oy=Math.round((size-aw)/2);
+  g.fillStyle='rgba(255,255,255,.95)';
+  art.forEach((row,y)=>{ for(let x=0;x<8;x++){ if(row[x]==='w') g.fillRect(ox+x*px,oy+y*px,px,px); } });
+  return c;
+}
+function roundRect(g,x,y,w,h,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); }
+
+/* ============================================================ 状態 ============================================================ */
+const ROWS=5, COLS=6, TIME_LIMIT=7000;
+const G={
+  easy:true, mode:'normal',
+  leaderKey:null, leaderCat:null, deck:{},
+  eIndex:0, enemy:null, eHp:0, pHp:5, pMax:5,
+  guessCat:null, guessHit:false,
+  grid:[], els:[], busy:false, held:null, timer:null, tStart:0, turn:0,
+  tutoStep:0, tGrid:[], tEls:[], tHeld:null, tBusy:false,
+  rec:{catDmg:{}, maxCombo:0, mixCount:0, moves:0, total:0, bestMix:null, bestMixDmg:0, guesses:[]},
+};
+
+/* ---------- ことば ---------- */
+function E(easy,full){ return G.easy?easy:full; }
+function catName(k){ const c=CATS[CI[k]]; return G.easy?c.easy:c.key; }
+function chip(k){ const c=CATS[CI[k]]; return `<span class="cchip" style="background:${c.color}">${catName(k)}</span>`; }
+/* 専門語の言いかえ */
+const WORD={
+  leader:()=>E('きょうの いちばん','リーダー'),
+  deck:()=>E('もちもの','デッキ'),
+  guess:()=>E('どれが きくかな？','みたて'),
+  cat:()=>E('なかま','カテゴリー'),
+  power:()=>E('つよさ','こうげき力'),
+};
+
+/* カード1枚の表示（やさしい＝一言を大きく／くわしい＝正式名を大きく。正式名はどちらでも必ず出す） */
+function cardInner(key){
+  const c=CARD[key];
+  if(G.easy) return `<span class="cname">${c.easy}</span><span class="cofficial">${chip(c.cat)}${c.title}</span>`;
+  return `<span class="cname">${chip(c.cat)}${c.title}</span><span class="cfull">${c.full}</span>`;
+}
+
+/* ---------- 画面 ---------- */
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id)); const el=document.getElementById(id); if(el) el.scrollTop=0; }
+function current(){ const s=document.querySelector('.screen.on'); return s?s.id:''; }
+
+/* ---------- ことば切替 ---------- */
+const wordToggle=document.getElementById('wordToggle');
+wordToggle.addEventListener('click',()=>{
+  G.easy=!G.easy; SFX.confirm(); paintToggle(); rerender();
+});
+function paintToggle(){
+  wordToggle.textContent = G.easy?'あa やさしいことば':'漢 くわしいことば';
+  wordToggle.classList.toggle('easy',G.easy);
+}
+function rerender(){
+  switch(current()){
+    case 'scTitle': paintTitle(); break;
+    case 'scTuto':  paintTuto(); break;
+    case 'scGoal':  paintGoal(); break;
+    case 'scDeck':  paintDeck(); break;
+    case 'scGuess': paintGuess(true); break;
+    case 'scBattle':paintBattle(); break;
+    case 'scLook':  paintLook(); break;
+    case 'scEnd':   paintEnd(); break;
+  }
+}
+
+/* ============================================================ タイトル ============================================================ */
+function paintTitle(){
+  document.getElementById('titleSub').innerHTML =
+    E('〜 わざは、あわせると つよい 〜','〜 方略は、組み合わせると強い 〜')
+    + '<br><span style="font-size:10px;color:#8d95bd">プロトタイプ v2／教材課 D氏</span>';
+  const lg=document.getElementById('catLegend'); lg.innerHTML='';
+  CATS.forEach((cat,i)=>{
+    const d=document.createElement('div'); d.className='clg';
+    const cv=dropCanvas(i,30); cv.style.width='30px'; cv.style.height='30px'; cv.style.borderRadius='8px';
+    d.appendChild(cv);
+    const s=document.createElement('span'); s.textContent=catName(cat.key); s.style.color=cat.color; d.appendChild(s);
+    lg.appendChild(d);
+  });
+  document.getElementById('optNormal').textContent=E('⏱ ほんき（7びょう）','⏱ ほんき（7秒）');
+  document.getElementById('optSlow').textContent=E('🐢 じっくり（時間なし）','🐢 じっくり（時間制限なし）');
+  document.getElementById('titleRule').innerHTML =
+    E('たまの 色は、5つの わざの なかま。<br>そろえて 消す＝わざを つかう。<br>いろんな なかまを いっしょに つかうほど つよい。',
+      'ドロップの色は、5つの方略カテゴリー。<br>そろえて消す＝方略を使う。<br>いろいろな方略を同時に使うほど強くなります。');
+  document.getElementById('btnStart').textContent=E('▶ まず さわってみる','▶ はじめる（れんしゅうから）');
+}
+document.querySelectorAll('#modeRow .opt').forEach(o=>o.addEventListener('click',()=>{
+  document.querySelectorAll('#modeRow .opt').forEach(x=>x.classList.remove('on'));
+  o.classList.add('on'); G.mode=o.dataset.mode; SFX.confirm();
+}));
+document.getElementById('btnStart').addEventListener('click',()=>{ ac(); SFX.confirm(); G.tutoStep=0; startTuto(); });
+document.getElementById('btnAgain').addEventListener('click',()=>location.reload());
+
+/* ============================================================ れんしゅう（さわってから、ことば） ============================================================ */
+const TUTO=[
+  { rows:3, cols:5,
+    grid:[[1,2,0,4,3],[0,0,3,0,2],[2,1,4,1,3]],
+    from:{r:1,c:2}, to:{r:0,c:2},
+    ttlE:'まず、1つ うごかしてみよう', ttlF:'まず、1つ動かしてみよう',
+    leadE:'ひかっている たまを ゆびで つかんで、<b>↑ 上</b>に うごかしてみよう。<br>おなじ 色が 3つ ならぶと 消えるよ。',
+    leadF:'光っているドロップをつかんで、<b>↑上</b>へ動かしてみましょう。<br>同じ色が3つ並ぶと消えます。',
+    doneE:'そろった！<br>いま きみは <b>「じゅんび」の わざ</b>を つかったよ。<br>たまを そろえて 消す＝<b>わざを つかう</b>、ということ。',
+    doneF:'そろいました。<br>いま使ったのは <b>「リソース管理（じゅんび）」の方略</b>です。<br>ドロップをそろえて消す＝<b>方略を使う</b>、ということ。' },
+  { rows:3, cols:5,
+    grid:[[0,0,1,3,4],[1,1,0,2,3],[4,2,1,0,2]],
+    from:{r:1,c:2}, to:{r:0,c:2},
+    ttlE:'つぎは、2つ いっしょに', ttlF:'つぎは、2種類を同時に',
+    leadE:'また ひかっている たまを <b>↑ 上</b>に うごかそう。<br>こんどは <b>2つの なかま</b>が いっしょに そろうよ。',
+    leadF:'また光っているドロップを <b>↑上</b>へ。<br>こんどは <b>2つのカテゴリー</b>が同時にそろいます。',
+    doneE:'2つ いっしょ！<br>ちがう なかまを いっしょに つかうと、<b>ぐんと つよくなる</b>。<br>これが この ゲームで いちばん 大事な ところ。<br>ほんとうの 学びでも、わざは <b>あわせて つかう</b>と 力が 出るよ。',
+    doneF:'2種類同時。<br>ちがうカテゴリーを同時に使うと <b>大きく強くなります</b>。<br>これがこのゲームでいちばん大事なところ。<br>実際の学びでも、方略は <b>組み合わせて使う</b>と力を発揮します。' },
+];
+const tutoBoard=document.getElementById('tutoBoard');
+let TCELL=54;
+function startTuto(){ paintTuto(); show('scTuto'); }
+function paintTuto(){
+  const t=TUTO[G.tutoStep];
+  document.getElementById('tutoStep').textContent=E(`れんしゅう ${G.tutoStep+1} / ${TUTO.length}`,`練習 ${G.tutoStep+1} / ${TUTO.length}`);
+  document.getElementById('tutoTtl').textContent=E(t.ttlE,t.ttlF);
+  document.getElementById('tutoLead').innerHTML=E(t.leadE,t.leadF);
+  const box=document.getElementById('tutoBox');
+  if(box.dataset.done==='1'){ box.innerHTML=E(t.doneE,t.doneF); }
+  const foot=document.getElementById('tutoFoot');
+  if(foot.dataset.done==='1'){
+    foot.innerHTML='';
+    const b=document.createElement('button'); b.className='gold';
+    b.textContent = (G.tutoStep+1<TUTO.length) ? E('▶ つぎの れんしゅう','▶ 次の練習') : E('▶ ゲームを はじめる','▶ ゲームをはじめる');
+    b.addEventListener('click',()=>{ SFX.confirm();
+      if(G.tutoStep+1<TUTO.length){ G.tutoStep++; buildTuto(); paintTuto(); }
+      else { startGoal(); }
+    });
+    foot.appendChild(b);
+  }
+  if(!tutoBoard.dataset.built){ buildTuto(); }
+}
+function buildTuto(){
+  const t=TUTO[G.tutoStep];
+  const stage=document.getElementById('stage');
+  TCELL=Math.floor((Math.min(stage.clientWidth,460)-40)/t.cols);
+  tutoBoard.style.width=(TCELL*t.cols)+'px'; tutoBoard.style.height=(TCELL*t.rows)+'px';
+  tutoBoard.innerHTML=''; tutoBoard.dataset.built='1';
+  G.tGrid=t.grid.map(r=>r.slice()); G.tEls=[]; G.tBusy=false; G.tHeld=null;
+  document.getElementById('tutoBox').style.display='none';
+  document.getElementById('tutoBox').dataset.done='0';
+  document.getElementById('tutoFoot').innerHTML=''; document.getElementById('tutoFoot').dataset.done='0';
+  for(let r=0;r<t.rows;r++){ const row=[]; for(let c=0;c<t.cols;c++){ row.push(mkTuto(G.tGrid[r][c],r,c)); } G.tEls.push(row); }
+  // 目印（リング＋やじるし）
+  const ring=document.createElement('div'); ring.className='ring'; ring.id='tutoRing';
+  ring.style.width=(TCELL-4)+'px'; ring.style.height=(TCELL-4)+'px';
+  ring.style.left=(t.from.c*TCELL+2)+'px'; ring.style.top=(t.from.r*TCELL+2)+'px';
+  tutoBoard.appendChild(ring);
+  const ar=document.createElement('div'); ar.id='tutoArrow'; ar.textContent='↑';
+  ar.style.left=(t.to.c*TCELL+TCELL/2-14)+'px'; ar.style.top=(t.to.r*TCELL+TCELL/2-18)+'px';
+  tutoBoard.appendChild(ar);
+}
+function mkTuto(ci,r,c){
+  const d=document.createElement('div'); d.className='drop';
+  const size=Math.max(18,TCELL-6);
+  const cv=dropCanvas(ci,size); cv.style.width=size+'px'; cv.style.height=size+'px';
+  d.appendChild(cv); d.style.width=TCELL+'px'; d.style.height=TCELL+'px';
+  d.style.transform=`translate(${c*TCELL}px,${r*TCELL}px)`;
+  tutoBoard.appendChild(d); return d;
+}
+function tCellAt(e){
+  const t=TUTO[G.tutoStep], b=tutoBoard.getBoundingClientRect();
+  const c=Math.floor((e.clientX-b.left)/TCELL), r=Math.floor((e.clientY-b.top)/TCELL);
+  if(r<0||r>=t.rows||c<0||c>=t.cols) return null; return {r,c};
+}
+tutoBoard.addEventListener('pointerdown',e=>{
+  if(G.tBusy) return; const p=tCellAt(e); if(!p) return;
+  G.tHeld=p; G.tEls[p.r][p.c].classList.add('held'); G.tEls[p.r][p.c].style.zIndex=20;
+  tutoBoard.setPointerCapture(e.pointerId); SFX.grab(); e.preventDefault();
+});
+tutoBoard.addEventListener('pointermove',e=>{
+  if(!G.tHeld||G.tBusy) return; const p=tCellAt(e); if(!p) return;
+  if(p.r===G.tHeld.r&&p.c===G.tHeld.c) return;
+  if(Math.abs(p.r-G.tHeld.r)>1||Math.abs(p.c-G.tHeld.c)>1) return;
+  const a=G.tHeld;
+  const tv=G.tGrid[a.r][a.c]; G.tGrid[a.r][a.c]=G.tGrid[p.r][p.c]; G.tGrid[p.r][p.c]=tv;
+  const te=G.tEls[a.r][a.c]; G.tEls[a.r][a.c]=G.tEls[p.r][p.c]; G.tEls[p.r][p.c]=te;
+  G.tEls[a.r][a.c].style.transform=`translate(${a.c*TCELL}px,${a.r*TCELL}px)`;
+  G.tEls[p.r][p.c].style.transform=`translate(${p.c*TCELL}px,${p.r*TCELL}px)`;
+  G.tEls[p.r][p.c].style.zIndex=20;
+  G.tHeld=p; SFX.swap(); e.preventDefault();
+});
+['pointerup','pointercancel','pointerleave'].forEach(ev=>tutoBoard.addEventListener(ev,()=>{
+  if(!G.tHeld) return;
+  const el=G.tEls[G.tHeld.r][G.tHeld.c]; if(el){ el.classList.remove('held'); el.style.zIndex=''; }
+  G.tHeld=null; checkTuto();
+}));
+function checkTuto(){
+  const t=TUTO[G.tutoStep];
+  const groups=matchesOf(G.tGrid,t.rows,t.cols);
+  if(!groups.length) return;
+  G.tBusy=true;
+  const ring=document.getElementById('tutoRing'), ar=document.getElementById('tutoArrow');
+  if(ring) ring.remove(); if(ar) ar.remove();
+  groups.forEach((g,i)=>{ SFX.combo(i+1); g.cells.forEach(([r,c])=>{ const el=G.tEls[r][c]; if(el){ el.classList.add('pop'); setTimeout(()=>el.remove(),240); } G.tEls[r][c]=null; G.tGrid[r][c]=-1; }); });
+  SFX.victory();
+  setTimeout(()=>{
+    const box=document.getElementById('tutoBox'), foot=document.getElementById('tutoFoot');
+    box.style.display='block'; box.dataset.done='1'; foot.dataset.done='1';
+    paintTuto();
+    document.getElementById('scTuto').scrollTop=9999;
+  },420);
+}
+
+/* ============================================================ ①めあて ============================================================ */
+function startGoal(){ paintGoal(); show('scGoal'); }
+function paintGoal(){
+  document.getElementById('goalPhase').textContent=E('見とおす','見通す');
+  document.getElementById('goalTtl').textContent=E('きょうは、どんな 学びに したい？','きょうは、どんな学びにしたい？');
+  document.getElementById('goalLead').innerHTML=
+    E(`えらんだ わざが <b>${WORD.leader()}</b>に なるよ。<br>おなじ なかまの たまが <b>1.5ばい つよく</b>なる。`,
+      `選んだ方略が <b>${WORD.leader()}</b>になります。<br>同じカテゴリーのドロップの ${WORD.power()} が <b>1.5倍</b> になります。`);
+  const box=document.getElementById('goalList'); box.innerHTML='';
+  GOALS.forEach(g=>{
+    const b=document.createElement('button'); b.className='cardbtn';
+    b.innerHTML=`<span class="goalq">「${E(g.easy,g.full)}」</span>`+cardInner(g.card);
+    b.addEventListener('click',()=>{ SFX.confirm(); G.leaderKey=g.card; G.leaderCat=CARD[g.card].cat; startDeck(); });
+    box.appendChild(b);
+  });
+}
+
+/* ============================================================ ②もちもの ============================================================ */
+function startDeck(){ G.deck=Object.assign({},BASE_DECK); G.deck[G.leaderCat]=G.leaderKey; paintDeck(); show('scDeck'); }
+function paintDeck(){
+  document.getElementById('deckPhase').textContent=E('見とおす','見通す');
+  document.getElementById('deckTtl').textContent=E(`きょう もっていく 5つの わざ`,'きょう持っていく5つの方略');
+  document.getElementById('deckLead').textContent=E('それぞれの 色の たまが、この わざに なるよ。','それぞれの色のドロップが、この方略にあたります。');
+  document.getElementById('btnDeckGo').textContent=E('▶ クエストへ','▶ クエストへ');
+  const box=document.getElementById('deckList'); box.innerHTML='';
+  CATS.forEach(cat=>{
+    const isLeader=(cat.key===G.leaderCat);
+    const d=document.createElement('div'); d.className='cardbtn'+(isLeader?' sel':'');
+    d.innerHTML=`<span style="display:flex;align-items:flex-start;gap:9px">
+        <span style="width:30px;height:30px;flex:0 0 auto" data-icon="1"></span>
+        <span style="flex:1;min-width:0">${cardInner(G.deck[cat.key])}
+        <span class="cofficial" style="color:#c3c9e8">${cat.hint}${isLeader?`　<b style="color:#ffd54a">◆${WORD.leader()}</b>`:''}</span></span></span>`;
+    box.appendChild(d);
+    const cv=dropCanvas(CI[cat.key],30); cv.style.width='30px'; cv.style.height='30px';
+    d.querySelector('[data-icon]').appendChild(cv);
+  });
+}
+document.getElementById('btnDeckGo').addEventListener('click',()=>{ SFX.confirm(); G.eIndex=0; G.pHp=G.pMax; startGuess(); });
+
+/* ============================================================ ③どれがきくかな？ ============================================================ */
+function startGuess(){
+  const e=ENEMIES[G.eIndex]; G.enemy=e; G.eHp=e.hp; G.guessCat=null; G.guessHit=false; G.turn=0;
+  paintGuess(false); SFX.appear(); show('scGuess');
+}
+function paintGuess(keep){
+  const e=G.enemy;
+  document.getElementById('guessPhase').textContent=E('見とおす','見通す');
+  document.getElementById('guessTtl').textContent=E(`${G.eIndex+1}つめの つまずきが あらわれた！`,`${G.eIndex+1}つめのつまずきがあらわれた！`);
+  const sp=document.getElementById('guessSprite'); sp.innerHTML='';
+  const cv=enemySprite(e.spr,3); cv.style.width='64px'; cv.style.height='64px'; sp.appendChild(cv);
+  document.getElementById('guessWho').textContent=e.name;
+  document.getElementById('guessSerif').textContent=`「${e.serif}」`;
+  document.getElementById('guessLead').innerHTML=
+    E(`この つまずきに、どの なかまの わざが きくかな？<br>あたると、その なかまが <b>1.5ばい つよく</b>なるよ。まちがえても へらないよ。`,
+      `このつまずきには、どの${WORD.cat()}の方略が効きそう？<br>あてはまると、その${WORD.cat()}の ${WORD.power()} が <b>1.5倍</b> になります。外れても減点はありません。`);
+  document.getElementById('btnGuessGo').textContent=E('▶ パズルへ','▶ パズルへ');
+  const grid=document.getElementById('guessGrid'); grid.innerHTML='';
+  CATS.forEach(cat=>{
+    const c=CARD[G.deck[cat.key]];
+    const b=document.createElement('button'); b.className='catbtn';
+    b.innerHTML=`<span style="display:inline-block;width:26px;height:26px" data-icon="1"></span>
+      <span class="cn" style="color:${cat.color}">${catName(cat.key)}</span>
+      <span class="cd">${G.easy?c.easy:c.title}</span>`;
+    b.addEventListener('click',()=>onGuess(cat.key));
+    grid.appendChild(b);
+    const cv2=dropCanvas(CI[cat.key],26); cv2.style.width='26px'; cv2.style.height='26px';
+    b.querySelector('[data-icon]').appendChild(cv2);
+  });
+  if(keep && G.guessCat){ paintGuessResult(); }
+  else { document.getElementById('guessResult').style.display='none'; }
+}
+function onGuess(catKey){
+  if(G.guessCat) return;
+  G.guessCat=catKey; G.guessHit=(catKey===G.enemy.weak);
+  G.rec.guesses.push({enemy:G.enemy.name,pick:catKey,hit:G.guessHit});
+  G.guessHit?SFX.victory():SFX.confirm();
+  paintGuessResult();
+}
+function paintGuessResult(){
+  document.querySelectorAll('#guessGrid .catbtn').forEach(b=>b.disabled=true);
+  const note=document.getElementById('guessNote'), e=G.enemy;
+  if(G.guessHit){
+    note.innerHTML=E(`<b>あたり！ よく 見つけたね。</b><br>${e.whyE}<br>この たたかいの あいだ、<b>${catName(G.guessCat)}</b>が 1.5ばい つよくなるよ。`,
+                     `<b>みたて、ぴったり！</b><br>${e.whyF}<br>このバトルのあいだ、<b>${G.guessCat}</b>の ${WORD.power()} が 1.5倍 になります。`);
+  }else{
+    note.innerHTML=E(`<b>その わざも、ためして みる ねうちが あるよ。</b><br>${e.hintE}<br>パズルの 中で いろんな わざを あわせながら、どれが きくか たしかめよう。`,
+                     `<b>その方略も、たしかにためす価値があります。</b><br>${e.hintF}<br>パズルの中でいろいろな方略を組み合わせながら、どれが効くかたしかめてみましょう。`);
+  }
+  document.getElementById('guessResult').style.display='block';
+}
+document.getElementById('btnGuessGo').addEventListener('click',()=>{ SFX.confirm(); startBattle(); });
+
+/* ============================================================ ④バトル ============================================================ */
+const boardWrap=document.getElementById('boardWrap');
+let CELL=56;
+function layoutBoard(){
+  const stage=document.getElementById('stage');
+  CELL=Math.floor((Math.min(stage.clientWidth,460)-12)/COLS);
+  boardWrap.style.width=(CELL*COLS)+'px'; boardWrap.style.height=(CELL*ROWS)+'px';
+}
+function startBattle(){
+  layoutBoard();
+  const cv=document.getElementById('enemyCv'), spr=enemySprite(G.enemy.spr,4);
+  cv.width=spr.width; cv.height=spr.height;
+  const g=cv.getContext('2d'); g.imageSmoothingEnabled=false; g.drawImage(spr,0,0);
+  cv.style.width='86px'; cv.style.height='86px';
+  document.getElementById('eSerif').textContent='';
+  newGrid(); paintBattle(); show('scBattle');
+  setTimeout(()=>{ layoutBoard(); renderAll(); },30); setTimerBar(1);
+}
+function paintBattle(){
+  document.getElementById('btPhase').textContent=E('やってみる','実行する');
+  document.getElementById('eName').textContent=G.enemy.name;
+  updateHp(); buildDeckBar();
+  document.getElementById('timerHint').textContent = (G.mode==='slow')
+    ? E('じっくりモード：時間の せいげんは ないよ','じっくりモード：時間制限はありません')
+    : E('たまを つかむと 7びょうの タイマーが はじまるよ','ドロップをつかむと7秒のタイマーがはじまります');
+}
+function buildDeckBar(){
+  const bar=document.getElementById('deckBar'); bar.innerHTML='';
+  CATS.forEach(cat=>{
+    const c=CARD[G.deck[cat.key]];
+    const d=document.createElement('div'); d.className='dchip';
+    d.style.background=cat.dark; d.style.borderColor=cat.color;
+    const mark=(cat.key===G.leaderCat?'◆':'')+(cat.key===G.enemy.weak&&G.guessHit?'★':'');
+    d.innerHTML=`<span style="color:${cat.color};font-size:8px">${catName(cat.key)}${mark}</span><br>${G.easy?c.easy:c.title}`;
+    bar.appendChild(d);
+  });
+}
+function updateHp(){
+  document.getElementById('eHpTxt').textContent=`${Math.max(0,Math.ceil(G.eHp))} / ${G.enemy.hp}`;
+  document.getElementById('eHpFill').style.width=Math.max(0,G.eHp/G.enemy.hp*100)+'%';
+  document.getElementById('pHearts').innerHTML=E('げんき ','げんき ')+'♥'.repeat(G.pHp)+'<span style="opacity:.25">'+'♥'.repeat(Math.max(0,G.pMax-G.pHp))+'</span>';
+}
+function newGrid(){
+  do{ G.grid=[]; for(let r=0;r<ROWS;r++){ const row=[]; for(let c=0;c<COLS;c++) row.push(Math.floor(Math.random()*5)); G.grid.push(row); } }
+  while(matchesOf(G.grid,ROWS,COLS).length>0);
+  boardWrap.innerHTML=''; G.els=[];
+  for(let r=0;r<ROWS;r++){ const row=[]; for(let c=0;c<COLS;c++) row.push(makeDropEl(G.grid[r][c])); G.els.push(row); }
+  renderAll();
+}
+function makeDropEl(ci){
+  const d=document.createElement('div'); d.className='drop';
+  const size=Math.max(18,CELL-6);
+  const cv=dropCanvas(ci,size); cv.style.width=size+'px'; cv.style.height=size+'px';
+  d.appendChild(cv); boardWrap.appendChild(d); return d;
+}
+function setElPos(el,r,c){ el.style.width=CELL+'px'; el.style.height=CELL+'px'; el.style.transform=`translate(${c*CELL}px,${r*CELL}px)`; }
+function renderAll(){
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+    const el=G.els[r][c]; if(!el) continue;
+    const size=Math.max(18,CELL-6);
+    const cv=el.querySelector('canvas'); cv.style.width=size+'px'; cv.style.height=size+'px';
+    setElPos(el,r,c);
+  }
+}
+boardWrap.addEventListener('pointerdown',e=>{
+  if(G.busy) return; const p=cellAt(e); if(!p) return;
+  G.held=p; const el=G.els[p.r][p.c]; el.classList.add('held'); el.style.zIndex=20;
+  boardWrap.setPointerCapture(e.pointerId); SFX.grab();
+  if(G.mode!=='slow'&&!G.timer){ G.tStart=performance.now(); G.timer=requestAnimationFrame(tickTimer);
+    document.getElementById('timerHint').textContent=E('うごかしている あいだに たまを そろえよう','動かしているあいだにドロップをそろえよう'); }
+  e.preventDefault();
+});
+boardWrap.addEventListener('pointermove',e=>{
+  if(!G.held||G.busy) return; const p=cellAt(e); if(!p) return;
+  if(p.r===G.held.r&&p.c===G.held.c) return;
+  if(Math.abs(p.r-G.held.r)>1||Math.abs(p.c-G.held.c)>1) return;
+  swapCells(G.held,p); G.held=p; SFX.swap(); e.preventDefault();
+});
+['pointerup','pointercancel','pointerleave'].forEach(ev=>boardWrap.addEventListener(ev,()=>{ if(G.held) release(); }));
+function cellAt(e){
+  const b=boardWrap.getBoundingClientRect();
+  const c=Math.floor((e.clientX-b.left)/CELL), r=Math.floor((e.clientY-b.top)/CELL);
+  if(r<0||r>=ROWS||c<0||c>=COLS) return null; return {r,c};
+}
+function swapCells(a,b){
+  const t=G.grid[a.r][a.c]; G.grid[a.r][a.c]=G.grid[b.r][b.c]; G.grid[b.r][b.c]=t;
+  const te=G.els[a.r][a.c]; G.els[a.r][a.c]=G.els[b.r][b.c]; G.els[b.r][b.c]=te;
+  setElPos(G.els[a.r][a.c],a.r,a.c); setElPos(G.els[b.r][b.c],b.r,b.c);
+  G.els[b.r][b.c].style.zIndex=20;
+}
+function release(){
+  if(!G.held) return;
+  const el=G.els[G.held.r][G.held.c]; if(el){ el.classList.remove('held'); el.style.zIndex=''; }
+  G.held=null; stopTimer(); resolveBoard();
+}
+function tickTimer(){
+  if(!G.timer) return;
+  const t=(performance.now()-G.tStart)/TIME_LIMIT; setTimerBar(1-t);
+  if(t>=1){ SFX.timeup(); release(); return; }
+  G.timer=requestAnimationFrame(tickTimer);
+}
+function stopTimer(){ if(G.timer){ cancelAnimationFrame(G.timer); G.timer=null; } setTimerBar(1); }
+function setTimerBar(v){ document.getElementById('timerFill').style.width=Math.max(0,Math.min(1,v))*100+'%'; }
+
+/* マッチ判定（盤面を引数にとる汎用版） */
+function matchesOf(grid,rows,cols){
+  const mark=[]; for(let r=0;r<rows;r++) mark.push(new Array(cols).fill(false));
+  for(let r=0;r<rows;r++){ let run=1; for(let c=1;c<=cols;c++){
+    if(c<cols&&grid[r][c]===grid[r][c-1]&&grid[r][c]>=0) run++;
+    else { if(run>=3) for(let k=c-run;k<c;k++) mark[r][k]=true; run=1; } } }
+  for(let c=0;c<cols;c++){ let run=1; for(let r=1;r<=rows;r++){
+    if(r<rows&&grid[r][c]===grid[r-1][c]&&grid[r][c]>=0) run++;
+    else { if(run>=3) for(let k=r-run;k<r;k++) mark[k][c]=true; run=1; } } }
+  const seen=[]; for(let r=0;r<rows;r++) seen.push(new Array(cols).fill(false));
+  const groups=[];
+  for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+    if(!mark[r][c]||seen[r][c]) continue;
+    const ci=grid[r][c], cells=[], st=[[r,c]]; seen[r][c]=true;
+    while(st.length){ const [y,x]=st.pop(); cells.push([y,x]);
+      [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dy,dx])=>{ const ny=y+dy,nx=x+dx;
+        if(ny>=0&&ny<rows&&nx>=0&&nx<cols&&mark[ny][nx]&&!seen[ny][nx]&&grid[ny][nx]===ci){ seen[ny][nx]=true; st.push([ny,nx]); } }); }
+    groups.push({ci,cells});
+  }
+  return groups;
+}
+function findMatches(){ return matchesOf(G.grid,ROWS,COLS); }
+
+async function resolveBoard(){
+  G.busy=true;
+  let combo=0, moveDmg=0, moveCats={};
+  const comboEl=document.getElementById('comboTxt'), dmgEl=document.getElementById('dmgTxt');
+  while(true){
+    const groups=findMatches(); if(!groups.length) break;
+    const distinct=new Set(groups.map(g=>g.ci)).size;
+    const mixMul = distinct>=4?2.0 : distinct>=3?1.5 : 1.0;
+    if(distinct>=3) G.rec.mixCount++;
+    for(const g of groups){
+      combo++;
+      const cat=CATS[g.ci].key, n=g.cells.length;
+      let att=100*(1+(n-3)*0.25);
+      if(cat===G.leaderCat) att*=1.5;
+      if(G.guessHit&&cat===G.guessCat) att*=1.5;
+      if(cat===G.enemy.weak) att*=2.0;
+      if(cat===G.enemy.resist) att*=0.5;
+      const dmg=Math.round(att*(1+(combo-1)*0.25)*mixMul);
+      moveDmg+=dmg; moveCats[cat]=(moveCats[cat]||0)+dmg;
+      G.rec.catDmg[cat]=(G.rec.catDmg[cat]||0)+dmg;
+      SFX.combo(combo);
+      comboEl.textContent=`${combo} コンボ`+(mixMul>1?E(`　いろいろ ×${mixMul}`,`　組み合わせ ×${mixMul}`):'');
+      comboEl.style.transition='none'; comboEl.style.opacity='1';
+      setTimeout(()=>{ comboEl.style.transition='opacity .5s'; comboEl.style.opacity='0'; },260);
+      g.cells.forEach(([r,c])=>{ const el=G.els[r][c]; if(el){ el.classList.add('pop'); setTimeout(()=>el.remove(),240);} G.els[r][c]=null; G.grid[r][c]=-1; });
+      await sleep(150);
+    }
+    G.rec.maxCombo=Math.max(G.rec.maxCombo,combo);
+    await sleep(120); applyGravity(); await sleep(180);
+  }
+  if(moveDmg>0){
+    G.rec.moves++; G.rec.total+=moveDmg;
+    const cats=Object.keys(moveCats).sort((a,b)=>moveCats[b]-moveCats[a]);
+    if(cats.length>=2&&moveDmg>G.rec.bestMixDmg){ G.rec.bestMixDmg=moveDmg; G.rec.bestMix=[cats[0],cats[1]]; }
+    dmgEl.textContent=E(`${moveDmg} ダメージ`,`${moveDmg} ダメージ`);
+    dmgEl.style.transition='none'; dmgEl.style.opacity='1';
+    setTimeout(()=>{ dmgEl.style.transition='opacity .8s'; dmgEl.style.opacity='0'; },700);
+    SFX.hit();
+    const em=document.getElementById('eMid'); em.classList.add('shake'); setTimeout(()=>em.classList.remove('shake'),320);
+    G.eHp-=moveDmg; updateHp();
+  }else{
+    document.getElementById('timerHint').textContent=E('まだ そろって いないみたい。もう一度 うごかしてみよう','まだそろっていないみたい。もう一度動かしてみよう');
+  }
+  await sleep(400);
+  if(G.eHp<=0){ onEnemyDown(); return; }
+  G.turn++;
+  if(moveDmg>0&&G.turn%2===0) await enemyTurn();
+  G.busy=false;
+}
+function applyGravity(){
+  for(let c=0;c<COLS;c++){
+    let write=ROWS-1;
+    for(let r=ROWS-1;r>=0;r--){
+      if(G.grid[r][c]!==-1){
+        if(write!==r){ G.grid[write][c]=G.grid[r][c]; G.els[write][c]=G.els[r][c]; G.grid[r][c]=-1; G.els[r][c]=null; setElPos(G.els[write][c],write,c); }
+        write--;
+      }
+    }
+    for(let r=write;r>=0;r--){
+      const ci=Math.floor(Math.random()*5); G.grid[r][c]=ci;
+      const el=makeDropEl(ci); el.style.transition='none'; setElPos(el,r-ROWS,c); G.els[r][c]=el;
+      el.offsetHeight;
+      el.style.transition='transform .22s ease-out'; setElPos(el,r,c);
+      setTimeout(()=>{ el.style.transition='transform .13s linear'; },240);
+    }
+  }
+}
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+async function enemyTurn(){
+  const e=G.enemy, line=e.lines[Math.floor(Math.random()*e.lines.length)];
+  document.getElementById('eSerif').textContent=`${e.name}「${line}」`;
+  await sleep(700);
+  G.pHp-=1; SFX.damage(); updateHp();
+  if(G.pHp<=0){ G.pHp=2; SFX.rescue(); updateHp();
+    document.getElementById('eSerif').textContent=E('なかまが かけつけた！　げんきが すこし もどった','なかまがかけつけた！　げんきがすこし戻った');
+    await sleep(900); }
+  document.getElementById('eSerif').textContent='';
+}
+function onEnemyDown(){
+  G.busy=true; stopTimer(); SFX.victory();
+  document.getElementById('eSerif').textContent=E(`${G.enemy.name}は しずかに 消えていった`,`${G.enemy.name}はしずかに消えていった`);
+  setTimeout(()=>{
+    G.eIndex++;
+    if(G.eIndex<ENEMIES.length){ startGuess(); G.busy=false; } else { startLook(); }
+  },1200);
+}
+
+/* ============================================================ ⑤振り返り ============================================================ */
+function startLook(){ paintLook(); show('scLook'); }
+function paintLook(){
+  const rec=G.rec, hits=rec.guesses.filter(g=>g.hit).length;
+  document.getElementById('lookPhase').textContent=E('ふりかえる','振り返る');
+  document.getElementById('lookTtl').textContent=E('クエスト かんりょう！','クエスト完了！');
+  document.getElementById('lookLead').textContent=E('きょうの 学びで、どの わざが どのくらい はたらいたか 見てみよう。','きょうの学びで、どの方略がどのくらいはたらいたかを見てみましょう。');
+  document.getElementById('lookBarsTtl').textContent=E('なかま べつの はたらき','カテゴリー別のはたらき');
+  document.getElementById('lookPickTtl').textContent=E('つぎに つかって みたい わざを 1つ','つぎに使ってみたい方略を1つ');
+  document.getElementById('lookStats').innerHTML=`
+    <div class="stat"><span>${E('たおした つまずき','たおしたつまずき')}</span><b>${ENEMIES.length} / ${ENEMIES.length}</b></div>
+    <div class="stat"><span>${E('いちばん ながい コンボ','いちばん長いコンボ')}</span><b>${rec.maxCombo} コンボ</b></div>
+    <div class="stat"><span>${E('3つ いじょうを いっしょに つかえた かず','3つ以上を同時につかえた回数')}</span><b>${rec.mixCount} ${E('かい','回')}</b></div>
+    <div class="stat"><span>${E('よそうが あたった かず','みたてがあたった回数')}</span><b>${hits} / ${rec.guesses.length}</b></div>
+    <div class="stat" style="border:none"><span>${E('のこった げんき','のこったげんき')}</span><b>${'♥'.repeat(G.pHp)}</b></div>`;
+  const bars=document.getElementById('lookBars'); bars.innerHTML='';
+  const max=Math.max(1,...CATS.map(c=>rec.catDmg[c.key]||0));
+  CATS.forEach(cat=>{
+    const v=rec.catDmg[cat.key]||0;
+    const row=document.createElement('div'); row.className='barrow';
+    row.innerHTML=`<span class="bn">${catName(cat.key)}</span><span class="bb"><span class="bf" style="width:0;background:${cat.color}"></span></span><span class="bv">${v}</span>`;
+    bars.appendChild(row);
+    setTimeout(()=>{ row.querySelector('.bf').style.width=(v/max*100)+'%'; },60);
+  });
+  const top=CATS.map(c=>({k:c.key,v:rec.catDmg[c.key]||0})).sort((a,b)=>b.v-a.v);
+  const mix=rec.bestMix, tc=CARD[G.deck[top[0].k]];
+  document.getElementById('lookInsight').innerHTML=
+    `<b>${E('きょう いちばん はたらいた わざ','きょういちばんはたらいた方略')}</b><br>${chip(top[0].k)}「${G.easy?tc.easy:tc.title}」<br><br>`
+    + (mix?`<b>${E('いちばん きいた あわせわざ','いちばん効いた組み合わせ')}</b><br>
+        ${chip(mix[0])}「${G.easy?CARD[G.deck[mix[0]]].easy:CARD[G.deck[mix[0]]].title}」<br>＋ ${chip(mix[1])}「${G.easy?CARD[G.deck[mix[1]]].easy:CARD[G.deck[mix[1]]].title}」<br>
+        <span style="font-size:10.5px;color:#c3c9e8">${E(`この2つを いっしょに つかったとき、<b>${rec.bestMixDmg}</b> の はたらきに なったよ。`,`この2つをいっしょに使ったとき、<b>${rec.bestMixDmg}</b> のはたらきになりました。`)}</span><br><br>`:'')
+    + `<b>${E('わかった こと','わかったこと')}</b><br><span style="font-size:10.5px;color:#c3c9e8">`
+    + E(`1つの わざだけを くりかえすより、いくつかの わざを あわせた ときのほうが 大きく はたらいたね（3つ いじょう いっしょ：${rec.mixCount}かい）。<br>ほんとうの 学びでも、わざは あわせて つかうと 力が 出るよ。`,
+        `1つの方略だけをくり返すより、いくつかの方略を組み合わせたときのほうが大きくはたらきました（3つ以上を同時に：${rec.mixCount}回）。<br>ほんとうの学びでも、方略は組み合わせて使うと力を発揮します。`)
+    + `</span>`;
+  const pick=document.getElementById('lookPick'); pick.innerHTML='';
+  ['次に活かす','学び方見直し','やり方成果','満足'].forEach(k=>{
+    const b=document.createElement('button'); b.className='cardbtn'; b.innerHTML=cardInner(k);
+    b.addEventListener('click',()=>{ SFX.confirm(); G.pickKey=k; startEnd(); });
+    pick.appendChild(b);
+  });
+}
+
+/* ============================================================ ⑥おわり ============================================================ */
+function startEnd(){ paintEnd(); SFX.victory(); show('scEnd'); }
+function paintEnd(){
+  const c=CARD[G.pickKey], leader=CARD[G.leaderKey];
+  document.getElementById('endTtl').innerHTML=E('きょうの わざ、<br>手に 入れた！','きょうの方略、<br>手に入れた！');
+  document.getElementById('btnAgain').textContent=E('↻ もういちど','↻ もういちど');
+  document.getElementById('endNote').innerHTML=
+    `<b>${E('きょうの めあて','きょうのめあて')}（${WORD.leader()}）</b><br>${chip(leader.cat)}${G.easy?leader.easy:leader.title}<br>
+     <span style="font-size:9.5px;color:#98a0c8">${leader.title}</span><br><br>
+     <b>${E('つぎに つかって みたい わざ','つぎに使ってみたい方略')}</b><br>${chip(c.cat)}${G.easy?c.easy:c.title}<br>
+     <span style="font-size:9.5px;color:#98a0c8">${c.title}</span><br>
+     <span style="font-size:10.5px;color:#c3c9e8">${c.full}</span><br><br>
+     <span style="font-size:10.5px;color:#c3c9e8">${E('この2まいは、方略カード（ぜんぶで46まい）の 中の ほんとうの カードだよ。カードゲームや 方略ペアさがしでも 出会えるよ。','この2枚は、方略カード（全46枚）の中の実際のカードです。カードゲームや方略ペアさがしでも出会えます。')}</span>`;
+}
+
+/* ---------- リサイズ ---------- */
+window.addEventListener('resize',()=>{
+  if(current()==='scBattle'){ layoutBoard(); renderAll(); }
+  if(current()==='scTuto'){ buildTuto(); paintTuto(); }
+});
+
+/* ---------- 初期化 ---------- */
+paintToggle(); paintTitle();
+
+/* ---------- テスト用フック（Playwright検証で使用） ---------- */
+window.__PZ={G,CATS,CARD,TUTO,findMatches,matchesOf,resolveBoard,
+  setGrid(rows){ rows.forEach((row,r)=>row.forEach((v,c)=>{ G.grid[r][c]=v; const old=G.els[r][c]; if(old) old.remove(); G.els[r][c]=makeDropEl(v); })); renderAll(); },
+  forceResolve(){ return resolveBoard(); },
+  solveTuto(){ const t=TUTO[G.tutoStep], a=t.from, b=t.to;
+    const v=G.tGrid[a.r][a.c]; G.tGrid[a.r][a.c]=G.tGrid[b.r][b.c]; G.tGrid[b.r][b.c]=v;
+    const e=G.tEls[a.r][a.c]; G.tEls[a.r][a.c]=G.tEls[b.r][b.c]; G.tEls[b.r][b.c]=e;
+    G.tEls[a.r][a.c].style.transform=`translate(${a.c*TCELL}px,${a.r*TCELL}px)`;
+    G.tEls[b.r][b.c].style.transform=`translate(${b.c*TCELL}px,${b.r*TCELL}px)`;
+    checkTuto(); }};
+</script>
+</body>
+</html>
