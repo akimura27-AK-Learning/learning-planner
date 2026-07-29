@@ -81,6 +81,13 @@ canvas{image-rendering:pixelated;}
 #banner .bn-btns.col button{ text-align:left; font-size:12.5px; line-height:1.6; padding:10px 12px; }
 #banner .bn-btns.col button .pchip{ font-size:9.5px; padding:1px 6px; border-radius:4px; margin-right:6px; }
 #banner .bn-btns.col button .pcat{ display:block; font-size:9.5px; color:#d8cffb; margin-top:3px; }
+.bn-scene{ font-size:12px; color:#cfd6ee; line-height:1.9; margin-top:6px; }
+.bn-thlabel{ font-size:10px; color:#8890b8; margin-top:10px; letter-spacing:.14em; }
+.bn-th{
+  display:inline-block; font-size:11px; color:#e8d9ff; line-height:1.6;
+  background:rgba(124,58,237,.25); border:1px solid rgba(180,150,250,.5);
+  border-radius:14px; padding:3px 10px; margin:4px 2px 0;
+}
 #banner button{
   font-family:"DotGothic16",monospace; font-size:14px; color:#fff;
   background:var(--purple); border:3px solid #fff; border-radius:10px; padding:11px 22px;
@@ -1116,6 +1123,26 @@ const SPR = {
   boss: makeSprite(BOSS,PAL_BOSS),
   bossBig: makeSprite(BOSS_BIG,PAL_BOSS),
 };
+/* 名鑑の新モンスター15体：既存の形に別の色をあてて、探索中の姿をつくる
+   （戦闘の大きな姿は1体ずつ専用イラスト。§名鑑v1 §6の方針どおり） */
+const SPR_VARIANTS = {
+  golem:    [ONI,  {k:'#2E2A24',o:'#B9AE96',O:'#8A7F6A',w:'#FFF7E6',e:'#2A2620',t:'#D8CFBB'}],
+  owl:      [BAT,  {k:'#3A2B10',b:'#C9A86A',B:'#8A6A3E',m:'#6E5433',w:'#FFF7E6',e:'#2B1B10'}],
+  tangle:   [MIST, {k:'#48224A',m:'#D48BD4',M:'#9C4E9E',w:'#FFFFFF',e:'#3A1B3C'}],
+  chameleon:[SLIME,{k:'#14401A',m:'#7ECB4F',M:'#3E8A28',w:'#FFFFFF',e:'#14401A'}],
+  mole:     [SLIME,{k:'#2E1B0E',m:'#9A6A42',M:'#6E4526',w:'#FFF7E6',e:'#2E1B0E'}],
+  eraser:   [SLIME,{k:'#5A4A62',m:'#F2EBF5',M:'#C8B8D8',w:'#FFFFFF',e:'#5A4A62'}],
+  pixie:    [IMP,  {k:'#1E3A14',p:'#8FCB4F',P:'#4E8A28',w:'#FFFFFF',e:'#1E3A14',h:'#F5C842'}],
+  rhino:    [ONI,  {k:'#2A2E38',o:'#9AA6B4',O:'#6E7A8A',w:'#FFF7E6',e:'#1E222A',t:'#D8DDE4'}],
+  bee:      [BAT,  {k:'#3A2B05',b:'#F5C842',B:'#C2900C',m:'#3A2B05',w:'#FFFFFF',e:'#2B1F05'}],
+  crab:     [SLIME,{k:'#5C1A12',m:'#E8604C',M:'#B03A2E',w:'#FFF7E6',e:'#40120C'}],
+  slug:     [SLIME,{k:'#3A3A14',m:'#B4B45E',M:'#7A7A32',w:'#FFFFFF',e:'#32320F'}],
+  goat:     [ONI,  {k:'#3A3630',o:'#E8E2D4',O:'#B4AE9E',w:'#FFF7E6',e:'#2A2620',t:'#F5F2EA'}],
+  timebug:  [IMP,  {k:'#0E3A3A',p:'#2EB8B0',P:'#0E7A74',w:'#FFFFFF',e:'#0E3A3A',h:'#F5C842'}],
+  mouse:    [SLIME,{k:'#3A3440',m:'#A89EB4',M:'#736A80',w:'#FFFFFF',e:'#2E2934'}],
+  jelly:    [GHOST,{k:'#123044',g:'#8FB6E8',G:'#4E7CC4',w:'#FFFFFF',e:'#123044'}],
+};
+for(const k in SPR_VARIANTS){ SPR[k] = makeSprite(SPR_VARIANTS[k][0], SPR_VARIANTS[k][1]); }
 
 /* ---------------- 汎用ポップアップ ---------------- */
 const banner = document.getElementById('banner');
@@ -1899,24 +1926,107 @@ function advanceLife(){
    ============================================================ */
 const boardCanvas = document.getElementById('boardCanvas');
 const bctx = boardCanvas.getContext('2d');
+/* 実行ゾーンの舞台テーマ。イベントごとに 森・海・山・空・巨大施設… と変わる。
+   タイルの色・戦闘背景・よび名を ここで決める（形は共通、装いを差しかえる方式） */
+const CAVE_THEMES = {
+  cave:{ name:'洞くつ', label:'実行の洞くつ', place:'南の 洞くつ', dark:true,
+    bg:'#0D0A18', floor:['#2C2248','#1F1836'], spot:['#352A55','#171126'],
+    wallTop:['#3B2F5E','#241C40'], wallBg:['#171028','#0C0818'],
+    rock:['#6B5CA0','#4A3D74','#332A52'], accent:'#A78BFA',
+    battle:['#0D0A18','#241B38','#1B1430'] },
+  forest:{ name:'気もちの森', label:'実行の森', place:'南の ふかい森', dark:true,
+    bg:'#0A160D', floor:['#1E3A24','#152A1A'], spot:['#2A4A30','#0F2014'],
+    wallTop:['#2E5C36','#1E3F26'], wallBg:['#0F2014','#0A160D'],
+    rock:['#7A9E56','#4E7A44','#2E5C36'], accent:'#7EE79B',
+    battle:['#0C1810','#1E3A24','#16301C'] },
+  sea:{ name:'おおうみの底', label:'実行のおおうみ', place:'南の おおうみ', dark:true,
+    bg:'#051422', floor:['#123A5C','#0C2A44'], spot:['#1B4664','#081E30'],
+    wallTop:['#2A6288','#1B4664'], wallBg:['#081E30','#051422'],
+    rock:['#E88A98','#C05060','#8A3040'], accent:'#7FD6E8',
+    battle:['#06121E','#123A5C','#0C2C46'] },
+  mountain:{ name:'実行の山みち', label:'実行の山みち', place:'南の けわしい山', dark:false,
+    bg:'#8FAECC', floor:['#8A7A66','#6E604E'], spot:['#9A8C7A','#5E5448'],
+    wallTop:['#7A6E5E','#5E5448'], wallBg:['#5E5448','#463E34'],
+    rock:['#B0A290','#8A7C6A','#6E604E'], accent:'#F5C842',
+    battle:['#4A5E78','#8A7A66','#6E604E'] },
+  sky:{ name:'雲の上', label:'実行の空', place:'南の 空の上', dark:false,
+    bg:'#8FC0E8', floor:['#EAF4FC','#C6DDF0'], spot:['#FFFFFF','#A9CFEC'],
+    wallTop:['#FFFFFF','#D8E8F6'], wallBg:['#9CC6E8','#7FB0D8'],
+    rock:['#FFFFFF','#DCEAF6','#B8D4EC'], accent:'#F5C842',
+    battle:['#7FB4E4','#C6DFF4','#A9CFEC'] },
+  tower:{ name:'まなびの塔', label:'実行の塔', place:'南の 高い塔', dark:true,
+    bg:'#1E1A2A', floor:['#4A4258','#383044'], spot:['#5E5478','#2A2438'],
+    wallTop:['#5E5478','#463E5C'], wallBg:['#2A2438','#1E1A2A'],
+    rock:['#8FB6E8','#5E80B0','#3E5880'], accent:'#FFD166',
+    battle:['#1E1A2A','#4A4258','#383044'] },
+  library:{ name:'大としょかん', label:'実行のとしょかん', place:'南の 大としょかん', dark:true,
+    bg:'#332512', floor:['#6E5433','#54401F'], spot:['#8A6A3E','#43301A'],
+    wallTop:['#8A6A3E','#6E5433'], wallBg:['#43301A','#332512'],
+    rock:['#C05060','#8FB6E8','#C08A1E'], accent:'#FFD166',
+    battle:['#2A1E10','#6E5433','#54401F'] },
+  theater:{ name:'大げきじょう', label:'実行のげきじょう', place:'南の 大げきじょう', dark:true,
+    bg:'#320A10', floor:['#7A5230','#5E3E22'], spot:['#8A6A3E','#4A2E18'],
+    wallTop:['#C04050','#7E1E2C'], wallBg:['#4A1018','#320A10'],
+    rock:['#8A6A3E','#6E5433','#54401F'], accent:'#FFD166',
+    battle:['#20060A','#5E1420','#440E18'] },
+};
+function caveTheme(){ return CAVE_THEMES[questEv().vtheme] || CAVE_THEMES.cave; }
+
+/* 調整の様式（I／You／We）。イベントごとに使う様式が決まっている */
+const MODES = {
+  I:{ key:'I', name:'じぶんで', full:'自己調整', color:'#2563EB' },
+  You:{ key:'You', name:'なかまと', full:'共調整', color:'#16A34A' },
+  We:{ key:'We', name:'みんなで', full:'社会的に共有された調整', color:'#EA580C' },
+};
+
+/* 8つのイベント＝現実の活動。それぞれの場面と「あたまの中の声」を持つ。
+   声はイベント到着時に表示され、脳内ダイブの渦にすいこまれ、
+   洞くつのモンスター（誘惑・不安・飽き…）として姿をあらわす、というつながり */
+const EVENTS = {
+  homework:{ key:'homework', label:'家庭学習', monsters:['mist','imp','ghost','bat','oni'], vtheme:'cave', modes:['I'], goal:'家庭学習で ねばりづよく 取りくむ力',
+    scene:'学校から かえって、しゅくだいを つくえに ひろげた。',
+    thoughts:['どこから 手を つけよう……','ゲームの つづきが 気になるな……','きのうは とちゅうで やめちゃった……'] },
+  class:{ key:'class', label:'授業', monsters:['golem','eraser','pixie','rhino','bee'], vtheme:'tower', modes:['I','You','We'], goal:'授業で じぶんから 学びに向かう力',
+    scene:'３時間目の 算数。むずかしい問題が 黒板に 書かれた。',
+    thoughts:['手を あげようかな、どうしよう……','となりの子は もう できてる……','「わからない」って 言いにくいな……'] },
+  sports:{ key:'sports', label:'運動会', monsters:['crab','slug','goat','timebug','jelly'], vtheme:'mountain', modes:['I','We'], goal:'運動会の 練習を さいごまで やりぬく力',
+    scene:'リレーの バトンパスの 練習。なかなか うまく つながらない。',
+    thoughts:['また 失敗したら どうしよう……','練習、つかれてきたな……','本番で ころんだら はずかしい……'] },
+  club:{ key:'club', label:'クラブ活動', monsters:['chameleon','rhino','goat','bat','crab'], vtheme:'sky', modes:['I','We'], goal:'クラブで 目標に むかって つづける力',
+    scene:'きょうは クラブの日。新しい わざの 練習が はじまった。',
+    thoughts:['なかなか うまく ならないな……','先ぱいみたいに できる気が しない……','きょうは 休んじゃおうかな……'] },
+  gakugeikai:{ key:'gakugeikai', label:'学芸会', monsters:['eraser','mole','jelly','timebug','crab'], vtheme:'theater', modes:['I','We'], goal:'学芸会の 練習を 仲間と つくり上げる力',
+    scene:'劇の セリフあわせ。じぶんの 出番が 近づいてくる。',
+    thoughts:['セリフ、ぜんぶ おぼえられるかな……','まちがえたら わらわれるかも……','あと 何回 練習すれば いいの……'] },
+  friends:{ key:'friends', label:'友達関係', monsters:['oni','jelly','crab','mole','owl'], vtheme:'forest', modes:['I','You'], goal:'友達と 気もちを つたえ合う力',
+    scene:'休み時間。友達と ちょっとだけ ぎくしゃく してしまった。',
+    thoughts:['なんて 声を かけよう……','わたしが わるかったのかな……','あやまるのって ちょっと こわいな……'] },
+  sougou:{ key:'sougou', label:'総合的な学習', monsters:['mist','golem','tangle','chameleon','mole'], vtheme:'library', modes:['I','We'], goal:'総合の 探究を じぶんで すすめる力',
+    scene:'調べ学習の テーマは 決まった。でも 資料は 山ほど ある。',
+    thoughts:['どの資料から 読めば いいの……','知りたいことが 見つからない……','まとめ方が わからないよ……'] },
+  trip:{ key:'trip', label:'修学旅行', monsters:['timebug','pixie','mouse','bee','owl'], vtheme:'sea', modes:['I','We'], goal:'修学旅行の 計画を 仲間と ととのえる力',
+    scene:'班で 見学コースを 決める 話し合い。時間は ４０分。',
+    thoughts:['行きたい場所が バラバラだ……','時間内に 決まるかな……','ぼくの意見、言い出せるかな……'] },
+};
+
 // 小学校ステージの8場面（設計案v2 §4）をすべて配置。分岐・すすむ/もどるマス付き
 const BOARD = [
   {label:'スタート', type:'start', next:[1]},          // 0
   {label:'', type:'plain', next:[2]},                  // 1
   {label:'家庭学習', type:'event', event:'homework', next:[3]}, // 2 ★あそべる
   {label:'２すすむ', type:'move', fwd:2, next:[4]},     // 3
-  {label:'授業', type:'event', locked:true, next:[5]},  // 4
+  {label:'授業', type:'event', event:'class', next:[5]},  // 4
   {label:'', type:'fork', next:[6,10]},                 // 5 分岐
-  {label:'運動会', type:'event', locked:true, next:[7]},// 6 ←左の道
+  {label:'運動会', type:'event', event:'sports', next:[7]},// 6 ←左の道
   {label:'', type:'plain', next:[8]},                   // 7
   {label:'１もどる', type:'move', backTo:7, next:[9]},  // 8
-  {label:'クラブ活動', type:'event', locked:true, next:[14]}, // 9
-  {label:'学芸会', type:'event', locked:true, next:[11]},// 10 ←右の道
+  {label:'クラブ活動', type:'event', event:'club', next:[14]}, // 9
+  {label:'学芸会', type:'event', event:'gakugeikai', next:[11]},// 10 ←右の道
   {label:'２すすむ', type:'move', fwd:2, next:[12]},    // 11
-  {label:'友達関係', type:'event', locked:true, next:[13]}, // 12
+  {label:'友達関係', type:'event', event:'friends', next:[13]}, // 12
   {label:'', type:'plain', next:[14]},                  // 13
-  {label:'総合的な学習', type:'event', locked:true, next:[15]}, // 14 合流
-  {label:'修学旅行', type:'event', locked:true, next:[16]},     // 15
+  {label:'総合的な学習', type:'event', event:'sougou', next:[15]}, // 14 合流
+  {label:'修学旅行', type:'event', event:'trip', next:[16]},     // 15
   {label:'', type:'plain', next:[17]},                  // 16
   {label:'ゴール', type:'goal', next:[]},               // 17
 ];
@@ -2295,31 +2405,20 @@ function afterHop(stepsLeft){
 function arriveSquare(){
   const i = board.pos, sq = BOARD[i];
   if(sq.type==='event' && !board.cleared.has(i)){
-    if(sq.locked){
-      SFX.talk();
-      showBanner(
-        `<div class="bn-text">『${sq.label}』の イベントマス！</div>
-         <div class="bn-sub">このクエストは 本編で かいほうされるよ。<br>（デモでは「家庭学習」だけ あそべます）</div>`,
-        [{label:'とじる', fn:()=>{ diceBtn.disabled=false; boardSay('つぎの サイコロを ふろう！'); }}]
-      );
-    } else {
-      SFX.appear();
-      showBanner(
-        `<svg class="bn-illust" width="150" height="110" viewBox="0 0 200 150">
-          <rect x="10" y="90" width="180" height="55" rx="6" fill="#E7D7B4"/>
-          <rect x="24" y="40" width="70" height="55" rx="4" fill="#C9A876"/>
-          <rect x="30" y="46" width="58" height="34" rx="2" fill="#FDF6E9"/>
-          <rect x="34" y="50" width="18" height="26" fill="#EAD9AE"/>
-          <rect x="56" y="50" width="26" height="16" fill="#F3E6C3"/>
-          <circle cx="150" cy="35" r="18" fill="#F6C453"/>
-          <rect x="118" y="90" width="18" height="40" fill="#8B6B3D"/>
-          <ellipse cx="127" cy="88" rx="24" ry="12" fill="#7FB06B"/>
-        </svg>
-        <div class="bn-text">イベント『家庭学習』！</div>
-        <div class="bn-sub">学校からかえって、つくえに向かった。<br>目を閉じると、あたまの中で ぼうけんが はじまる……</div>`,
-        [{label:'あたまの中へ！', gold:true, fn:startDive}]
-      );
-    }
+    const ev = EVENTS[sq.event] || EVENTS.homework;
+    quest.event = ev;
+    SFX.appear();
+    showBanner(
+      `<div class="bn-text">イベント『${ev.label}』！</div>
+       <div class="bn-scene">${ev.scene}</div>
+       <div class="bn-thlabel">― あたまの中では ―</div>
+       <div>${ev.thoughts.map(t=>`<span class="bn-th">${t}</span>`).join('')}</div>
+       <div class="bn-thlabel">― このクエストの 調整のかたち ―</div>
+       <div>${(ev.modes||['I']).map(k=>{const md=MODES[k];
+         return `<span class="bn-th" style="background:${md.color}33;border-color:${md.color}">${md.name}（${md.full}）</span>`;}).join('')}</div>
+       <div class="bn-sub" style="margin-top:10px">目を 閉じると、この気もちが うずまく<br>あたまの中へ すいこまれていく……</div>`,
+      [{label:'あたまの中へ！', gold:true, fn:startDive}]
+    );
   } else if(sq.type==='move' && sq.fwd){
     SFX.confirm();
     showBanner(
@@ -2390,9 +2489,26 @@ function drawSwirlFrame(){
   grad.addColorStop(1,'rgba(124,58,237,0)');
   sctx.fillStyle = grad;
   sctx.beginPath(); sctx.arc(cx,cy,coreR,0,Math.PI*2); sctx.fill();
-  const flash = Math.min(1, Math.max(0,(swirlT-1.05)*2.6));
+  /* あたまの中の声が、渦に すいこまれていく */
+  const ths = questEv().thoughts || [];
+  sctx.textAlign='center'; sctx.textBaseline='middle';
+  ths.forEach((txt,i)=>{
+    const t0 = 0.12 + i*0.52, k = (swirlT - t0)/1.15;
+    if(k<=0 || k>=1) return;
+    const ang = i*2.2 + k*3.4;
+    const rad = (0.46 - 0.42*k) * Math.min(w,h);
+    const x = cx + Math.cos(ang)*rad, y = cy + Math.sin(ang)*rad*0.62;
+    const fs = Math.max(10, (15 - 6*k) * Math.min(w,480)/480 * 1.15);
+    sctx.font = fs+'px DotGothic16, monospace';
+    sctx.globalAlpha = Math.sin(Math.PI*k);
+    sctx.fillStyle = '#E9DFFF';
+    sctx.shadowColor = 'rgba(124,58,237,.9)'; sctx.shadowBlur = 10;
+    sctx.fillText(txt, x, y);
+    sctx.shadowBlur = 0; sctx.globalAlpha = 1;
+  });
+  const flash = Math.min(1, Math.max(0,(swirlT-2.30)*2.6));
   if(flash>0){ sctx.fillStyle='rgba(255,255,255,'+flash+')'; sctx.fillRect(0,0,w,h); }
-  if(swirlT < 1.55){ swirlAnim = requestAnimationFrame(drawSwirlFrame); }
+  if(swirlT < 2.80){ swirlAnim = requestAnimationFrame(drawSwirlFrame); }
 }
 function startDive(){
   bgmStop();          // ダイブのあいだは音楽を止めて、渦の音だけにする
@@ -2403,12 +2519,12 @@ function startDive(){
   swirlT=0; fitSwirl(); drawSwirlFrame();
   st.style.transition='opacity .6s ease .3s'; st.style.opacity='1';
   setTimeout(()=>{ board.active = false; }, 550);
-  setTimeout(()=>{ enterBrain(); }, 1350);
+  setTimeout(()=>{ enterBrain(); }, 2100);
   setTimeout(()=>{
     swirlEl.style.opacity='0'; swirlEl.style.pointerEvents='none';
     st.style.opacity='0';
     cancelAnimationFrame(swirlAnim);
-  }, 1650);
+  }, 2450);
 }
 
 /* ============================================================
@@ -2521,7 +2637,8 @@ function phaseFlash(k, sub, done){
 }
 
 /* --- クエストの進みぐあい --- */
-const quest = {gotMission:false, planCard:null, sealOpen:false, bossDown:false, lookbackCard:null};
+const quest = {gotMission:false, planCard:null, sealOpen:false, bossDown:false, lookbackCard:null, event:null};
+function questEv(){ return quest.event || EVENTS.homework; }
 
 /* --- 見通すフェーズ・振り返るフェーズで えらぶ方略カード（実カードと同一文言） --- */
 const PLAN_CARDS = [
@@ -2547,23 +2664,24 @@ const CASTLE_NPCS = [
   {id:'sage', x:3, y:6, spr:'sage', name:'賢者',
     lines:["「モンスターには、ぴったりの方略カードが よく効くぞ」","「はずれても、だいじょうぶ。えらび直せば いいのじゃ」"]},
   {id:'friend', x:10, y:6, spr:'friend', name:'クラスメイト',
-    lines:["「いっしょに 家庭学習のクエスト、がんばろうね！」"]}
+    lines:["「いっしょに クエスト、がんばろうね！」"]}
 ];
-const KING_LINES_GO = [
+function KING_GO_LINES(){ const ev = questEv(); return [
   "「よくきた、ゆうしゃよ。ひとつ 使命を さずけよう」",
-  "「そなたに つけてほしい力は、“家庭学習で ねばりづよく 取りくむ力”じゃ」",
-  "「南の 洞くつには、その力を うばう モンスターが すみついておる」",
-  "「“ゆうわく”“ふあん”“あき”……そして、それらを たばねる 大魔王がおる」",
+  `「そなたに つけてほしい力は、“${ev.goal}”じゃ」`,
+  `「${ev.label}の とちゅうで あたまに うかんだ、あの気もち……おぼえておるか」`,
+  (()=>{ const b=BOSSDEX[questEv().key]||BOSSDEX.homework; return `「あれは ${caveTheme().place}に すむ モンスターの しわざじゃ。“${b.faceNames[0]}”“${b.faceNames[1]}”“${b.faceNames[2]}”……そして、たばねる ${b.short}がおる」`; })(),
+  `「このクエストは ${(ev.modes||['I']).map(k=>MODES[k].name).join('、')}（${(ev.modes||['I']).map(k=>MODES[k].full).join('・')}）で いどむ 旅じゃ」`,
   "「まずは 見通すのじゃ。どんな 方略で いどむかを 決めてから 旅立つがよい」"
-];
+]; }
 const KING_LINES_BACK = [
-  "「おお、もどったか！ 洞くつの モンスターを ぜんめつさせるとは……！」",
+  `「おお、もどったか！ ${caveTheme().name}の モンスターを ぜんめつさせるとは……！」`,
   "「そなたは、じぶんで 学びを すすめる力を たしかに 身につけた」",
   "「さいごに 振り返るのじゃ。きょうの 旅で 使えた方略を、ことばに してみよ」"
 ];
 const FIELD_NPCS = [
   {id:'sage2', x:11, y:3, spr:'sage', name:'賢者',
-    lines:["「海ぞいの 道を 南へ ゆけば、岩はだに ぽっかりと 洞くつが 口を あけておる」","「洞くつの モンスターは、みな “ひとりで学ぶとき”に 出あう こまりごとじゃ」"]},
+    get lines(){ const th=caveTheme(); return [`「海ぞいの 道を 南へ ゆけば、${th.name}への 入口が 見えてくるはずじゃ」`,`「${th.name}の モンスターは、みな 学ぶときに 出あう こまりごとじゃ」`]; }},
   {id:'sailor', x:13, y:6, spr:'friend', name:'ふなのり',
     lines:["「いい風だねえ。海を見ていると、気もちが すーっと 落ちつくよ」","「行きづまったら、いっぺん はなれて みるのも 手だぜ」"]}
 ];
@@ -2585,102 +2703,397 @@ let gameActive = false;
 let animT = 0;
 
 /* --- モンスター：5つの方略カテゴリーを1体ずつ受けもつ --- */
-function spawnCaveMonsters(){
-  world.monsters = [
-    {id:'m1', x:3, y:10, px:3*TILE, py:10*TILE, tx:3, ty:10, moving:false,
-      spr:'mist', big:'mist', name:'まよいの霧（マヨイ・ミスト）', short:'まよいの霧', cat:'認知的方略',
-      line:"「調べても 調べても、知りたいことに たどりつけない……」",
-      cards:[
-        {title:"情報を集めて深める", phase:"実行する", judge:"perfect"},
-        {title:"情報を関連づける", phase:"実行する", judge:"good"},
-        {title:"気持ちを切りかえる", phase:"実行する", judge:"miss"}
-      ],
-      result:{
-        perfect:"霧が はれた！「必要な 情報を 集めて 深めれば、道は 見えてくるんだ」",
-        good:"バラバラだった 情報が 少し つながった。でも、まだ 足りない ものがある。",
-        missHint:"賢者「気もちを ととのえるのも 大切じゃ。ただ いまは まず “調べ方”を 変えてみよう」"},
-      hp:3, maxHp:3, power:1, alive:true },
+/* ============================================================
+   モンスター名鑑（方略クエスト_モンスター名鑑_v1.md §3）
+   「実行する」21方略のうち、No.20（挑戦と考えて前向きになる）は
+   ボスの弱点として扱うため、通常モンスターは20体。
+   ============================================================ */
+const MONDEX = {
+  mist:{ spr:'mist', big:'mist', name:'まよいの霧（マヨイ・ミスト）', short:'まよいの霧', cat:'認知的方略',
+    line:"「調べても 調べても、知りたいことに たどりつけない……」",
+    cards:[
+      {title:"情報を集めて深める", phase:"実行する", judge:"perfect"},
+      {title:"情報を関連づける", phase:"実行する", judge:"good"},
+      {title:"気持ちを切りかえる", phase:"実行する", judge:"miss"}],
+    result:{
+      perfect:"霧が はれた！「必要な 情報を 集めて 深めれば、道は 見えてくるんだ」",
+      good:"バラバラだった 情報が 少し つながった。でも、まだ 足りない ものがある。",
+      missHint:"賢者「気もちを ととのえるのも 大切じゃ。ただ いまは まず “調べ方”を 変えてみよう」"},
+    hp:3, power:1 },
+  golem:{ spr:'golem', big:'golem', name:'バラバラゴーレム', short:'バラバラゴーレム', cat:'認知的方略',
+    line:"「あつめた……あつめただけ……つながらない……」",
+    cards:[
+      {title:"情報を関連づける", phase:"実行する", judge:"perfect"},
+      {title:"考えを構造化する", phase:"実行する", judge:"good"},
+      {title:"くり返して覚える", phase:"実行する", judge:"miss"}],
+    result:{
+      perfect:"ブロックが つながって 形になった！「にたもの どうしを あつめて、名前を つければ いいんだ」",
+      good:"つみ木が 少し まとまった。でも まだ、山のまま くずれそうだ。",
+      missHint:"賢者「くり返し おぼえるのも 大事じゃ。ただ いまは、“つなげる”一手が 効くぞ」"},
+    hp:3, power:1 },
+  owl:{ spr:'owl', big:'owl', name:'カタヨリフクロウ', short:'カタヨリフクロウ', cat:'認知的方略',
+    line:"「ホウ？ そっちがわなんて 見なくて ホウ」",
+    cards:[
+      {title:"情報を多面的に見る", phase:"実行する", judge:"perfect"},
+      {title:"情報を集めて深める", phase:"実行する", judge:"good"},
+      {title:"時間配分を調節する", phase:"実行する", judge:"miss"}],
+    result:{
+      perfect:"フクロウの首が ぐるりと 回った！「べつの がわから 見たら、ぜんぜん ちがって 見える！」",
+      good:"あたらしい 情報は ふえた。でも、見る むきは まだ かたよったままだ。",
+      missHint:"なかまの声「時間の 見直しも いいね。……いまは、“見る むき”を 変えてみようよ」"},
+    hp:3, power:1 },
+  tangle:{ spr:'tangle', big:'tangle', name:'コンガラガリ', short:'コンガラガリ', cat:'認知的方略',
+    line:"「あたまのなか、糸だらけ〜。どれと どれが なんだっけ〜」",
+    cards:[
+      {title:"考えを構造化する", phase:"実行する", judge:"perfect"},
+      {title:"情報を関連づける", phase:"実行する", judge:"good"},
+      {title:"学べる環境を整える", phase:"実行する", judge:"miss"}],
+    result:{
+      perfect:"もつれた糸が するすると ほどけた！「じゅんばんに ならべれば、考えは 形になる」",
+      good:"糸の はしが 見つかった。ぜんぶ ほどけるまで、もう少し。",
+      missHint:"賢者「まわりを ととのえるのも よい。ただ この糸は、“ならべ直す”ことで ほどけるのじゃ」"},
+    hp:3, power:1 },
+  chameleon:{ spr:'chameleon', big:'chameleon', name:'マネッコカメレオン', short:'マネッコカメレオン', cat:'認知的方略',
+    line:"「まねすれば いいじゃん。あたらしいのなんて むりむり」",
+    cards:[
+      {title:"新たな価値を創造する", phase:"実行する", judge:"perfect"},
+      {title:"情報を多面的に見る", phase:"実行する", judge:"good"},
+      {title:"くり返して覚える", phase:"実行する", judge:"miss"}],
+    result:{
+      perfect:"カメレオンに じぶんの色が ついた！「まねの その先に、じぶんだけの 考えが あるんだ」",
+      good:"見る むきを 変えたら、まねじゃない 何かが ちらりと 見えた。",
+      missHint:"なかまの声「おぼえるのも 大切。……でも こいつには、“つくり出す”一手が 効きそうだよ」"},
+    hp:3, power:1 },
+  mole:{ spr:'mole', big:'mole', name:'モジモジモグラ', short:'モジモジモグラ', cat:'認知的方略',
+    line:"「せっかく つくったけど……見せるの、はずかしい……」",
+    cards:[
+      {title:"創造した価値を発信する", phase:"実行する", judge:"perfect"},
+      {title:"新たな価値を創造する", phase:"実行する", judge:"good"},
+      {title:"時間と進み具合を確かめる", phase:"実行する", judge:"miss"}],
+    result:{
+      perfect:"モグラが 穴から 顔を出した！「つたえてみたら、もっと いい考えが 返ってきた！」",
+      good:"作品は もっと よくなった。でも まだ、穴の中に かくれている。",
+      missHint:"賢者「進みぐあいの 確認も 大事じゃ。ただ いまは、“つたえる”勇気が 効くぞ」"},
+    hp:3, power:1 },
+  eraser:{ spr:'eraser', big:'eraser', name:'ケシケシスライム', short:'ケシケシスライム', cat:'認知的方略',
+    line:"「おぼえた そばから けしてあげる〜」",
+    cards:[
+      {title:"くり返して覚える", phase:"実行する", judge:"perfect"},
+      {title:"学習のやり方が良いかを確かめる", phase:"実行する", judge:"good"},
+      {title:"学習環境を調節する", phase:"実行する", judge:"miss"}],
+    result:{
+      perfect:"けしても けしても、もう きえない！「くり返した ことは、けせないんだ」",
+      good:"おぼえ方を 見直した。あとは くり返す だけだ。",
+      missHint:"なかまの声「場所を 変えるのも いいけど……こいつには“くり返し”が いちばん 効くよ」"},
+    hp:3, power:1 },
+  pixie:{ spr:'pixie', big:'pixie', name:'ヨリミチピクシー', short:'ヨリミチピクシー', cat:'メタ認知方略',
+    line:"「こっちの道も たのしいよ？ めあて？ なにそれ」",
+    cards:[
+      {title:"めあてと今の学習がずれていないかを確かめる", phase:"実行する", judge:"perfect"},
+      {title:"時間と進み具合を確かめる", phase:"実行する", judge:"good"},
+      {title:"気持ちを切りかえる", phase:"実行する", judge:"miss"}],
+    result:{
+      perfect:"ちょうちんの 明かりが きえた！「めあてを 思い出せば、よりみちは こわくない」",
+      good:"時間を たしかめたら、少し 道に もどれた。めあての 確認も わすれずに。",
+      missHint:"賢者「気もちの 切りかえも よい。ただ こやつには、“めあてと くらべる”一手じゃ」"},
+    hp:3, power:2 },
+  rhino:{ spr:'rhino', big:'rhino', name:'ゴリオシサイ', short:'ゴリオシサイ', cat:'メタ認知方略',
+    line:"「この やりかたで つっぱしる！ かえない！」",
+    cards:[
+      {title:"学習のやり方が良いかを確かめる", phase:"実行する", judge:"perfect"},
+      {title:"別のやり方に変える", phase:"実行する", judge:"good"},
+      {title:"学べる環境を整える", phase:"実行する", judge:"miss"}],
+    result:{
+      perfect:"サイが 立ち止まった！「この やり方で いいのかな、って 聞いてみるだけで いいんだ」",
+      good:"べつの 道が 見えた。でも まず、いまの やり方を たしかめてからだ。",
+      missHint:"なかまの声「かたづけも いいけど……まずは“やり方の 見直し”が 効きそうだよ」"},
+    hp:3, power:2 },
+  ghost:{ spr:'ghost', big:'ghost', name:'フアンゴースト', short:'フアンゴースト', cat:'メタ認知方略',
+    line:"「まにあうの？ ほんとうに これで いいの？ ……ねえ、だいじょうぶ？」",
+    cards:[
+      {title:"時間と進み具合を確かめる", phase:"実行する", judge:"perfect"},
+      {title:"めあてと今の学習がずれていないかを確かめる", phase:"実行する", judge:"good"},
+      {title:"くり返して覚える", phase:"実行する", judge:"miss"}],
+    result:{
+      perfect:"ゴーストが うすくなった！「のこり時間と 進みぐあいが 分かれば、ふあんは 小さくなる」",
+      good:"めあてと ずれて いないことは 分かった。あと どれだけ かかるかは、まだ 見えない。",
+      missHint:"賢者「くり返す力も 大事じゃ。ただ、いまは “どこまで 来たか”を たしかめてみよう」"},
+    hp:3, power:2 },
+  bee:{ spr:'bee', big:'bee', name:'ザワメキバチ', short:'ザワメキバチ', cat:'メタ認知方略',
+    line:"「ザワザワ……ここ、おちつかないねえ……」",
+    cards:[
+      {title:"物的環境・人的環境を確かめる", phase:"実行する", judge:"perfect"},
+      {title:"学習環境を調節する", phase:"実行する", judge:"good"},
+      {title:"くり返して覚える", phase:"実行する", judge:"miss"}],
+    result:{
+      perfect:"ハチの 羽音が やんだ！「なにが ザワザワの もとか、たしかめれば いいんだ」",
+      good:"場所を 少し 変えた。ザワザワの もとは、まだ どこかに いる。",
+      missHint:"なかまの声「がんばって つづけるより先に、“まわりの ようす”を たしかめてみようよ」"},
+    hp:3, power:2 },
+  crab:{ spr:'crab', big:'crab', name:'ガマンガニ', short:'ガマンガニ', cat:'メタ認知方略',
+    line:"「へいき へいき……（カチカチ）……ぜんぜん へいき……」",
+    cards:[
+      {title:"体の反応から心の調子を確かめる", phase:"実行する", judge:"perfect"},
+      {title:"気持ちの原因を考え調節する", phase:"実行する", judge:"good"},
+      {title:"時間配分を調節する", phase:"実行する", judge:"miss"}],
+    result:{
+      perfect:"カニの はさみが ひらいた！「かたに 力が 入ってた。体は 心の ことを 知ってるんだ」",
+      good:"気もちの もとを 考えはじめた。でも まず、体の サインに 気づくのが 先だった。",
+      missHint:"賢者「時間の 調節も よい。ただ まずは、じぶんの “体の声”を 聞いてみるのじゃ」"},
+    hp:3, power:2 },
+  slug:{ spr:'slug', big:'slug', name:'ダラダラナメクジ', short:'ダラダラナメクジ', cat:'情報調整（リソース管理）方略',
+    line:"「これ、いつまで やるの〜？ まあ いっか〜」",
+    cards:[
+      {title:"学習活動をよりよく変える", phase:"実行する", judge:"perfect"},
+      {title:"めあてと今の学習がずれていないかを確かめる", phase:"実行する", judge:"good"},
+      {title:"くり返して覚える", phase:"実行する", judge:"miss"}],
+    result:{
+      perfect:"ナメクジが しゃきっと した！「めあてに 向かう 活動に、じぶんで 変えれば いいんだ」",
+      good:"めあてと くらべたら、ずれに 気づけた。つぎは 活動を 変える番だ。",
+      missHint:"なかまの声「同じことの くり返しじゃ、ぐるぐる するだけ。“活動を 変える”が 効きそう」"},
+    hp:3, power:1 },
+  goat:{ spr:'goat', big:'goat', name:'イッテンバリヤギ', short:'イッテンバリヤギ', cat:'情報調整（リソース管理）方略',
+    line:"「メェ！ おなじ手で もういっかい！ もういっかい！」",
+    cards:[
+      {title:"別のやり方に変える", phase:"実行する", judge:"perfect"},
+      {title:"学習のやり方が良いかを確かめる", phase:"実行する", judge:"good"},
+      {title:"気持ちを切りかえる", phase:"実行する", judge:"miss"}],
+    result:{
+      perfect:"ヤギが 頭を 上げた！「べつの 手を ためしたら、一発で うまくいった！」",
+      good:"やり方を 見直しはじめた。つぎは、ちがう手を ためす番だ。",
+      missHint:"賢者「気もちも 大事じゃが、この壁には “ちがう やり方”が 効くのじゃ」"},
+    hp:3, power:2 },
+  timebug:{ spr:'timebug', big:'timebug', name:'ジカンクイ', short:'ジカンクイ', cat:'情報調整（リソース管理）方略',
+    line:"「もぐもぐ……きみの時間、おいしいなあ」",
+    cards:[
+      {title:"時間配分を調節する", phase:"実行する", judge:"perfect"},
+      {title:"時間と進み具合を確かめる", phase:"実行する", judge:"good"},
+      {title:"情報を集めて深める", phase:"実行する", judge:"miss"}],
+    result:{
+      perfect:"ジカンクイが 時間を はき出した！「くばり直せば、時間は まだ ある！」",
+      good:"のこり時間が 分かった。つぎは くばり方を 変える番だ。",
+      missHint:"なかまの声「調べものを ふやすと、もっと 食べられちゃう！ “時間の くばり直し”だよ」"},
+    hp:3, power:2 },
+  mouse:{ spr:'mouse', big:'mouse', name:'チラカシネズミ', short:'チラカシネズミ', cat:'情報調整（リソース管理）方略',
+    line:"「ちらかせ ちらかせ〜 どこに 何があるか わかんなく しちゃえ」",
+    cards:[
+      {title:"学習環境を調節する", phase:"実行する", judge:"perfect"},
+      {title:"物的環境・人的環境を確かめる", phase:"実行する", judge:"good"},
+      {title:"挑戦と考えて前向きになる", phase:"実行する", judge:"miss"}],
+    result:{
+      perfect:"ネズミが 道具を 返していった！「つかう ものだけ そばに おけば、まよわない」",
+      good:"なにが 散らかっているか 分かった。つぎは ととのえる番だ。",
+      missHint:"賢者「前向きな 心は りっぱじゃ。ただ まずは、“場を ととのえる”のが 先じゃな」"},
+    hp:3, power:1 },
+  imp:{ spr:'imp', big:'imp', name:'ゆうわくインプ', short:'ゆうわくインプ', cat:'情報調整（リソース管理）方略',
+    line:"「机の 上に マンガと ゲーム。ちょっとだけ……ちょっとだけだって！」",
+    cards:[
+      {title:"学べる環境を整える", phase:"実行する", judge:"perfect"},
+      {title:"学習環境を調節する", phase:"実行する", judge:"good"},
+      {title:"新たな価値を創造する", phase:"実行する", judge:"miss"}],
+    result:{
+      perfect:"インプの 手から ゆうわくが 消えた！「見えない ところに しまえば、心は しずかに なるんだ」",
+      good:"少し かたづけた。でも、まだ 目のはしに ちらついて いる。",
+      missHint:"なかまの声「すごい アイデアだね！ ……でも いまは、まず まわりを ととのえよう」"},
+    hp:3, power:1 },
+  oni:{ spr:'oni', big:'oniBig', name:'イライラおに', short:'イライラおに', cat:'情動調整方略',
+    line:"「なんで できないんだ！ もう ぐちゃぐちゃに してやる！」",
+    cards:[
+      {title:"気持ちの原因を考え調節する", phase:"実行する", judge:"perfect"},
+      {title:"気持ちを切りかえる", phase:"実行する", judge:"good"},
+      {title:"時間配分を調節する", phase:"実行する", judge:"miss"}],
+    result:{
+      perfect:"おにの 角が しぼんだ！「イライラの もとが 分かれば、じぶんで しずめられる」",
+      good:"ふうっと 息を はいたら、少し おちついた。でも、もとの 原いんは そのままだ。",
+      missHint:"賢者「時間の 調節も よい手じゃ。ただ、いまは 心の ほうを 先に ととのえよう」"},
+    hp:3, power:2 },
+  jelly:{ spr:'jelly', big:'jelly', name:'ヒキズリクラゲ', short:'ヒキズリクラゲ', cat:'情動調整方略',
+    line:"「さっきの しっぱい……ずーっと おもいだそうねえ……」",
+    cards:[
+      {title:"気持ちを切りかえる", phase:"実行する", judge:"perfect"},
+      {title:"体の反応から心の調子を確かめる", phase:"実行する", judge:"good"},
+      {title:"時間配分を調節する", phase:"実行する", judge:"miss"}],
+    result:{
+      perfect:"クラゲの 足が ほどけた！「しっぱいは しっぱい。つぎは つぎ、って 切りかえよう」",
+      good:"体の 重さに 気づいた。つぎは 気もちを 切りかえる番だ。",
+      missHint:"なかまの声「時間より 先に、気もちが 引きずられてる。“切りかえ”が 効くよ」"},
+    hp:3, power:2 },
+  bat:{ spr:'bat', big:'bat', name:'アキアキバット', short:'アキアキバット', cat:'動機づけ方略',
+    line:"「おなじことの くり返し……もう あきちゃった。ねむいよう……」",
+    cards:[
+      {title:"一旦離れる・得意なところを見つける", phase:"実行する", judge:"perfect"},
+      {title:"挑戦と考えて前向きになる", phase:"実行する", judge:"good"},
+      {title:"物的環境・人的環境を確かめる", phase:"実行する", judge:"miss"}],
+    result:{
+      perfect:"バットの まぶたが ぱっと 開いた！「いちど はなれて、できる ところから 始めれば いいんだ」",
+      good:"「ちょうせんだ」と 思ったら、少し 顔が 上がった。でも、まだ 体は 重い。",
+      missHint:"なかまの声「まわりを 見わたすのも いいね。……いまは、気もちを 動かす ほうを ためそう」"},
+    hp:3, power:2 },
+};
 
-    {id:'m2', x:11, y:11, px:11*TILE, py:11*TILE, tx:11, ty:11, moving:false,
-      spr:'imp', big:'imp', name:'ゆうわくインプ', short:'ゆうわくインプ', cat:'情報調整（リソース管理）方略',
-      line:"「机の 上に マンガと ゲーム。ちょっとだけ……ちょっとだけだって！」",
-      cards:[
-        {title:"学べる環境を整える", phase:"実行する", judge:"perfect"},
-        {title:"学習環境を調節する", phase:"実行する", judge:"good"},
-        {title:"新たな価値を創造する", phase:"実行する", judge:"miss"}
-      ],
-      result:{
-        perfect:"インプの 手から ゆうわくが 消えた！「見えない ところに しまえば、心は しずかに なるんだ」",
-        good:"少し かたづけた。でも、まだ 目のはしに ちらついて いる。",
-        missHint:"なかまの声「すごい アイデアだね！ ……でも いまは、まず まわりを ととのえよう」"},
-      hp:3, maxHp:3, power:1, alive:true },
-
-    {id:'m3', x:5, y:15, px:5*TILE, py:15*TILE, tx:5, ty:15, moving:false,
-      spr:'ghost', big:'ghost', name:'フアンゴースト', short:'フアンゴースト', cat:'メタ認知方略',
-      line:"「まにあうの？ ほんとうに これで いいの？ ……ねえ、だいじょうぶ？」",
-      cards:[
-        {title:"時間と進み具合を確かめる", phase:"実行する", judge:"perfect"},
-        {title:"めあてと今の学習がずれていないかを確かめる", phase:"実行する", judge:"good"},
-        {title:"くり返して覚える", phase:"実行する", judge:"miss"}
-      ],
-      result:{
-        perfect:"ゴーストが うすくなった！「のこり時間と 進みぐあいが 分かれば、ふあんは 小さくなる」",
-        good:"めあてと ずれて いないことは 分かった。あと どれだけ かかるかは、まだ 見えない。",
-        missHint:"賢者「くり返す力も 大事じゃ。ただ、いまは “どこまで 来たか”を たしかめてみよう」"},
-      hp:3, maxHp:3, power:2, alive:true },
-
-    {id:'m4', x:10, y:17, px:10*TILE, py:17*TILE, tx:10, ty:17, moving:false,
-      spr:'bat', big:'bat', name:'アキアキバット', short:'アキアキバット', cat:'動機づけ方略',
-      line:"「おなじことの くり返し……もう あきちゃった。ねむいよう……」",
-      cards:[
-        {title:"一旦離れる・得意なところを見つける", phase:"実行する", judge:"perfect"},
-        {title:"挑戦と考えて前向きになる", phase:"実行する", judge:"good"},
-        {title:"物的環境・人的環境を確かめる", phase:"実行する", judge:"miss"}
-      ],
-      result:{
-        perfect:"バットの まぶたが ぱっと 開いた！「いちど はなれて、できる ところから 始めれば いいんだ」",
-        good:"「ちょうせんだ」と 思ったら、少し 顔が 上がった。でも、まだ 体は 重い。",
-        missHint:"なかまの声「まわりを 見わたすのも いいね。……いまは、気もちを 動かす ほうを ためそう」"},
-      hp:3, maxHp:3, power:2, alive:true },
-
-    {id:'m5', x:7, y:13, px:7*TILE, py:13*TILE, tx:7, ty:13, moving:false,
-      spr:'oni', big:'oniBig', name:'イライラおに', short:'イライラおに', cat:'情動調整方略',
-      line:"「なんで できないんだ！ もう ぐちゃぐちゃに してやる！」",
-      cards:[
-        {title:"気持ちの原因を考え調節する", phase:"実行する", judge:"perfect"},
-        {title:"気持ちを切りかえる", phase:"実行する", judge:"good"},
-        {title:"時間配分を調節する", phase:"実行する", judge:"miss"}
-      ],
-      result:{
-        perfect:"おにの 角が しぼんだ！「イライラの もとが 分かれば、じぶんで しずめられる」",
-        good:"ふうっと 息を はいたら、少し おちついた。でも、もとの 原いんは そのままだ。",
-        missHint:"賢者「時間の 調節も よい手じゃ。ただ、いまは 心の ほうを 先に ととのえよう」"},
-      hp:3, maxHp:3, power:2, alive:true }
-  ];
-
-  world.boss = {
-    id:'boss', boss:true, x:7, y:2, px:7*TILE, py:2*TILE, tx:7, ty:2, moving:false, still:true,
-    spr:'boss', big:'bossBig', name:'ナゲダシ大魔王', short:'ナゲダシ大魔王', cat:'動機づけ方略（総合）',
-    faceIdx:0,
+/* ボス8体（名鑑v1 §4）。三つの顔の型は共通、名前と弱点がイベントごとに変わる */
+const BOSSDEX = {
+  homework:{ name:'ナゲダシ大魔王', short:'ナゲダシ大魔王', cat:'動機づけ方略（総合）',
+    bpal:{r0:'#5A4890',r1:'#39295E',r2:'#150E2C',aura:'rgba(168,85,247,.30)'},
+    faceNames:['ゆうわく','ふあん','あき'],
     faces:[
       "ゆうわくの顔「やめちゃえよ。あそんだ ほうが ずっと 楽しいぞ？」",
       "ふあんの顔「どうせ できやしない。むだな 時間だと 思わないか？」",
-      "あきの顔「もう あきただろう。きょうは この へんで いいさ……」"
-    ],
+      "あきの顔「もう あきただろう。きょうは この へんで いいさ……」"],
     line:"三つの顔が いっせいに ささやく――「もう、なげ出して しまえ」",
     cards:[
       {title:"挑戦と考えて前向きになる", phase:"実行する", judge:"perfect"},
       {title:"一旦離れる・得意なところを見つける", phase:"実行する", judge:"good"},
       {title:"めあてと今の学習がずれていないかを確かめる", phase:"実行する", judge:"good"},
       {title:"くり返して覚える", phase:"実行する", judge:"miss"},
-      {title:"学習環境を調節する", phase:"実行する", judge:"miss"}
-    ],
+      {title:"学習環境を調節する", phase:"実行する", judge:"miss"}],
     result:{
       perfect:"大魔王の 三つの顔が ひるんだ！「これは ちょうせんだ」――そう 思えた しゅんかん、力が わいてきた！",
       good:"ささやきが 少し 遠のいた。じぶんの 立ち位置を たしかめる 一手だ。",
-      missHint:"賢者「その方略も りっぱじゃ。ただ この相手には、“気もちを 前に むける”一手が いちばん 効く」"},
-    hp:4, maxHp:4, power:3, alive:true
-  };
+      missHint:"賢者「その方略も りっぱじゃ。ただ この相手には、“気もちを 前に むける”一手が いちばん 効く」"} },
+  class:{ name:'ダンマリ大魔王', short:'ダンマリ大魔王', cat:'動機づけ方略（総合）',
+    bpal:{r0:'#4A5E9E',r1:'#2C3A6E',r2:'#0E1430',aura:'rgba(100,140,255,.28)'},
+    faceNames:['はずかしがり','くらべんぼう','あきらめ'],
+    faces:[
+      "はずかしがりの顔「まちがえたら どうする？ だまって いれば あんぜんだぞ」",
+      "くらべんぼうの顔「となりは もう できてる。おまえの 考えなんて……」",
+      "あきらめの顔「どうせ あてられない。ねむって いような……」"],
+    line:"教室が しんと しずまる――「だまって いれば、きずつかない」",
+    cards:[
+      {title:"創造した価値を発信する", phase:"実行する", judge:"perfect"},
+      {title:"考えを構造化する", phase:"実行する", judge:"good"},
+      {title:"挑戦と考えて前向きになる", phase:"実行する", judge:"good"},
+      {title:"くり返して覚える", phase:"実行する", judge:"miss"},
+      {title:"学べる環境を整える", phase:"実行する", judge:"miss"}],
+    result:{
+      perfect:"手が あがった！ 声が 出た！ しずまり返った 教室に、じぶんの 考えが ひびいた！",
+      good:"考えが まとまってきた。あとは、つたえる 勇気だけだ。",
+      missHint:"なかまの声「まちがっても だいじょうぶ。“つたえる”一手が この王に 効くよ」"} },
+  sports:{ name:'ナゲヤリ大魔王', short:'ナゲヤリ大魔王', cat:'動機づけ方略（総合）',
+    bpal:{r0:'#A04848',r1:'#6E2C2C',r2:'#2A0E0E',aura:'rgba(255,120,100,.26)'},
+    faceNames:['しっぱいこわい','つかれた','はずかしい'],
+    faces:[
+      "しっぱいこわいの顔「また バトンを 落とすぞ。やる まえから 見えている」",
+      "つかれたの顔「もう 足が うごかない。練習なんて ほどほどで いい」",
+      "はずかしいの顔「ころんだら みんなが 見てるぞ……」"],
+    line:"三つの顔が わらう――「どうせ 勝てない。なげやりで いこう」",
+    cards:[
+      {title:"挑戦と考えて前向きになる", phase:"実行する", judge:"perfect"},
+      {title:"気持ちを切りかえる", phase:"実行する", judge:"good"},
+      {title:"一旦離れる・得意なところを見つける", phase:"実行する", judge:"good"},
+      {title:"情報を関連づける", phase:"実行する", judge:"miss"},
+      {title:"学習環境を調節する", phase:"実行する", judge:"miss"}],
+    result:{
+      perfect:"「しっぱいしても、つぎに つながる ちょうせんだ！」――バトンを にぎる手に 力が もどった！",
+      good:"気もちが 少し 前を むいた。あとは 一歩 ふみ出すだけだ。",
+      missHint:"賢者「この王には、“ちょうせんと 考える”一手が いちばん 効くのじゃ」"} },
+  club:{ name:'ヤメトコ大魔王', short:'ヤメトコ大魔王', cat:'動機づけ方略（総合）',
+    bpal:{r0:'#5E7A8A',r1:'#3A5060',r2:'#101C24',aura:'rgba(120,180,200,.26)'},
+    faceNames:['じょうたつしない','せんぱいこわい','休みたい'],
+    faces:[
+      "じょうたつしないの顔「何回 やっても 同じさ。センスが ないんだよ」",
+      "せんぱいこわいの顔「へたなところ、見られたく ないだろう？」",
+      "休みたいの顔「きょうくらい、休んでも いいんじゃないか……」"],
+    line:"三つの顔が ささやく――「きょうは やめとこう。また こんど」",
+    cards:[
+      {title:"一旦離れる・得意なところを見つける", phase:"実行する", judge:"perfect"},
+      {title:"挑戦と考えて前向きになる", phase:"実行する", judge:"good"},
+      {title:"別のやり方に変える", phase:"実行する", judge:"good"},
+      {title:"くり返して覚える", phase:"実行する", judge:"miss"},
+      {title:"情報を集めて深める", phase:"実行する", judge:"miss"}],
+    result:{
+      perfect:"「まず 得意な わざから！」――一つ きまったら、つぎの 練習が 楽しみに なった！",
+      good:"前向きな 気もちが もどってきた。どこから 始めるかが かぎだ。",
+      missHint:"なかまの声「いったん はなれて、“できるところ”から。それが この王に 効くよ」"} },
+  gakugeikai:{ name:'ビクビク大魔王', short:'ビクビク大魔王', cat:'動機づけ方略（総合）',
+    bpal:{r0:'#A0488A',r1:'#6E2C5E',r2:'#2A0E24',aura:'rgba(255,120,200,.26)'},
+    faceNames:['セリフわすれ','わらわれる','れんしゅうあきた'],
+    faces:[
+      "セリフわすれの顔「本番で まっしろに なるぞ。ほら、いまも あやしい」",
+      "わらわれるの顔「まちがえたら、客席から くすくす……きこえるぞ」",
+      "れんしゅうあきたの顔「同じ場面 ばっかり。もう いいだろう……」"],
+    line:"まくの かげから 三つの顔――「ビクビクして いれば いい」",
+    cards:[
+      {title:"気持ちを切りかえる", phase:"実行する", judge:"perfect"},
+      {title:"くり返して覚える", phase:"実行する", judge:"good"},
+      {title:"体の反応から心の調子を確かめる", phase:"実行する", judge:"good"},
+      {title:"時間配分を調節する", phase:"実行する", judge:"miss"},
+      {title:"情報を多面的に見る", phase:"実行する", judge:"miss"}],
+    result:{
+      perfect:"「まちがえても、劇は つづく！」――むねを はって ぶたいに 立てた！",
+      good:"くり返した ぶんだけ、セリフは 体に 入っている。あとは 気もちだ。",
+      missHint:"賢者「この王の 正体は “こわがる心”。まず 気もちを 切りかえるのじゃ」"} },
+  friends:{ name:'スレチガイ大魔王', short:'スレチガイ大魔王', cat:'動機づけ方略（総合）',
+    bpal:{r0:'#4A8A5E',r1:'#2C5E3A',r2:'#0E2414',aura:'rgba(120,220,150,.26)'},
+    faceNames:['いいそびれ','おもいこみ','つよがり'],
+    faces:[
+      "いいそびれの顔「いまさら 声を かけても、へんに 思われるぞ」",
+      "おもいこみの顔「きっと おこってる。ぜったい そうだ。きまってる」",
+      "つよがりの顔「あやまる ひつようなんて ない。わるいのは むこうさ」"],
+    line:"三つの顔が 間に 立ちふさがる――「もう 話しかけるな」",
+    cards:[
+      {title:"情報を多面的に見る", phase:"実行する", judge:"perfect"},
+      {title:"気持ちの原因を考え調節する", phase:"実行する", judge:"good"},
+      {title:"創造した価値を発信する", phase:"実行する", judge:"good"},
+      {title:"くり返して覚える", phase:"実行する", judge:"miss"},
+      {title:"時間配分を調節する", phase:"実行する", judge:"miss"}],
+    result:{
+      perfect:"あいての がわから 見えた！「あの子も、声を かけたかったのかも」――おもいこみの 王が きえていく！",
+      good:"じぶんの 気もちの もとが 分かった。つぎは あいての 気もちだ。",
+      missHint:"なかまの声「あいての 目から 見てみて。“多面的に 見る”が この王に 効くよ」"} },
+  sougou:{ name:'マイゴ大魔王', short:'マイゴ大魔王', cat:'動機づけ方略（総合）',
+    bpal:{r0:'#8A6A48',r1:'#5E452C',r2:'#24160E',aura:'rgba(220,180,120,.26)'},
+    faceNames:['見つからない','まとまらない','しらべあきた'],
+    faces:[
+      "見つからないの顔「さがしても むだむだ。この 本の山の どこにも ないぞ」",
+      "まとまらないの顔「あつめるだけ あつめて、どうするんだ？」",
+      "しらべあきたの顔「もう 目が しょぼしょぼ だろう……」"],
+    line:"本の谷の 奥から 三つの顔――「ここで まいごに おなり」",
+    cards:[
+      {title:"めあてと今の学習がずれていないかを確かめる", phase:"実行する", judge:"perfect"},
+      {title:"情報を関連づける", phase:"実行する", judge:"good"},
+      {title:"考えを構造化する", phase:"実行する", judge:"good"},
+      {title:"気持ちを切りかえる", phase:"実行する", judge:"miss"},
+      {title:"学べる環境を整える", phase:"実行する", judge:"miss"}],
+    result:{
+      perfect:"「なにを 知りたいんだっけ」――めあてに もどった しゅんかん、本の谷に 道が ひらいた！",
+      good:"情報が つながりはじめた。めあてと くらべれば、道は もっと はっきりする。",
+      missHint:"賢者「まいごに なったら、まず “めあて”という 北極星を 見上げるのじゃ」"} },
+  trip:{ name:'バラバラ大魔王', short:'バラバラ大魔王', cat:'動機づけ方略（総合）',
+    bpal:{r0:'#48808A',r1:'#2C545E',r2:'#0E2024',aura:'rgba(120,200,220,.26)'},
+    faceNames:['じぶんかって','きめられない','いいだせない'],
+    faces:[
+      "じぶんかっての顔「じぶんの 行きたい ところに 行けば いいのさ」",
+      "きめられないの顔「あと ５分？ むりむり、きまる わけがない」",
+      "いいだせないの顔「きみの 意見なんて、だれも 聞いてないぞ」"],
+    line:"班の 心が ばらばらに――「まとまるものか」と 三つの顔",
+    cards:[
+      {title:"考えを構造化する", phase:"実行する", judge:"perfect"},
+      {title:"情報を多面的に見る", phase:"実行する", judge:"good"},
+      {title:"時間配分を調節する", phase:"実行する", judge:"good"},
+      {title:"くり返して覚える", phase:"実行する", judge:"miss"},
+      {title:"一旦離れる・得意なところを見つける", phase:"実行する", judge:"miss"}],
+    result:{
+      perfect:"意見を ならべて 整理したら、「これなら 全員 行ける！」――班の 心が ひとつに なった！",
+      good:"みんなの 行きたい場所が 見えてきた。つぎは ならべて 整理する番だ。",
+      missHint:"なかまの声「話し合いが ぐちゃぐちゃの ときは、“ならべて 整理”が 効くよ」"} },
+};
+
+const SPAWN_POS = [[3,10],[11,11],[5,15],[10,17],[7,13]];
+function spawnCaveMonsters(){
+  const ev = questEv();
+  const lineup = ev.monsters || ['mist','imp','ghost','bat','oni'];
+  world.monsters = lineup.map((key,i)=>{
+    const d = JSON.parse(JSON.stringify(MONDEX[key] || MONDEX.mist));
+    const [x,y] = SPAWN_POS[i % SPAWN_POS.length];
+    return Object.assign(d, {id:'m'+(i+1), x, y, px:x*TILE, py:y*TILE, tx:x, ty:y,
+      moving:false, maxHp:d.hp, alive:true});
+  });
+  const bkey = BOSSDEX[ev.key || 'homework'] ? (ev.key || 'homework') : 'homework';
+  const b = JSON.parse(JSON.stringify(BOSSDEX[bkey]));
+  world.boss = Object.assign(b, {id:'boss', boss:true, bkey, x:7, y:2,
+    px:7*TILE, py:2*TILE, tx:7, ty:2, moving:false, still:true,
+    spr:'boss', big:'bossBig', faceIdx:0, hp:4, maxHp:4, power:3, alive:true});
 }
 
 /* --- 入力（押しっぱなし移動対応） --- */
@@ -2743,7 +3156,7 @@ function attemptStep(dir){
       if(!quest.bossDown){
         SFX.talk();
         showBanner(`<div class="bn-text">まだ 城へは もどれない。</div>
-          <div class="bn-sub">洞くつの モンスターを ぜんぶ たおしてから、<br>王様に 会いに いこう。</div>`,
+          <div class="bn-sub">${caveTheme().name}の モンスターを ぜんぶ たおしてから、<br>王様に 会いに いこう。</div>`,
           [{label:'とじる', fn:()=>{}}]);
         return;
       }
@@ -2843,7 +3256,8 @@ function enterBrain(){
   const p = world.player;
   p.hp = p.maxHp; world.missStreak = 0;
   world.monsters = []; world.boss = null;
-  CASTLE_NPCS[0].lines = KING_LINES_GO;
+  CASTLE_NPCS[0].lines = KING_GO_LINES();
+  CASTLE_NPCS[2].lines = [`「いっしょに ${questEv().label}のクエスト、がんばろうね！」`];
   CASTLE_NPCS[0].onEnd = askPlanCard;
   document.getElementById('zoneLabel').textContent='見通しの城';
   bgmPlay('castle');
@@ -2889,7 +3303,7 @@ function enterField(){
     bgmPlay('field');
     setPhase('do');
     updateHudHp();
-    phaseFlash('do','洞くつを めざして 歩こう', ()=>{ inputLocked=false; });
+    phaseFlash('do', caveTheme().name+'を めざして 歩こう', ()=>{ inputLocked=false; });
   },300);
 }
 
@@ -2900,7 +3314,7 @@ function enterCave(){
     world.zone='cave'; world.map=CAVE;
     if(!world.boss) spawnCaveMonsters();
     placePlayer(7,20,'up');
-    setZoneLabel('実行の洞くつ');
+    setZoneLabel(caveTheme().label);
     bgmPlay('cave');
     setPhase('do');
     updateHudHp();
@@ -2915,7 +3329,7 @@ function openSeal(){
   SFX.rescue();
   showBanner(
     `<div class="bn-text">封いんが とけた！</div>
-     <div class="bn-sub">５たいの モンスターを すべて しずめた。<br>洞くつの おくから、大きな 気はいが する……</div>`,
+     <div class="bn-sub">５たいの モンスターを すべて しずめた。<br>おくから、大きな 気はいが する……</div>`,
     [{label:'おくへ すすむ', gold:true, fn:()=>{}}]);
 }
 
@@ -2926,7 +3340,7 @@ function onBossDown(){
   phaseFlash('back','城へ もどって、旅を 振り返ろう', ()=>{
     showBanner(
       `<div class="bn-text">モンスターを ぜんめつさせた！</div>
-       <div class="bn-sub">洞くつの 出口から 外へ出て、<br>北の門を くぐって 城へ もどろう。</div>`,
+       <div class="bn-sub">出口から 外へ出て、<br>北の門を くぐって 城へ もどろう。</div>`,
       [{label:'出口へ むかう', gold:true, fn:()=>{}}]);
   });
 }
@@ -2991,7 +3405,7 @@ function kingApproval(){
   const back = quest.lookbackCard ? quest.lookbackCard.title : '―';
   showBanner(
     `<div class="bn-text">王様「みごとであった、ゆうしゃよ！」</div>
-     <div class="bn-sub">「そなたは “家庭学習で ねばりづよく 取りくむ力”を<br>たしかに 身につけた。ここに みとめよう」</div>
+     <div class="bn-sub">「そなたは “${questEv().goal}”を<br>たしかに 身につけた。ここに みとめよう」</div>
      <div class="dqwin" style="margin-top:12px;padding:10px;text-align:left;font-size:11px;line-height:1.9">
        <span style="color:#8fb4ff">見通す</span>　${plan}<br>
        <span style="color:#7ee79b">実行する</span>　５たい＋大魔王を しずめた<br>
@@ -3068,7 +3482,7 @@ function drawGame(){
   const vw = canvas.cssW, vh = canvas.cssH;
   const camX = Math.max(0, Math.min(mapW - vw, p.px + TILE/2 - vw/2));
   const camY = Math.max(0, Math.min(mapH - vh, p.py + TILE/2 - vh/2));
-  ctx.fillStyle = world.zone==='castle' ? '#87A96B' : world.zone==='field' ? '#79B865' : '#0D0A18';
+  ctx.fillStyle = world.zone==='castle' ? '#87A96B' : world.zone==='field' ? '#79B865' : caveTheme().bg;
   ctx.fillRect(0,0,vw,vh);
   const startCol = Math.floor(camX/TILE), startRow = Math.floor(camY/TILE);
   const cols = Math.ceil(vw/TILE)+2, rows = Math.ceil(vh/TILE)+2;
@@ -3131,7 +3545,7 @@ function drawGame(){
   }});
   drawables.sort((a,b)=>a.y-b.y).forEach(d=>d.fn());
   /* 洞くつでは、ゆうしゃのまわりだけ明るい（たいまつの明かりのように） */
-  if(world.zone==='cave'){
+  if(world.zone==='cave' && caveTheme().dark){
     const lx = p.px-camX+TILE/2, ly = p.py-camY+TILE/2;
     const lg = ctx.createRadialGradient(lx, ly, TILE*1.3, lx, ly, TILE*5.4);
     lg.addColorStop(0,'rgba(5,3,12,0)'); lg.addColorStop(1,'rgba(5,3,12,.5)');
@@ -3291,36 +3705,37 @@ function paintTile(q, z, t, vr, par){
       q.strokeStyle='rgba(255,255,255,.18)'; q.lineWidth=1.4;
       q.beginPath(); q.moveTo(5,15); q.quadraticCurveTo(TILE/2,3,TILE-5,15); q.stroke();
     }
-  } else {                                                // 洞くつ
+  } else {                                                // 実行ゾーン（テーマで装いが変わる）
+    const TH = caveTheme();
     if(t===9){                                            // 床
-      tileBase(q,'#2C2248','#1F1836');
+      tileBase(q,TH.floor[0],TH.floor[1]);
       const st=[[8,12],[18,6],[12,22],[22,18]][vr];
-      q.fillStyle='#352A55'; q.fillRect(st[0],st[1],6,4);
-      q.fillStyle='#171126'; q.fillRect((st[0]+9)%24+2,(st[1]+9)%24+2,5,3);
-      if(vr===3){ q.fillStyle='rgba(140,120,220,.5)'; q.fillRect(st[0]+2,st[1]-3,1.6,1.6); }
+      q.fillStyle=TH.spot[0]; q.fillRect(st[0],st[1],6,4);
+      q.fillStyle=TH.spot[1]; q.fillRect((st[0]+9)%24+2,(st[1]+9)%24+2,5,3);
+      if(vr===3){ q.fillStyle=TH.accent+'80'; q.fillRect(st[0]+2,st[1]-3,1.6,1.6); }
     } else if(t===2){                                     // かべ
-      tileBase(q,'#171028','#0C0818');
+      tileBase(q,TH.wallBg[0],TH.wallBg[1]);
       const gr=q.createLinearGradient(0,0,0,12);
-      gr.addColorStop(0,'#3B2F5E'); gr.addColorStop(1,'#241C40');
+      gr.addColorStop(0,TH.wallTop[0]); gr.addColorStop(1,TH.wallTop[1]);
       q.fillStyle=gr; q.fillRect(0,0,TILE,10);
-      q.fillStyle='#241C40';
+      q.fillStyle=TH.wallTop[1];
       q.beginPath();
       q.moveTo(0,10); q.lineTo(5,16); q.lineTo(9,11); q.lineTo(14,18);
       q.lineTo(19,11); q.lineTo(24,16); q.lineTo(28,11); q.lineTo(TILE,10);
       q.lineTo(TILE,10); q.lineTo(0,10); q.closePath(); q.fill();
-      q.fillStyle='rgba(255,255,255,.07)'; q.fillRect(par?4:16,2,7,2.4);
-    } else if(t===7){                                     // 岩
-      tileBase(q,'#2C2248','#1F1836');
-      q.fillStyle='rgba(0,0,0,.4)'; q.beginPath(); q.ellipse(TILE/2,TILE/2+9,11,4,0,0,Math.PI*2); q.fill();
+      q.fillStyle='rgba(255,255,255,.09)'; q.fillRect(par?4:16,2,7,2.4);
+    } else if(t===7){                                     // 岩・きりかぶ・サンゴ・雲…（テーマの障害物）
+      tileBase(q,TH.floor[0],TH.floor[1]);
+      q.fillStyle='rgba(0,0,0,.35)'; q.beginPath(); q.ellipse(TILE/2,TILE/2+9,11,4,0,0,Math.PI*2); q.fill();
       const gr=q.createRadialGradient(TILE/2-4,TILE/2-3,1,TILE/2,TILE/2+2,13);
-      gr.addColorStop(0,'#6B5CA0'); gr.addColorStop(0.55,'#4A3D74'); gr.addColorStop(1,'#332A52');
+      gr.addColorStop(0,TH.rock[0]); gr.addColorStop(0.55,TH.rock[1]); gr.addColorStop(1,TH.rock[2]);
       q.fillStyle=gr; q.beginPath(); q.arc(TILE/2,TILE/2+2,11,0,Math.PI*2); q.fill();
-      q.fillStyle='rgba(255,255,255,.2)'; q.beginPath(); q.arc(TILE/2-4,TILE/2-3,2.4,0,Math.PI*2); q.fill();
-    } else if(t>=160 && t<162){                           // 水晶（2コマ）
+      q.fillStyle='rgba(255,255,255,.25)'; q.beginPath(); q.arc(TILE/2-4,TILE/2-3,2.4,0,Math.PI*2); q.fill();
+    } else if(t>=160 && t<162){                           // 光る水晶（テーマ色）
       const ph=t-160;
-      tileBase(q,'#2C2248','#1F1836');
+      tileBase(q,TH.floor[0],TH.floor[1]);
       const gr=q.createRadialGradient(TILE/2,TILE/2+3,1,TILE/2,TILE/2+3,15);
-      gr.addColorStop(0,`rgba(167,139,250,${ph? .5:.3})`); gr.addColorStop(1,'rgba(167,139,250,0)');
+      gr.addColorStop(0, TH.accent + (ph? '80':'4D')); gr.addColorStop(1, TH.accent + '00');
       q.fillStyle=gr; q.fillRect(0,0,TILE,TILE);
       q.fillStyle = ph? '#B497FF':'#8B6BE8';
       q.beginPath(); q.moveTo(TILE/2,4); q.lineTo(TILE/2+8,TILE-6); q.lineTo(TILE/2-8,TILE-6); q.closePath(); q.fill();
@@ -3352,7 +3767,7 @@ function drawTile(t, sx, sy, mx, my){
   let tt = t;
   if(z==='field' && t===11) tt = 110 + Math.floor(animT*2 + mx*0.7 + my*1.3)%3;   // 海の波
   if(z==='cave'  && t===6)  tt = 160 + Math.floor(animT*3)%2;                     // 水晶の明滅
-  const key = z+'|'+tt+'|'+vr+'|'+par;
+  const key = z+'|'+tt+'|'+vr+'|'+par + (z==='cave' ? '|'+(questEv().vtheme||'cave') : '');
   ctx.drawImage(tileImg(key, q=>paintTile(q, z, tt, vr, par)), sx, sy, TILE, TILE);
   /* 光の明滅だけ、その場で後がけする */
   if(z==='field' && t===14){
@@ -3397,6 +3812,844 @@ let usedCardIdx = new Set();
 let btMonster = null;
 let btAnim = {t:0, flashW:0, flashR:0, lunge:0, dead:false, deadT:0, raf:null};
 
+/* ============================================================
+   戦闘モンスターのイラスト（グラデーション描き）
+   探索中の小さな姿はレトロなドット絵のまま、戦闘の大きな姿は
+   ロードマップ・けんじゃと同じなめらかなイラストで描く。
+   一度描いたらキャッシュして使い回す。
+   ============================================================ */
+const MON_CACHE = new Map();
+function monsterArt(m, w, h){
+  const kind = (m.big||'').replace(/Big$/,'');
+  const face = m.faces ? (m.faceIdx % m.faces.length) : -1;
+  const cw = Math.round(Math.min(w * (m.boss ? 0.54 : 0.44), h * 0.82));
+  const key = kind+'|'+(m.bkey||'')+'|'+face+'|'+cw;
+  let c = MON_CACHE.get(key);
+  if(!c){
+    const ch = Math.round(cw * (m.boss ? 1.08 : 0.94));
+    c = document.createElement('canvas');
+    c.width = Math.max(1,Math.round(cw*DPR)); c.height = Math.max(1,Math.round(ch*DPR));
+    const q = c.getContext('2d'); q.scale(DPR, DPR);
+    const paint = MON_PAINTERS[kind];
+    if(paint) paint(q, cw, ch, face, m);
+    c.cssW = cw; c.cssH = ch;
+    MON_CACHE.set(key, c);
+  }
+  return c;
+}
+/* 目（白目＋ひとみ）。lid=まぶたの下がり具合0〜1、angry=つり目 */
+function monEye(q, x, y, r, px, py, lid, angry){
+  q.fillStyle='#FFFFFF'; q.beginPath(); q.ellipse(x,y,r,r*1.05,0,0,Math.PI*2); q.fill();
+  q.fillStyle='#2B2340'; q.beginPath(); q.arc(x+px*r*0.35, y+py*r*0.35, r*0.45, 0, Math.PI*2); q.fill();
+  q.fillStyle='rgba(255,255,255,.85)'; q.beginPath(); q.arc(x+px*r*0.35-r*0.15, y+py*r*0.35-r*0.18, r*0.13, 0, Math.PI*2); q.fill();
+  if(lid>0){ q.fillStyle=q.lidColor||'#4A3F63';
+    q.beginPath(); q.ellipse(x, y-r*(1-lid), r*1.15, r*lid*1.1, 0, Math.PI, 0); q.fill(); }
+  if(angry){ q.strokeStyle=q.lidColor||'#4A3F63'; q.lineWidth=r*0.32; q.lineCap='round';
+    q.beginPath(); q.moveTo(x-r, y-r*1.15+(x<0?0:0)); q.lineTo(x+r*0.7, y-r*0.55); q.stroke(); }
+}
+const MON_PAINTERS = {
+  /* まよいの霧：うすむらさきの霧のかたまり。目がねむたげに ただよう */
+  mist(q, W, H){
+    const cx=W/2, cy=H*0.52, u=W/100;
+    let gr=q.createRadialGradient(cx,cy,2,cx,cy,52*u);
+    gr.addColorStop(0,'rgba(170,180,215,.34)'); gr.addColorStop(1,'rgba(170,180,215,0)');
+    q.fillStyle=gr; q.fillRect(0,0,W,H);
+    [[0,4,34],[-24,12,20],[24,12,21],[-14,-14,20],[14,-13,21],[0,-20,17]].forEach(([dx,dy,r])=>{
+      gr=q.createRadialGradient(cx+dx*u-r*u*0.3, cy+dy*u-r*u*0.35, 1, cx+dx*u, cy+dy*u, r*u);
+      gr.addColorStop(0,'#C3CCE4'); gr.addColorStop(0.65,'#98A5C6'); gr.addColorStop(1,'#6D7CA0');
+      q.fillStyle=gr; q.beginPath(); q.arc(cx+dx*u, cy+dy*u, r*u, 0, Math.PI*2); q.fill();
+    });
+    [[-34,26,7],[36,24,6],[0,36,8]].forEach(([dx,dy,r])=>{
+      gr=q.createRadialGradient(cx+dx*u, cy+dy*u, 1, cx+dx*u, cy+dy*u, r*u);
+      gr.addColorStop(0,'rgba(180,190,220,.75)'); gr.addColorStop(1,'rgba(180,190,220,0)');
+      q.fillStyle=gr; q.beginPath(); q.arc(cx+dx*u, cy+dy*u, r*u, 0, Math.PI*2); q.fill();
+    });
+    q.strokeStyle='rgba(255,255,255,.35)'; q.lineWidth=2.2*u; q.lineCap='round';
+    q.beginPath(); q.arc(cx-16*u, cy-6*u, 12*u, Math.PI*0.2, Math.PI*1.05); q.stroke();
+    q.beginPath(); q.arc(cx+18*u, cy+2*u, 9*u, Math.PI*1.1, Math.PI*2.0); q.stroke();
+    q.lidColor='#6D7CA0';
+    monEye(q, cx-11*u, cy-2*u, 6.5*u, -0.4, 0.5, 0.45, false);
+    monEye(q, cx+11*u, cy-2*u, 6.5*u, -0.4, 0.5, 0.45, false);
+    q.strokeStyle='#4E5B7C'; q.lineWidth=2*u;
+    q.beginPath(); q.arc(cx, cy+12*u, 6*u, Math.PI*1.15, Math.PI*1.85); q.stroke();
+    q.fillStyle='rgba(230,235,250,.8)'; q.font=(11*u)+'px DotGothic16, monospace';
+    q.textAlign='center'; q.fillText('？', cx+30*u, cy-26*u);
+    q.fillStyle='rgba(230,235,250,.5)'; q.font=(8*u)+'px DotGothic16, monospace';
+    q.fillText('？', cx-32*u, cy-22*u);
+  },
+  /* ゆうわくインプ：むらさきの小悪魔。光るスマホで さそってくる */
+  imp(q, W, H){
+    const cx=W/2, u=W/100, foot=H*0.94;
+    q.fillStyle='rgba(10,6,20,.4)'; q.beginPath(); q.ellipse(cx,foot,30*u,6*u,0,0,Math.PI*2); q.fill();
+    q.strokeStyle='#8B4FD8'; q.lineWidth=3.4*u; q.lineCap='round';
+    q.beginPath(); q.moveTo(cx+20*u,foot-24*u);
+    q.bezierCurveTo(cx+44*u,foot-18*u, cx+46*u,foot-42*u, cx+38*u,foot-50*u); q.stroke();
+    q.fillStyle='#8B4FD8'; q.beginPath();
+    q.moveTo(cx+34*u,foot-56*u); q.lineTo(cx+45*u,foot-52*u); q.lineTo(cx+37*u,foot-45*u); q.closePath(); q.fill();
+    [[-1,0],[1,0]].forEach(([sgn])=>{
+      const gr=q.createLinearGradient(cx,foot-70*u,cx+sgn*40*u,foot-40*u);
+      gr.addColorStop(0,'#5E3B94'); gr.addColorStop(1,'#3A2258');
+      q.fillStyle=gr; q.beginPath();
+      q.moveTo(cx+sgn*14*u, foot-62*u);
+      q.quadraticCurveTo(cx+sgn*42*u, foot-72*u, cx+sgn*40*u, foot-46*u);
+      q.lineTo(cx+sgn*30*u, foot-52*u); q.lineTo(cx+sgn*26*u, foot-42*u);
+      q.closePath(); q.fill();
+    });
+    let gr=q.createRadialGradient(cx-8*u, foot-46*u, 2, cx, foot-34*u, 34*u);
+    gr.addColorStop(0,'#C98BF5'); gr.addColorStop(0.6,'#9B5CE0'); gr.addColorStop(1,'#6E3AB0');
+    q.fillStyle=gr; q.beginPath(); q.ellipse(cx, foot-30*u, 24*u, 28*u, 0, 0, Math.PI*2); q.fill();
+    gr=q.createRadialGradient(cx, foot-26*u, 1, cx, foot-24*u, 15*u);
+    gr.addColorStop(0,'#E8CFFA'); gr.addColorStop(1,'#C29BEE');
+    q.fillStyle=gr; q.beginPath(); q.ellipse(cx, foot-24*u, 13*u, 16*u, 0, 0, Math.PI*2); q.fill();
+    gr=q.createRadialGradient(cx-8*u, foot-78*u, 2, cx, foot-70*u, 26*u);
+    gr.addColorStop(0,'#C98BF5'); gr.addColorStop(0.6,'#9B5CE0'); gr.addColorStop(1,'#7440B8');
+    q.fillStyle=gr; q.beginPath(); q.arc(cx, foot-68*u, 20*u, 0, Math.PI*2); q.fill();
+    [[-1,0],[1,0]].forEach(([sgn])=>{
+      q.fillStyle='#7440B8'; q.beginPath();
+      q.moveTo(cx+sgn*18*u, foot-74*u); q.lineTo(cx+sgn*30*u, foot-78*u); q.lineTo(cx+sgn*19*u, foot-66*u);
+      q.closePath(); q.fill();
+      gr=q.createLinearGradient(cx+sgn*10*u, foot-96*u, cx+sgn*6*u, foot-80*u);
+      gr.addColorStop(0,'#F5A742'); gr.addColorStop(1,'#D97E16');
+      q.fillStyle=gr; q.beginPath();
+      q.moveTo(cx+sgn*6*u, foot-82*u);
+      q.quadraticCurveTo(cx+sgn*16*u, foot-94*u, cx+sgn*9*u, foot-97*u);
+      q.quadraticCurveTo(cx+sgn*10*u, foot-88*u, cx+sgn*13*u, foot-81*u);
+      q.closePath(); q.fill();
+    });
+    q.lidColor='#7440B8';
+    q.fillStyle='#FFE066';
+    [[-8,0],[8,0]].forEach(([dx])=>{ q.beginPath(); q.ellipse(cx+dx*u, foot-70*u, 4.6*u, 5.2*u, 0, 0, Math.PI*2); q.fill(); });
+    q.fillStyle='#2B1A08';
+    [[-8,0],[8,0]].forEach(([dx])=>{ q.beginPath(); q.ellipse(cx+dx*u, foot-70*u, 1.6*u, 4*u, 0, 0, Math.PI*2); q.fill(); });
+    q.fillStyle='#3A1A5C';
+    q.beginPath(); q.moveTo(cx-9*u, foot-59*u);
+    q.quadraticCurveTo(cx, foot-50*u, cx+9*u, foot-59*u);
+    q.quadraticCurveTo(cx, foot-54*u, cx-9*u, foot-59*u); q.closePath(); q.fill();
+    q.fillStyle='#FFFFFF';
+    q.beginPath(); q.moveTo(cx-6*u,foot-58.5*u); q.lineTo(cx-4*u,foot-55*u); q.lineTo(cx-2*u,foot-58*u); q.closePath(); q.fill();
+    q.beginPath(); q.moveTo(cx+6*u,foot-58.5*u); q.lineTo(cx+4*u,foot-55*u); q.lineTo(cx+2*u,foot-58*u); q.closePath(); q.fill();
+    /* 光るスマホ（ゆうわくの道具） */
+    gr=q.createRadialGradient(cx-24*u, foot-38*u, 1, cx-24*u, foot-38*u, 16*u);
+    gr.addColorStop(0,'rgba(160,220,255,.65)'); gr.addColorStop(1,'rgba(160,220,255,0)');
+    q.fillStyle=gr; q.beginPath(); q.arc(cx-24*u, foot-38*u, 16*u, 0, Math.PI*2); q.fill();
+    q.save(); q.translate(cx-24*u, foot-38*u); q.rotate(-0.3);
+    q.fillStyle='#1E1430'; q.beginPath(); q.roundRect(-6*u,-9*u,12*u,18*u,2.4*u); q.fill();
+    gr=q.createLinearGradient(0,-7*u,0,7*u);
+    gr.addColorStop(0,'#CFF0FF'); gr.addColorStop(1,'#7FC8F0');
+    q.fillStyle=gr; q.beginPath(); q.roundRect(-4.6*u,-7*u,9.2*u,14*u,1.6*u); q.fill();
+    q.fillStyle='#F56AA0'; q.fillRect(-3*u,-5*u,3*u,3*u);
+    q.fillStyle='#7C3AED'; q.fillRect(0.6*u,-5*u,3*u,3*u);
+    q.fillStyle='#F5C842'; q.fillRect(-3*u,-1*u,6.6*u,1.6*u);
+    q.restore();
+    q.fillStyle='#9B5CE0';
+    q.beginPath(); q.ellipse(cx-17*u, foot-36*u, 5*u, 4*u, 0.5, 0, Math.PI*2); q.fill();
+    [[-1,0],[1,0]].forEach(([sgn])=>{
+      q.fillStyle='#7440B8';
+      q.beginPath(); q.ellipse(cx+sgn*10*u, foot-4*u, 7*u, 4*u, 0, 0, Math.PI*2); q.fill();
+    });
+  },
+  /* フアンゴースト：まっしろな おばけ。心配で ゆらゆら */
+  ghost(q, W, H){
+    const cx=W/2, u=W/100, top=H*0.14, bot=H*0.90;
+    let gr=q.createRadialGradient(cx, (top+bot)/2, 2, cx, (top+bot)/2, 46*u);
+    gr.addColorStop(0,'rgba(190,230,235,.3)'); gr.addColorStop(1,'rgba(190,230,235,0)');
+    q.fillStyle=gr; q.fillRect(0,0,W,H);
+    gr=q.createLinearGradient(cx-30*u,top,cx+20*u,bot);
+    gr.addColorStop(0,'#F6FCFC'); gr.addColorStop(0.7,'#D4EAEC'); gr.addColorStop(1,'#A9CFD4');
+    q.fillStyle=gr;
+    q.beginPath();
+    q.moveTo(cx-30*u, bot-8*u);
+    q.quadraticCurveTo(cx-34*u, top+26*u, cx, top);
+    q.quadraticCurveTo(cx+34*u, top+26*u, cx+30*u, bot-8*u);
+    for(let i=0;i<4;i++){
+      const x1=cx+30*u - (i*15+7.5)*u, dir = i%2? -1: 1;
+      q.quadraticCurveTo(x1+7.5*u*0.5, bot-8*u + dir*7*u, x1, bot-8*u);
+    }
+    q.closePath(); q.fill();
+    q.strokeStyle='rgba(140,180,190,.5)'; q.lineWidth=1.6*u; q.stroke();
+    [[-1,0],[1,0]].forEach(([sgn])=>{
+      q.fillStyle='#EAF6F7';
+      q.beginPath(); q.ellipse(cx+sgn*27*u, top+40*u, 8*u, 11*u, sgn*0.5, 0, Math.PI*2); q.fill();
+    });
+    q.lidColor='#A9CFD4';
+    monEye(q, cx-11*u, top+30*u, 7.5*u, 0.15, -0.35, 0, false);
+    monEye(q, cx+11*u, top+30*u, 7.5*u, -0.15, -0.35, 0, false);
+    q.strokeStyle='#7FA8B0'; q.lineWidth=2.2*u; q.lineCap='round';
+    q.beginPath(); q.moveTo(cx-17*u, top+18*u); q.lineTo(cx-6*u, top+22*u); q.stroke();
+    q.beginPath(); q.moveTo(cx+17*u, top+18*u); q.lineTo(cx+6*u, top+22*u); q.stroke();
+    q.fillStyle='#5E8890';
+    q.beginPath(); q.ellipse(cx, top+46*u, 4.6*u, 6*u, 0, 0, Math.PI*2); q.fill();
+    gr=q.createLinearGradient(0,top+8*u,0,top+22*u);
+    gr.addColorStop(0,'#9FDCF5'); gr.addColorStop(1,'#5FB2E0');
+    q.fillStyle=gr;
+    q.beginPath();
+    q.moveTo(cx+26*u, top+8*u);
+    q.quadraticCurveTo(cx+31*u, top+16*u, cx+26*u, top+19*u);
+    q.quadraticCurveTo(cx+21*u, top+16*u, cx+26*u, top+8*u);
+    q.closePath(); q.fill();
+  },
+  /* アキアキバット：大きなつばさの こうもり。あきて 大あくび */
+  bat(q, W, H){
+    const cx=W/2, cy=H*0.5, u=W/100;
+    [[-1,0],[1,0]].forEach(([sgn])=>{
+      const gr=q.createLinearGradient(cx, cy, cx+sgn*48*u, cy);
+      gr.addColorStop(0,'#8A5A38'); gr.addColorStop(1,'#4A2C14');
+      q.fillStyle=gr;
+      q.beginPath();
+      q.moveTo(cx+sgn*10*u, cy-6*u);
+      q.quadraticCurveTo(cx+sgn*34*u, cy-30*u, cx+sgn*48*u, cy-22*u);
+      q.quadraticCurveTo(cx+sgn*42*u, cy-8*u, cx+sgn*46*u, cy+2*u);
+      q.quadraticCurveTo(cx+sgn*36*u, cy+2*u, cx+sgn*36*u, cy+12*u);
+      q.quadraticCurveTo(cx+sgn*24*u, cy+8*u, cx+sgn*20*u, cy+16*u);
+      q.quadraticCurveTo(cx+sgn*12*u, cy+8*u, cx+sgn*10*u, cy+10*u);
+      q.closePath(); q.fill();
+      q.strokeStyle='rgba(40,22,8,.55)'; q.lineWidth=1.6*u;
+      [[34,-16],[38,-2]].forEach(([dx,dy])=>{
+        q.beginPath(); q.moveTo(cx+sgn*12*u, cy+2*u);
+        q.quadraticCurveTo(cx+sgn*(dx-6)*u, cy+(dy-4)*u, cx+sgn*dx*u, cy+dy*u); q.stroke();
+      });
+    });
+    let gr=q.createRadialGradient(cx-6*u, cy-8*u, 2, cx, cy, 26*u);
+    gr.addColorStop(0,'#A9784E'); gr.addColorStop(0.6,'#8A5A38'); gr.addColorStop(1,'#61391C');
+    q.fillStyle=gr; q.beginPath(); q.ellipse(cx, cy+2*u, 18*u, 22*u, 0, 0, Math.PI*2); q.fill();
+    q.fillStyle='#C89B72';
+    q.beginPath(); q.ellipse(cx, cy+10*u, 11*u, 12*u, 0, 0, Math.PI*2); q.fill();
+    [[-1,0],[1,0]].forEach(([sgn])=>{
+      gr=q.createLinearGradient(cx+sgn*8*u, cy-34*u, cx+sgn*12*u, cy-16*u);
+      gr.addColorStop(0,'#8A5A38'); gr.addColorStop(1,'#61391C');
+      q.fillStyle=gr; q.beginPath();
+      q.moveTo(cx+sgn*4*u, cy-18*u); q.lineTo(cx+sgn*13*u, cy-34*u); q.lineTo(cx+sgn*18*u, cy-16*u);
+      q.closePath(); q.fill();
+      q.fillStyle='#D8A0A8'; q.beginPath();
+      q.moveTo(cx+sgn*8*u, cy-20*u); q.lineTo(cx+sgn*12.5*u, cy-29*u); q.lineTo(cx+sgn*15*u, cy-19*u);
+      q.closePath(); q.fill();
+    });
+    q.lidColor='#61391C';
+    monEye(q, cx-8*u, cy-8*u, 6*u, 0, 0.3, 0.62, false);
+    monEye(q, cx+8*u, cy-8*u, 6*u, 0, 0.3, 0.62, false);
+    gr=q.createRadialGradient(cx, cy+6*u, 1, cx, cy+7*u, 8*u);
+    gr.addColorStop(0,'#5C2020'); gr.addColorStop(1,'#3A0F10');
+    q.fillStyle=gr; q.beginPath(); q.ellipse(cx, cy+7*u, 7*u, 8.5*u, 0, 0, Math.PI*2); q.fill();
+    q.fillStyle='#E87A8A'; q.beginPath(); q.ellipse(cx, cy+11*u, 4*u, 3.4*u, 0, 0, Math.PI*2); q.fill();
+    q.fillStyle='#FFFFFF';
+    q.beginPath(); q.moveTo(cx-5.5*u,cy+1.5*u); q.lineTo(cx-4*u,cy+4.5*u); q.lineTo(cx-2.5*u,cy+1.8*u); q.closePath(); q.fill();
+    q.beginPath(); q.moveTo(cx+5.5*u,cy+1.5*u); q.lineTo(cx+4*u,cy+4.5*u); q.lineTo(cx+2.5*u,cy+1.8*u); q.closePath(); q.fill();
+    q.fillStyle='rgba(240,240,255,.85)'; q.font=(10*u)+'px DotGothic16, monospace'; q.textAlign='center';
+    q.fillText('ｚ', cx+26*u, cy-30*u);
+    q.font=(7.5*u)+'px DotGothic16, monospace';
+    q.fillText('ｚ', cx+33*u, cy-38*u);
+  },
+  /* イライラおに：まっかな おに。ゆげを出して カンカン */
+  oni(q, W, H){
+    const cx=W/2, u=W/100, foot=H*0.93;
+    q.fillStyle='rgba(10,6,20,.4)'; q.beginPath(); q.ellipse(cx,foot,30*u,6*u,0,0,Math.PI*2); q.fill();
+    [[-1,0],[1,0]].forEach(([sgn])=>{
+      const px=cx+sgn*30*u, py=foot-72*u;
+      for(let i=0;i<3;i++){
+        const gr=q.createRadialGradient(px+sgn*i*5*u, py-i*8*u, 1, px+sgn*i*5*u, py-i*8*u, (7-i)*u);
+        gr.addColorStop(0,'rgba(230,230,240,.85)'); gr.addColorStop(1,'rgba(230,230,240,0)');
+        q.fillStyle=gr; q.beginPath(); q.arc(px+sgn*i*5*u, py-i*8*u, (7-i)*u, 0, Math.PI*2); q.fill();
+      }
+    });
+    let gr=q.createRadialGradient(cx-8*u, foot-46*u, 2, cx, foot-32*u, 40*u);
+    gr.addColorStop(0,'#F49A80'); gr.addColorStop(0.55,'#E06450'); gr.addColorStop(1,'#B03A2E');
+    q.fillStyle=gr; q.beginPath(); q.ellipse(cx, foot-28*u, 27*u, 27*u, 0, 0, Math.PI*2); q.fill();
+    gr=q.createLinearGradient(0,foot-16*u,0,foot-2*u);
+    gr.addColorStop(0,'#F5C842'); gr.addColorStop(1,'#D9A214');
+    q.fillStyle=gr; q.beginPath(); q.roundRect(cx-20*u, foot-16*u, 40*u, 13*u, 4*u); q.fill();
+    q.fillStyle='#4A3208';
+    for(let i=0;i<4;i++){ q.beginPath();
+      q.moveTo(cx-16*u+i*10*u, foot-16*u); q.lineTo(cx-12*u+i*10*u, foot-3*u);
+      q.lineTo(cx-9*u+i*10*u, foot-16*u); q.closePath(); q.fill(); }
+    [[-1,0],[1,0]].forEach(([sgn])=>{
+      gr=q.createRadialGradient(cx+sgn*30*u, foot-34*u, 1, cx+sgn*30*u, foot-34*u, 9*u);
+      gr.addColorStop(0,'#F49A80'); gr.addColorStop(1,'#C0452F');
+      q.fillStyle=gr; q.beginPath(); q.arc(cx+sgn*30*u, foot-34*u, 8*u, 0, Math.PI*2); q.fill();
+    });
+    gr=q.createRadialGradient(cx-8*u, foot-76*u, 2, cx, foot-66*u, 30*u);
+    gr.addColorStop(0,'#F49A80'); gr.addColorStop(0.6,'#E06450'); gr.addColorStop(1,'#B03A2E');
+    q.fillStyle=gr; q.beginPath(); q.arc(cx, foot-64*u, 23*u, 0, Math.PI*2); q.fill();
+    q.fillStyle='#3A2B28';
+    q.beginPath();
+    q.moveTo(cx-23*u, foot-70*u);
+    for(let i=0;i<6;i++){
+      q.lineTo(cx-19*u+i*7.6*u, foot-92*u - (i%2)*4*u);
+      q.lineTo(cx-15*u+i*7.6*u, foot-76*u);
+    }
+    q.lineTo(cx+23*u, foot-70*u);
+    q.quadraticCurveTo(cx, foot-84*u, cx-23*u, foot-70*u);
+    q.closePath(); q.fill();
+    [[-1,0],[1,0]].forEach(([sgn])=>{
+      gr=q.createLinearGradient(cx+sgn*9*u, foot-98*u, cx+sgn*7*u, foot-84*u);
+      gr.addColorStop(0,'#FFE9A8'); gr.addColorStop(1,'#E8B93E');
+      q.fillStyle=gr; q.beginPath();
+      q.moveTo(cx+sgn*5*u, foot-86*u); q.lineTo(cx+sgn*9*u, foot-99*u); q.lineTo(cx+sgn*13*u, foot-85*u);
+      q.closePath(); q.fill();
+    });
+    q.lidColor='#8E2B20';
+    monEye(q, cx-9*u, foot-66*u, 6*u, 0, 0.2, 0, true);
+    monEye(q, cx+9*u, foot-66*u, 6*u, 0, 0.2, 0, true);
+    q.strokeStyle='#5C1A12'; q.lineWidth=2.6*u; q.lineCap='round';
+    q.beginPath(); q.moveTo(cx-15*u, foot-78*u); q.lineTo(cx-4*u, foot-73*u); q.stroke();
+    q.beginPath(); q.moveTo(cx+15*u, foot-78*u); q.lineTo(cx+4*u, foot-73*u); q.stroke();
+    q.fillStyle='#FFFFFF'; q.beginPath(); q.roundRect(cx-10*u, foot-56*u, 20*u, 6*u, 2*u); q.fill();
+    q.strokeStyle='#B03A2E'; q.lineWidth=1.4*u;
+    for(let i=1;i<4;i++){ q.beginPath(); q.moveTo(cx-10*u+i*5*u, foot-56*u); q.lineTo(cx-10*u+i*5*u, foot-50*u); q.stroke(); }
+  },
+  /* バラバラゴーレム：つみ木がバラバラに浮く石の巨人 */
+  golem(q, W, H){
+    const cx=W/2, u=W/100, foot=H*0.94;
+    q.fillStyle='rgba(10,6,20,.4)'; q.beginPath(); q.ellipse(cx,foot,32*u,6*u,0,0,Math.PI*2); q.fill();
+    const block=(x,y,w2,h2,tilt)=>{ q.save(); q.translate(x,y); q.rotate(tilt||0);
+      const gr=q.createLinearGradient(-w2/2,-h2/2,w2/2,h2/2);
+      gr.addColorStop(0,'#CFC5AE'); gr.addColorStop(1,'#8A7F6A');
+      q.fillStyle=gr; q.beginPath(); q.roundRect(-w2/2,-h2/2,w2,h2,3*u); q.fill();
+      q.fillStyle='rgba(255,255,255,.25)'; q.fillRect(-w2/2+2*u,-h2/2+2*u,w2-4*u,2*u);
+      q.restore(); };
+    block(cx-2*u, foot-14*u, 40*u, 20*u, 0.03);
+    block(cx+1*u, foot-38*u, 32*u, 18*u, -0.06);
+    block(cx-26*u, foot-46*u, 14*u, 12*u, -0.35);
+    block(cx+27*u, foot-42*u, 13*u, 11*u, 0.4);
+    block(cx-1*u, foot-62*u, 24*u, 17*u, 0.05);
+    block(cx+24*u, foot-70*u, 10*u, 9*u, 0.5);
+    block(cx-24*u, foot-74*u, 11*u, 9*u, -0.45);
+    q.lidColor='#8A7F6A';
+    monEye(q, cx-6*u, foot-63*u, 4.6*u, 0, 0.3, 0.3, false);
+    monEye(q, cx+7*u, foot-63*u, 4.6*u, 0, 0.3, 0.3, false);
+    q.strokeStyle='#5E5544'; q.lineWidth=2*u; q.lineCap='round';
+    q.beginPath(); q.arc(cx, foot-53*u, 4.6*u, Math.PI*1.15, Math.PI*1.85); q.stroke();
+  },
+  /* カタヨリフクロウ：首が回らない、片目だけ大きいフクロウ */
+  owl(q, W, H){
+    const cx=W/2, u=W/100, foot=H*0.92;
+    q.fillStyle='rgba(10,6,20,.4)'; q.beginPath(); q.ellipse(cx,foot,24*u,5*u,0,0,Math.PI*2); q.fill();
+    let gr=q.createRadialGradient(cx-8*u, foot-50*u, 2, cx, foot-34*u, 40*u);
+    gr.addColorStop(0,'#C9A86A'); gr.addColorStop(0.6,'#A9855A'); gr.addColorStop(1,'#7A5A34');
+    q.fillStyle=gr; q.beginPath(); q.ellipse(cx, foot-32*u, 25*u, 32*u, 0, 0, Math.PI*2); q.fill();
+    gr=q.createLinearGradient(cx,foot-46*u,cx,foot-8*u);
+    gr.addColorStop(0,'#EFE0C2'); gr.addColorStop(1,'#D9C49A');
+    q.fillStyle=gr; q.beginPath(); q.ellipse(cx, foot-26*u, 15*u, 21*u, 0, 0, Math.PI*2); q.fill();
+    q.strokeStyle='#B99A6E'; q.lineWidth=1.6*u;
+    for(let i=0;i<3;i++){ q.beginPath(); q.arc(cx, foot-30*u+i*7*u, 10*u-i*1.4*u, Math.PI*0.2, Math.PI*0.8); q.stroke(); }
+    [[-1,0],[1,0]].forEach(([sgn])=>{
+      q.fillStyle='#7A5A34'; q.beginPath();
+      q.moveTo(cx+sgn*14*u, foot-62*u); q.lineTo(cx+sgn*24*u, foot-76*u); q.lineTo(cx+sgn*26*u, foot-58*u);
+      q.closePath(); q.fill(); });
+    q.fillStyle='#8A6A3E';
+    q.beginPath(); q.ellipse(cx-26*u, foot-34*u, 7*u, 17*u, 0.25, 0, Math.PI*2); q.fill();
+    q.beginPath(); q.ellipse(cx+26*u, foot-34*u, 7*u, 17*u, -0.25, 0, Math.PI*2); q.fill();
+    q.lidColor='#7A5A34';
+    monEye(q, cx-9*u, foot-54*u, 8.5*u, -0.5, 0, 0, false);      // 大きい目（左しか見ない）
+    monEye(q, cx+10*u, foot-54*u, 3.6*u, -0.5, 0, 0.55, false);  // 小さい目
+    q.fillStyle='#F5A742'; q.beginPath();
+    q.moveTo(cx-2*u,foot-47*u); q.lineTo(cx+2*u,foot-47*u); q.lineTo(cx,foot-41*u); q.closePath(); q.fill();
+    q.fillStyle='#F5A742';
+    [[-8,0],[8,0]].forEach(([dx])=>{ q.beginPath();
+      q.moveTo(cx+dx*u-3*u,foot); q.lineTo(cx+dx*u,foot-5*u); q.lineTo(cx+dx*u+3*u,foot); q.closePath(); q.fill(); });
+  },
+  /* コンガラガリ：もつれた毛糸玉。目だけのぞく */
+  tangle(q, W, H){
+    const cx=W/2, cy=H*0.52, u=W/100;
+    q.fillStyle='rgba(10,6,20,.4)'; q.beginPath(); q.ellipse(cx,H*0.9,26*u,5*u,0,0,Math.PI*2); q.fill();
+    let gr=q.createRadialGradient(cx-8*u, cy-10*u, 2, cx, cy, 32*u);
+    gr.addColorStop(0,'#E0A8E0'); gr.addColorStop(0.6,'#B96AB9'); gr.addColorStop(1,'#8A3E8C');
+    q.fillStyle=gr; q.beginPath(); q.arc(cx, cy, 28*u, 0, Math.PI*2); q.fill();
+    q.strokeStyle='rgba(255,255,255,.30)'; q.lineWidth=2.4*u; q.lineCap='round';
+    [[-20,-14,26,0.4],[-24,2,30,-0.2],[-16,14,24,0.5],[-24,-4,28,1.1],[-10,-22,22,0.15]].forEach(([x0,y0,len,tilt])=>{
+      q.save(); q.translate(cx+x0*u, cy+y0*u); q.rotate(tilt);
+      q.beginPath(); q.arc(len*u/2, 0, len*u/2, Math.PI*0.1, Math.PI*0.95); q.stroke(); q.restore(); });
+    q.strokeStyle='#6E2A70'; q.lineWidth=2*u;
+    [[-26,-18,0.9],[24,10,-0.6],[16,-24,0.3]].forEach(([x0,y0,tilt])=>{
+      q.save(); q.translate(cx+x0*u, cy+y0*u); q.rotate(tilt);
+      q.beginPath(); q.moveTo(0,0); q.quadraticCurveTo(8*u, -6*u, 15*u, -2*u); q.stroke(); q.restore(); });
+    q.lidColor='#8A3E8C';
+    monEye(q, cx-8*u, cy-2*u, 6*u, 0.2, 0.2, 0.2, false);
+    monEye(q, cx+8*u, cy-2*u, 6*u, -0.2, 0.2, 0.2, false);
+    q.strokeStyle='#5E1A60'; q.lineWidth=1.8*u;
+    q.beginPath(); q.moveTo(cx-4*u, cy+10*u); q.quadraticCurveTo(cx, cy+8*u, cx+4*u, cy+10*u);
+    q.quadraticCurveTo(cx+8*u, cy+12*u, cx+11*u, cy+10*u); q.stroke();
+  },
+  /* マネッコカメレオン：まわりの色をコピーするだけのカメレオン */
+  chameleon(q, W, H){
+    const cx=W/2, u=W/100, foot=H*0.9;
+    q.fillStyle='rgba(10,6,20,.4)'; q.beginPath(); q.ellipse(cx,foot,30*u,5.5*u,0,0,Math.PI*2); q.fill();
+    q.strokeStyle='#3E8A28'; q.lineWidth=5*u; q.lineCap='round';
+    q.beginPath(); q.arc(cx+26*u, foot-16*u, 9*u, Math.PI*1.5, Math.PI*3.1); q.stroke();
+    q.strokeStyle='#5EAA40'; q.lineWidth=2.4*u;
+    q.beginPath(); q.arc(cx+26*u, foot-16*u, 5.5*u, Math.PI*1.5, Math.PI*3.0); q.stroke();
+    let gr=q.createRadialGradient(cx-10*u, foot-34*u, 2, cx, foot-24*u, 36*u);
+    gr.addColorStop(0,'#9ADB6E'); gr.addColorStop(0.6,'#5EAA40'); gr.addColorStop(1,'#357A22');
+    q.fillStyle=gr;
+    q.beginPath(); q.ellipse(cx-2*u, foot-20*u, 26*u, 18*u, 0, 0, Math.PI*2); q.fill();
+    q.beginPath(); q.arc(cx-20*u, foot-34*u, 13*u, 0, Math.PI*2); q.fill();
+    [['#E4577A',-6,-26,5],['#5FB2E0',6,-18,5],['#F5C842',14,-28,4.4],['#B06AE8',-14,-12,4.4]].forEach(([c,dx,dy,r])=>{
+      q.fillStyle=c; q.globalAlpha=0.85;
+      q.beginPath(); q.arc(cx+dx*u, foot+dy*u, r*u, 0, Math.PI*2); q.fill();
+      q.globalAlpha=1; });
+    q.fillStyle='#357A22';
+    q.beginPath(); q.moveTo(cx-30*u,foot-38*u); q.quadraticCurveTo(cx-36*u,foot-46*u,cx-30*u,foot-48*u);
+    q.quadraticCurveTo(cx-26*u,foot-44*u,cx-27*u,foot-38*u); q.closePath(); q.fill();
+    q.fillStyle='#FFFFFF'; q.beginPath(); q.arc(cx-24*u, foot-38*u, 6.5*u, 0, Math.PI*2); q.fill();
+    q.fillStyle='#2B2340'; q.beginPath(); q.arc(cx-26*u, foot-38*u, 2.6*u, 0, Math.PI*2); q.fill();
+    q.strokeStyle='#2B5E18'; q.lineWidth=1.8*u; q.lineCap='round';
+    q.beginPath(); q.moveTo(cx-30*u, foot-26*u); q.quadraticCurveTo(cx-24*u, foot-22*u, cx-16*u, foot-25*u); q.stroke();
+    q.fillStyle='#357A22';
+    [[-10,0],[4,0]].forEach(([dx])=>{ q.beginPath(); q.ellipse(cx+dx*u, foot-2*u, 5*u, 3.4*u, 0, 0, Math.PI*2); q.fill(); });
+  },
+  /* モジモジモグラ：作品をかかえて穴にかくれるモグラ */
+  mole(q, W, H){
+    const cx=W/2, u=W/100, foot=H*0.9;
+    let gr=q.createLinearGradient(cx,foot-10*u,cx,foot+6*u);
+    gr.addColorStop(0,'#4A3320'); gr.addColorStop(1,'#2A1B0E');
+    q.fillStyle=gr; q.beginPath(); q.ellipse(cx, foot, 34*u, 10*u, 0, 0, Math.PI*2); q.fill();
+    q.fillStyle='#1A0F06'; q.beginPath(); q.ellipse(cx, foot-2*u, 27*u, 7*u, 0, 0, Math.PI*2); q.fill();
+    gr=q.createRadialGradient(cx-8*u, foot-30*u, 2, cx, foot-20*u, 30*u);
+    gr.addColorStop(0,'#A9784E'); gr.addColorStop(0.6,'#84583A'); gr.addColorStop(1,'#5E3E26');
+    q.fillStyle=gr; q.beginPath(); q.ellipse(cx, foot-18*u, 21*u, 22*u, 0, 0, Math.PI*2); q.fill();
+    q.fillStyle='#F2A7C3'; q.beginPath(); q.ellipse(cx, foot-26*u, 4.6*u, 3.6*u, 0, 0, Math.PI*2); q.fill();
+    q.fillStyle='rgba(255,255,255,.6)'; q.beginPath(); q.arc(cx-1.4*u, foot-27*u, 1.2*u, 0, Math.PI*2); q.fill();
+    q.lidColor='#5E3E26';
+    monEye(q, cx-8*u, foot-32*u, 3.4*u, 0, 0.5, 0.35, false);
+    monEye(q, cx+8*u, foot-32*u, 3.4*u, 0, 0.5, 0.35, false);
+    gr=q.createLinearGradient(cx-2*u,foot-20*u,cx+16*u,foot-6*u);
+    gr.addColorStop(0,'#FDF6E9'); gr.addColorStop(1,'#E8D9B4');
+    q.fillStyle=gr; q.save(); q.translate(cx+8*u, foot-12*u); q.rotate(0.12);
+    q.beginPath(); q.roundRect(-9*u,-11*u,18*u,22*u,1.6*u); q.fill();
+    q.strokeStyle='#B9A88A'; q.lineWidth=1.2*u;
+    for(let i=0;i<4;i++){ q.beginPath(); q.moveTo(-6*u,-6*u+i*4*u); q.lineTo(6*u,-6*u+i*4*u); q.stroke(); }
+    q.restore();
+    q.fillStyle='#D9B08A';
+    q.beginPath(); q.ellipse(cx-14*u, foot-12*u, 6*u, 4.6*u, 0.6, 0, Math.PI*2); q.fill();
+    q.beginPath(); q.ellipse(cx+18*u, foot-20*u, 6*u, 4.6*u, -0.5, 0, Math.PI*2); q.fill();
+  },
+  /* ケシケシスライム：消しゴムのスライム。字が消えていく */
+  eraser(q, W, H){
+    const cx=W/2, u=W/100, foot=H*0.9;
+    q.fillStyle='rgba(10,6,20,.35)'; q.beginPath(); q.ellipse(cx,foot,30*u,5.5*u,0,0,Math.PI*2); q.fill();
+    q.font=(12*u)+'px DotGothic16, monospace'; q.textAlign='center';
+    [['あ',-30,-52,.55],['い',28,-46,.3],['う',-20,-64,.2]].forEach(([ch,dx,dy,al])=>{
+      q.fillStyle=`rgba(240,235,250,${al})`; q.fillText(ch, cx+dx*u, foot+dy*u); });
+    let gr=q.createLinearGradient(cx,foot-40*u,cx,foot);
+    gr.addColorStop(0,'#FAF4FC'); gr.addColorStop(0.55,'#E4D6EA'); gr.addColorStop(1,'#BFA8CC');
+    q.fillStyle=gr;
+    q.beginPath();
+    q.moveTo(cx-28*u, foot);
+    q.bezierCurveTo(cx-30*u, foot-34*u, cx-16*u, foot-42*u, cx, foot-42*u);
+    q.bezierCurveTo(cx+16*u, foot-42*u, cx+30*u, foot-34*u, cx+28*u, foot);
+    q.closePath(); q.fill();
+    q.fillStyle='#8FD3F4'; q.globalAlpha=.8;
+    q.beginPath(); q.roundRect(cx-28*u, foot-16*u, 56*u, 8*u, 3*u); q.fill(); q.globalAlpha=1;
+    q.lidColor='#BFA8CC';
+    monEye(q, cx-10*u, foot-28*u, 5.5*u, 0.2, 0.2, 0, false);
+    monEye(q, cx+10*u, foot-28*u, 5.5*u, 0.2, 0.2, 0, false);
+    q.strokeStyle='#7A5E88'; q.lineWidth=2*u; q.lineCap='round';
+    q.beginPath(); q.arc(cx, foot-18*u, 5*u, Math.PI*0.15, Math.PI*0.85); q.stroke();
+    [[-38,-8],[36,-12],[30,-30]].forEach(([dx,dy])=>{
+      q.fillStyle='#D8C8E0';
+      q.save(); q.translate(cx+dx*u, foot+dy*u); q.rotate(dx*0.02);
+      q.beginPath(); q.roundRect(-4*u,-1.6*u,8*u,3.2*u,1.6*u); q.fill(); q.restore(); });
+  },
+  /* ヨリミチピクシー：ちょうちんで横道へさそう小妖精 */
+  pixie(q, W, H){
+    const cx=W/2, u=W/100, foot=H*0.9;
+    q.fillStyle='rgba(10,6,20,.35)'; q.beginPath(); q.ellipse(cx,foot,20*u,4.5*u,0,0,Math.PI*2); q.fill();
+    [[-1,0],[1,0]].forEach(([sgn])=>{
+      q.fillStyle='rgba(180,230,150,.5)';
+      q.beginPath(); q.ellipse(cx+sgn*16*u, foot-52*u, 12*u, 18*u, sgn*0.5, 0, Math.PI*2); q.fill(); });
+    let gr=q.createRadialGradient(cx-4*u, foot-40*u, 1, cx, foot-32*u, 22*u);
+    gr.addColorStop(0,'#B4E08A'); gr.addColorStop(0.6,'#7CB84E'); gr.addColorStop(1,'#4E8A28');
+    q.fillStyle=gr; q.beginPath(); q.ellipse(cx, foot-28*u, 13*u, 20*u, 0, 0, Math.PI*2); q.fill();
+    gr=q.createRadialGradient(cx-4*u, foot-56*u, 1, cx, foot-52*u, 14*u);
+    gr.addColorStop(0,'#FFE9C8'); gr.addColorStop(1,'#EEC08E');
+    q.fillStyle=gr; q.beginPath(); q.arc(cx, foot-52*u, 11*u, 0, Math.PI*2); q.fill();
+    q.fillStyle='#4E8A28';
+    q.beginPath(); q.moveTo(cx-10*u, foot-58*u); q.quadraticCurveTo(cx, foot-74*u, cx+12*u, foot-60*u);
+    q.quadraticCurveTo(cx+2*u, foot-64*u, cx-10*u, foot-58*u); q.closePath(); q.fill();
+    q.lidColor='#4E8A28';
+    monEye(q, cx-4.6*u, foot-53*u, 3.2*u, 0.5, 0, 0, false);
+    monEye(q, cx+4.6*u, foot-53*u, 3.2*u, 0.5, 0, 0, false);
+    q.strokeStyle='#2E5E14'; q.lineWidth=1.6*u; q.lineCap='round';
+    q.beginPath(); q.arc(cx+1*u, foot-47*u, 3.4*u, Math.PI*0.1, Math.PI*0.8); q.stroke();
+    q.strokeStyle='#8A6A3E'; q.lineWidth=1.8*u;
+    q.beginPath(); q.moveTo(cx+11*u, foot-40*u); q.lineTo(cx+22*u, foot-48*u); q.stroke();
+    const lx=cx+24*u, ly=foot-44*u;
+    gr=q.createRadialGradient(lx, ly, 1, lx, ly, 13*u);
+    gr.addColorStop(0,'rgba(255,214,102,.7)'); gr.addColorStop(1,'rgba(255,214,102,0)');
+    q.fillStyle=gr; q.beginPath(); q.arc(lx, ly, 13*u, 0, Math.PI*2); q.fill();
+    gr=q.createLinearGradient(lx,ly-6*u,lx,ly+6*u);
+    gr.addColorStop(0,'#FFD166'); gr.addColorStop(1,'#E8940A');
+    q.fillStyle=gr; q.beginPath(); q.roundRect(lx-4.6*u, ly-6*u, 9.2*u, 12*u, 4*u); q.fill();
+    q.fillStyle='#FFF3C4'; q.fillRect(lx-1.4*u, ly-3.4*u, 2.8*u, 6.8*u);
+    q.strokeStyle='rgba(255,255,255,.6)'; q.lineWidth=1.4*u;
+    q.beginPath(); q.moveTo(cx-24*u, foot-6*u); q.quadraticCurveTo(cx-10*u, foot-2*u, cx+8*u, foot-5*u); q.stroke();
+  },
+  /* ゴリオシサイ：同じ壁に頭突きし続けるサイ */
+  rhino(q, W, H){
+    const cx=W/2, u=W/100, foot=H*0.92;
+    q.fillStyle='rgba(10,6,20,.4)'; q.beginPath(); q.ellipse(cx,foot,32*u,6*u,0,0,Math.PI*2); q.fill();
+    let gr=q.createLinearGradient(cx-34*u,0,cx-20*u,0);
+    gr.addColorStop(0,'#8A7F6A'); gr.addColorStop(1,'#6E624E');
+    q.fillStyle=gr; q.beginPath(); q.roundRect(cx-40*u, foot-56*u, 14*u, 56*u, 2*u); q.fill();
+    q.strokeStyle='#4E4436'; q.lineWidth=1.6*u;
+    q.beginPath(); q.moveTo(cx-33*u, foot-44*u); q.lineTo(cx-38*u, foot-36*u); q.moveTo(cx-33*u, foot-44*u); q.lineTo(cx-29*u, foot-34*u);
+    q.moveTo(cx-33*u, foot-44*u); q.lineTo(cx-33*u, foot-52*u); q.stroke();
+    gr=q.createRadialGradient(cx+4*u, foot-38*u, 2, cx+8*u, foot-26*u, 38*u);
+    gr.addColorStop(0,'#B4BEC9'); gr.addColorStop(0.6,'#8D99A6'); gr.addColorStop(1,'#5E6A78');
+    q.fillStyle=gr; q.beginPath(); q.ellipse(cx+8*u, foot-22*u, 27*u, 21*u, 0, 0, Math.PI*2); q.fill();
+    q.beginPath(); q.arc(cx-14*u, foot-34*u, 15*u, 0, Math.PI*2); q.fill();
+    q.fillStyle='#EFE5D0';
+    q.beginPath(); q.moveTo(cx-26*u, foot-38*u); q.lineTo(cx-38*u, foot-46*u); q.lineTo(cx-24*u, foot-46*u);
+    q.closePath(); q.fill();
+    q.fillStyle='#E86A5C'; q.beginPath(); q.arc(cx-20*u, foot-48*u, 4*u, 0, Math.PI*2); q.fill();
+    q.fillStyle='rgba(255,255,255,.5)'; q.beginPath(); q.arc(cx-21*u, foot-49*u, 1.4*u, 0, Math.PI*2); q.fill();
+    q.lidColor='#5E6A78';
+    monEye(q, cx-10*u, foot-38*u, 3.6*u, -0.5, 0, 0, true);
+    q.fillStyle='#8D99A6';
+    q.beginPath(); q.moveTo(cx-6*u,foot-48*u); q.lineTo(cx-2*u,foot-56*u); q.lineTo(cx+3*u,foot-48*u); q.closePath(); q.fill();
+    q.fillStyle='#4E5866';
+    [[-4,0],[10,0],[22,0]].forEach(([dx])=>{ q.beginPath(); q.roundRect(cx+dx*u, foot-6*u, 7*u, 6*u, 2*u); q.fill(); });
+    [[38,-30],[42,-22]].forEach(([dx,dy])=>{
+      q.strokeStyle='rgba(220,225,235,.6)'; q.lineWidth=1.6*u;
+      q.beginPath(); q.moveTo(cx+dx*u-28*u, foot+dy*u); q.lineTo(cx+dx*u-22*u, foot+dy*u-4*u); q.stroke(); });
+  },
+  /* ザワメキバチ：おんぷ形のハチのむれ */
+  bee(q, W, H){
+    const cx=W/2, cy=H*0.5, u=W/100;
+    const beeAt=(bx,by,sc,lead)=>{
+      q.save(); q.translate(bx,by); q.scale(sc,sc);
+      q.fillStyle='rgba(200,220,255,.5)';
+      q.beginPath(); q.ellipse(-3*u, -9*u, 7*u, 3.4*u, -0.5, 0, Math.PI*2); q.fill();
+      q.beginPath(); q.ellipse(4*u, -9*u, 7*u, 3.4*u, 0.5, 0, Math.PI*2); q.fill();
+      let gr=q.createRadialGradient(-2*u,-2*u,1,0,0,10*u);
+      gr.addColorStop(0,'#FFDE6E'); gr.addColorStop(1,'#E8A50A');
+      q.fillStyle=gr; q.beginPath(); q.ellipse(0, 0, 9.5*u, 8*u, 0, 0, Math.PI*2); q.fill();
+      q.fillStyle='#3A2B05';
+      q.beginPath(); q.roundRect(-8.5*u, -2.4*u, 5*u, 6.5*u, 2*u); q.fill();
+      q.beginPath(); q.roundRect(-1*u, -2.8*u, 4.4*u, 7*u, 2*u); q.fill();
+      q.fillStyle='#3A2B05';
+      q.beginPath(); q.moveTo(9*u, 0); q.lineTo(14*u, -1.6*u); q.lineTo(9*u, -3*u); q.closePath(); q.fill();
+      if(lead){
+        q.lidColor='#C2900C';
+        monEye(q, 2.4*u, -3*u, 2.6*u, 0.5, 0, 0, false);
+      } else { q.fillStyle='#2B1F05'; q.beginPath(); q.arc(3*u, -3*u, 1.6*u, 0, Math.PI*2); q.fill(); }
+      q.restore(); };
+    q.strokeStyle='rgba(160,170,200,.5)'; q.lineWidth=1.6*u; q.lineCap='round';
+    [[-30,10,0.8],[26,-6,-0.5],[-6,-28,0.3]].forEach(([dx,dy,tilt])=>{
+      q.save(); q.translate(cx+dx*u, cy+dy*u); q.rotate(tilt);
+      q.beginPath(); q.moveTo(-8*u,0); q.quadraticCurveTo(-2*u,-5*u,4*u,0); q.quadraticCurveTo(9*u,4*u,14*u,0); q.stroke();
+      q.restore(); });
+    beeAt(cx-20*u, cy+16*u, 0.8, false);
+    beeAt(cx+22*u, cy+8*u, 0.9, false);
+    beeAt(cx+14*u, cy-22*u, 0.7, false);
+    beeAt(cx-6*u, cy-2*u, 1.5, true);
+    q.fillStyle='rgba(240,240,255,.85)'; q.font=(9*u)+'px DotGothic16, monospace'; q.textAlign='center';
+    q.fillText('♪', cx-32*u, cy-18*u);
+    q.fillText('♪', cx+34*u, cy-26*u);
+  },
+  /* ガマンガニ：はさみで心を固くとじたカニ */
+  crab(q, W, H){
+    const cx=W/2, u=W/100, foot=H*0.92;
+    q.fillStyle='rgba(10,6,20,.4)'; q.beginPath(); q.ellipse(cx,foot,30*u,5.5*u,0,0,Math.PI*2); q.fill();
+    q.strokeStyle='#B03A2E'; q.lineWidth=3.4*u; q.lineCap='round';
+    [[-1,0],[1,0]].forEach(([sgn])=>{
+      for(let i=0;i<3;i++){
+        q.beginPath(); q.moveTo(cx+sgn*18*u, foot-16*u-i*7*u);
+        q.quadraticCurveTo(cx+sgn*32*u, foot-14*u-i*8*u, cx+sgn*36*u, foot-4*u-i*7*u); q.stroke();
+      }});
+    let gr=q.createRadialGradient(cx-8*u, foot-32*u, 2, cx, foot-24*u, 32*u);
+    gr.addColorStop(0,'#F49A80'); gr.addColorStop(0.55,'#E06450'); gr.addColorStop(1,'#B03A2E');
+    q.fillStyle=gr; q.beginPath(); q.ellipse(cx, foot-22*u, 24*u, 18*u, 0, 0, Math.PI*2); q.fill();
+    q.strokeStyle='#8E2B20'; q.lineWidth=1.8*u;
+    q.beginPath(); q.moveTo(cx-8*u, foot-36*u); q.lineTo(cx-2*u, foot-30*u); q.lineTo(cx-6*u, foot-24*u); q.stroke();
+    [[-1,0],[1,0]].forEach(([sgn])=>{
+      gr=q.createRadialGradient(cx+sgn*26*u-2*u, foot-40*u, 1, cx+sgn*26*u, foot-38*u, 12*u);
+      gr.addColorStop(0,'#F49A80'); gr.addColorStop(1,'#C0452F');
+      q.fillStyle=gr;
+      q.beginPath(); q.ellipse(cx+sgn*26*u, foot-38*u, 10*u, 8*u, sgn*0.5, 0, Math.PI*2); q.fill();
+      q.fillStyle='#8E2B20';
+      q.beginPath(); q.moveTo(cx+sgn*26*u, foot-44*u); q.lineTo(cx+sgn*20*u, foot-38*u); q.lineTo(cx+sgn*32*u, foot-38*u);
+      q.closePath(); q.fill(); });
+    q.strokeStyle='#5C1A12'; q.lineWidth=2.6*u; q.lineCap='round';
+    q.beginPath(); q.moveTo(cx-24*u, foot-40*u); q.lineTo(cx+24*u, foot-40*u); q.stroke();
+    [[-1,0],[1,0]].forEach(([sgn])=>{
+      q.strokeStyle='#40120C'; q.lineWidth=1.8*u;
+      q.beginPath(); q.moveTo(cx+sgn*8*u, foot-52*u); q.lineTo(cx+sgn*8*u, foot-42*u); q.stroke();
+      q.fillStyle='#FFF7E6'; q.beginPath(); q.arc(cx+sgn*8*u, foot-54*u, 3.6*u, 0, Math.PI*2); q.fill();
+      q.fillStyle='#2B2340'; q.beginPath(); q.arc(cx+sgn*8*u, foot-54*u, 1.7*u, 0, Math.PI*2); q.fill(); });
+    q.strokeStyle='#5C1A12'; q.lineWidth=1.8*u;
+    q.beginPath(); q.moveTo(cx-6*u, foot-16*u); q.lineTo(cx+6*u, foot-16*u); q.stroke();
+    q.fillStyle='#7FC8F0';
+    q.beginPath(); q.moveTo(cx+16*u, foot-52*u); q.quadraticCurveTo(cx+20*u, foot-46*u, cx+16*u, foot-44*u);
+    q.quadraticCurveTo(cx+12*u, foot-46*u, cx+16*u, foot-52*u); q.closePath(); q.fill();
+  },
+  /* ダラダラナメクジ：うずまきのあとを残してぐるぐる這う */
+  slug(q, W, H){
+    const cx=W/2, u=W/100, foot=H*0.88;
+    q.strokeStyle='rgba(180,180,120,.4)'; q.lineWidth=3*u; q.lineCap='round';
+    q.beginPath();
+    for(let a=0;a<Math.PI*3.4;a+=0.2){
+      const r=(4+a*3.4)*u, x=cx-4*u+Math.cos(a+2.4)*r, y=foot+2*u+Math.sin(a+2.4)*r*0.32;
+      a===0? q.moveTo(x,y) : q.lineTo(x,y);
+    }
+    q.stroke();
+    let gr=q.createLinearGradient(cx,foot-30*u,cx,foot);
+    gr.addColorStop(0,'#C9C972'); gr.addColorStop(0.6,'#A9A952'); gr.addColorStop(1,'#7A7A32');
+    q.fillStyle=gr;
+    q.beginPath();
+    q.moveTo(cx-30*u, foot);
+    q.bezierCurveTo(cx-32*u, foot-22*u, cx-12*u, foot-30*u, cx+2*u, foot-28*u);
+    q.bezierCurveTo(cx+20*u, foot-26*u, cx+30*u, foot-12*u, cx+28*u, foot);
+    q.closePath(); q.fill();
+    q.fillStyle='rgba(255,255,255,.25)';
+    q.beginPath(); q.ellipse(cx-6*u, foot-22*u, 14*u, 5*u, -0.15, 0, Math.PI*2); q.fill();
+    q.strokeStyle='#7A7A32'; q.lineWidth=2*u; q.lineCap='round';
+    [[-1,0],[1,0]].forEach(([sgn])=>{
+      q.beginPath(); q.moveTo(cx-20*u+sgn*5*u, foot-28*u);
+      q.quadraticCurveTo(cx-22*u+sgn*7*u, foot-38*u, cx-24*u+sgn*9*u, foot-40*u); q.stroke();
+      q.fillStyle='#5E5E20'; q.beginPath(); q.arc(cx-24*u+sgn*9*u, foot-40*u, 2*u, 0, Math.PI*2); q.fill(); });
+    q.lidColor='#7A7A32';
+    monEye(q, cx-16*u, foot-20*u, 4.6*u, 0.2, 0.4, 0.62, false);
+    monEye(q, cx-4*u, foot-19*u, 4.6*u, 0.2, 0.4, 0.62, false);
+    q.strokeStyle='#4E4E16'; q.lineWidth=1.8*u;
+    q.beginPath(); q.arc(cx-10*u, foot-10*u, 4*u, Math.PI*0.2, Math.PI*0.9); q.stroke();
+    q.fillStyle='rgba(240,240,255,.75)'; q.font=(9*u)+'px DotGothic16, monospace'; q.textAlign='center';
+    q.fillText('〜', cx+22*u, foot-30*u);
+  },
+  /* イッテンバリヤギ：同じ岩に頭突きをくり返すヤギ */
+  goat(q, W, H){
+    const cx=W/2, u=W/100, foot=H*0.92;
+    q.fillStyle='rgba(10,6,20,.4)'; q.beginPath(); q.ellipse(cx,foot,30*u,5.5*u,0,0,Math.PI*2); q.fill();
+    let gr=q.createRadialGradient(cx-32*u, foot-16*u, 2, cx-28*u, foot-12*u, 16*u);
+    gr.addColorStop(0,'#8A7F9E'); gr.addColorStop(1,'#57506B');
+    q.fillStyle=gr; q.beginPath();
+    q.moveTo(cx-42*u, foot); q.lineTo(cx-36*u, foot-24*u); q.lineTo(cx-22*u, foot-18*u); q.lineTo(cx-16*u, foot);
+    q.closePath(); q.fill();
+    gr=q.createRadialGradient(cx+10*u, foot-34*u, 2, cx+12*u, foot-24*u, 34*u);
+    gr.addColorStop(0,'#F8F4EA'); gr.addColorStop(0.6,'#E4DCC9'); gr.addColorStop(1,'#B9AE96');
+    q.fillStyle=gr; q.beginPath(); q.ellipse(cx+12*u, foot-20*u, 24*u, 17*u, 0, 0, Math.PI*2); q.fill();
+    q.beginPath(); q.arc(cx-10*u, foot-28*u, 12*u, 0, Math.PI*2); q.fill();
+    q.strokeStyle='#8A7F6A'; q.lineWidth=3*u; q.lineCap='round';
+    q.beginPath(); q.arc(cx-6*u, foot-40*u, 7*u, Math.PI*0.9, Math.PI*2.1); q.stroke();
+    q.beginPath(); q.arc(cx-16*u, foot-38*u, 5*u, Math.PI*0.7, Math.PI*1.9); q.stroke();
+    q.lidColor='#B9AE96';
+    monEye(q, cx-12*u, foot-30*u, 3.4*u, -0.5, 0, 0, true);
+    q.fillStyle='#D9CBB4';
+    q.beginPath(); q.ellipse(cx-21*u, foot-24*u, 4.6*u, 3.4*u, 0.4, 0, Math.PI*2); q.fill();
+    q.fillStyle='#5E5544'; q.beginPath(); q.arc(cx-23*u, foot-25*u, 1.2*u, 0, Math.PI*2); q.fill();
+    q.fillStyle='#F5F2EA';
+    q.beginPath(); q.moveTo(cx-14*u, foot-20*u); q.quadraticCurveTo(cx-12*u, foot-12*u, cx-16*u, foot-10*u);
+    q.quadraticCurveTo(cx-18*u, foot-14*u, cx-14*u, foot-20*u); q.closePath(); q.fill();
+    q.strokeStyle='#B9AE96'; q.lineWidth=2.6*u;
+    [[2,0],[12,0],[22,0]].forEach(([dx])=>{
+      q.beginPath(); q.moveTo(cx+dx*u, foot-6*u); q.lineTo(cx+dx*u, foot); q.stroke(); });
+    q.strokeStyle='#F5C842'; q.lineWidth=1.6*u;
+    [[-30,-46],[-22,-50],[-36,-40]].forEach(([dx,dy])=>{
+      const sx2=cx+dx*u, sy2=foot+dy*u;
+      q.beginPath(); q.moveTo(sx2-2.4*u,sy2); q.lineTo(sx2+2.4*u,sy2); q.moveTo(sx2,sy2-2.4*u); q.lineTo(sx2,sy2+2.4*u); q.stroke(); });
+  },
+  /* ジカンクイ：時計を食べる虫。おなかが砂時計 */
+  timebug(q, W, H){
+    const cx=W/2, u=W/100, foot=H*0.92;
+    q.fillStyle='rgba(10,6,20,.4)'; q.beginPath(); q.ellipse(cx,foot,26*u,5*u,0,0,Math.PI*2); q.fill();
+    [[-1,0],[1,0]].forEach(([sgn])=>{
+      q.fillStyle='rgba(150,230,225,.4)';
+      q.beginPath(); q.ellipse(cx+sgn*20*u, foot-46*u, 14*u, 6.5*u, sgn*0.7, 0, Math.PI*2); q.fill(); });
+    let gr=q.createRadialGradient(cx-8*u, foot-40*u, 2, cx, foot-30*u, 34*u);
+    gr.addColorStop(0,'#5ED8D0'); gr.addColorStop(0.6,'#2EB8B0'); gr.addColorStop(1,'#0E7A74');
+    q.fillStyle=gr; q.beginPath(); q.ellipse(cx, foot-26*u, 22*u, 24*u, 0, 0, Math.PI*2); q.fill();
+    gr=q.createLinearGradient(cx,foot-38*u,cx,foot-10*u);
+    gr.addColorStop(0,'#EFFBFA'); gr.addColorStop(1,'#C2ECE8');
+    q.fillStyle=gr;
+    q.beginPath();
+    q.moveTo(cx-9*u, foot-38*u); q.lineTo(cx+9*u, foot-38*u);
+    q.lineTo(cx+2*u, foot-25*u); q.lineTo(cx+9*u, foot-12*u);
+    q.lineTo(cx-9*u, foot-12*u); q.lineTo(cx-2*u, foot-25*u);
+    q.closePath(); q.fill();
+    q.fillStyle='#F5C842';
+    q.beginPath(); q.moveTo(cx-6*u, foot-35*u); q.lineTo(cx+6*u, foot-35*u); q.lineTo(cx, foot-26*u); q.closePath(); q.fill();
+    q.beginPath(); q.moveTo(cx-5*u, foot-14*u); q.lineTo(cx+5*u, foot-14*u); q.lineTo(cx, foot-19*u); q.closePath(); q.fill();
+    [[-1,0],[1,0]].forEach(([sgn])=>{
+      q.strokeStyle='#0E5E58'; q.lineWidth=1.8*u; q.lineCap='round';
+      q.beginPath(); q.moveTo(cx+sgn*6*u, foot-52*u);
+      q.quadraticCurveTo(cx+sgn*10*u, foot-60*u, cx+sgn*14*u, foot-58*u); q.stroke();
+      q.fillStyle='#F5C842'; q.beginPath(); q.arc(cx+sgn*14*u, foot-58*u, 2.2*u, 0, Math.PI*2); q.fill(); });
+    q.lidColor='#0E7A74';
+    monEye(q, cx-8*u, foot-44*u, 4.6*u, 0.2, 0.3, 0, false);
+    monEye(q, cx+8*u, foot-44*u, 4.6*u, 0.2, 0.3, 0, false);
+    const wx=cx+24*u, wy=foot-16*u;
+    gr=q.createRadialGradient(wx-2*u, wy-2*u, 1, wx, wy, 9*u);
+    gr.addColorStop(0,'#FDF6E9'); gr.addColorStop(1,'#D9C9A4');
+    q.fillStyle=gr; q.beginPath(); q.arc(wx, wy, 8*u, Math.PI*0.2, Math.PI*1.8); q.lineTo(wx, wy); q.closePath(); q.fill();
+    q.strokeStyle='#8A7A5A'; q.lineWidth=1.4*u; q.stroke();
+    q.strokeStyle='#3E4657'; q.lineWidth=1.4*u;
+    q.beginPath(); q.moveTo(wx,wy); q.lineTo(wx, wy-5*u); q.moveTo(wx,wy); q.lineTo(wx+3.4*u, wy+1*u); q.stroke();
+    q.strokeStyle='#0E5E58'; q.lineWidth=2*u;
+    q.beginPath(); q.moveTo(cx+14*u, foot-30*u); q.quadraticCurveTo(cx+22*u, foot-26*u, wx-2*u, wy-6*u); q.stroke();
+  },
+  /* チラカシネズミ：どうぐをくわえて走り回るネズミたち */
+  mouse(q, W, H){
+    const cx=W/2, u=W/100, foot=H*0.9;
+    const mouseAt=(mx2,my2,sc,flip,lead)=>{
+      q.save(); q.translate(mx2,my2); q.scale(flip?-sc:sc,sc);
+      q.strokeStyle='#736A80'; q.lineWidth=2*u; q.lineCap='round';
+      q.beginPath(); q.moveTo(9*u,2*u); q.quadraticCurveTo(17*u,0,20*u,-6*u); q.stroke();
+      let gr=q.createRadialGradient(-3*u,-4*u,1,0,0,13*u);
+      gr.addColorStop(0,'#C4BACE'); gr.addColorStop(0.6,'#A89EB4'); gr.addColorStop(1,'#736A80');
+      q.fillStyle=gr; q.beginPath(); q.ellipse(0, 0, 11*u, 8.5*u, 0, 0, Math.PI*2); q.fill();
+      [[-6,-8],[0,-9]].forEach(([ex,ey])=>{
+        q.fillStyle='#A89EB4'; q.beginPath(); q.arc(ex*u, ey*u, 3.6*u, 0, Math.PI*2); q.fill();
+        q.fillStyle='#E8B4C4'; q.beginPath(); q.arc(ex*u, ey*u, 2*u, 0, Math.PI*2); q.fill(); });
+      q.fillStyle='#2E2934'; q.beginPath(); q.arc(-7*u, -1*u, 1.5*u, 0, Math.PI*2); q.fill();
+      q.fillStyle='#E8B4C4'; q.beginPath(); q.arc(-11*u, 1*u, 1.6*u, 0, Math.PI*2); q.fill();
+      if(lead){
+        q.save(); q.translate(-13*u, 4*u); q.rotate(-0.5);
+        q.fillStyle='#F5C842'; q.fillRect(-1.4*u, -7*u, 2.8*u, 12*u);
+        q.fillStyle='#E86A5C'; q.beginPath(); q.moveTo(-1.4*u,-7*u); q.lineTo(1.4*u,-7*u); q.lineTo(0,-10*u); q.closePath(); q.fill();
+        q.restore();
+      }
+      q.restore(); };
+    q.strokeStyle='rgba(120,110,140,.35)'; q.lineWidth=1.6*u;
+    [[-26,4],[18,10],[2,-12]].forEach(([dx,dy])=>{
+      q.beginPath(); q.moveTo(cx+dx*u-8*u, foot+dy*u); q.quadraticCurveTo(cx+dx*u, foot+dy*u-4*u, cx+dx*u+8*u, foot+dy*u); q.stroke(); });
+    [['#FDF6E9',-30,-24,0.3],['#8FD3F4',26,-30,-0.2],['#B4E08A',6,-40,0.15]].forEach(([c,dx,dy,tilt])=>{
+      q.save(); q.translate(cx+dx*u, foot+dy*u); q.rotate(tilt);
+      q.fillStyle=c; q.fillRect(-6*u,-8*u,12*u,16*u);
+      q.strokeStyle='rgba(120,110,140,.5)'; q.lineWidth=1*u;
+      for(let i=0;i<3;i++){ q.beginPath(); q.moveTo(-4*u,-4*u+i*4*u); q.lineTo(4*u,-4*u+i*4*u); q.stroke(); }
+      q.restore(); });
+    mouseAt(cx-20*u, foot-10*u, 0.9, false, false);
+    mouseAt(cx+22*u, foot-8*u, 0.85, true, false);
+    mouseAt(cx+0*u, foot-20*u, 1.35, false, true);
+  },
+  /* ヒキズリクラゲ：しっぱいの記憶を足でからめて引きずる */
+  jelly(q, W, H){
+    const cx=W/2, cy=H*0.42, u=W/100;
+    let gr=q.createRadialGradient(cx, cy, 2, cx, cy, 40*u);
+    gr.addColorStop(0,'rgba(140,190,240,.3)'); gr.addColorStop(1,'rgba(140,190,240,0)');
+    q.fillStyle=gr; q.fillRect(0,0,W,H);
+    q.strokeStyle='rgba(120,170,230,.65)'; q.lineWidth=2.6*u; q.lineCap='round';
+    for(let i=0;i<5;i++){
+      const x0=cx-16*u+i*8*u;
+      q.beginPath(); q.moveTo(x0, cy+14*u);
+      q.bezierCurveTo(x0-6*u, cy+34*u, x0+8*u, cy+44*u, x0-2*u+((i%2)?6:-6)*u, cy+58*u);
+      q.stroke();
+    }
+    const ox=cx+6*u, oy=cy+56*u;
+    gr=q.createRadialGradient(ox-2*u, oy-2*u, 1, ox, oy, 9*u);
+    gr.addColorStop(0,'#4E5B7C'); gr.addColorStop(1,'#232B44');
+    q.fillStyle=gr; q.beginPath(); q.arc(ox, oy, 8.5*u, 0, Math.PI*2); q.fill();
+    q.strokeStyle='rgba(120,170,230,.8)'; q.lineWidth=1.8*u;
+    q.beginPath(); q.arc(ox, oy, 10.5*u, 0.4, 2.6); q.stroke();
+    q.fillStyle='rgba(240,244,255,.8)'; q.font=(7.5*u)+'px DotGothic16, monospace'; q.textAlign='center';
+    q.fillText('しっぱい', ox, oy+1.5*u);
+    gr=q.createRadialGradient(cx-8*u, cy-12*u, 2, cx, cy, 30*u);
+    gr.addColorStop(0,'#D8ECFF'); gr.addColorStop(0.55,'#9CC6F0'); gr.addColorStop(1,'#5E8FCC');
+    q.fillStyle=gr; q.globalAlpha=0.92;
+    q.beginPath(); q.moveTo(cx-26*u, cy+12*u);
+    q.bezierCurveTo(cx-28*u, cy-22*u, cx+28*u, cy-22*u, cx+26*u, cy+12*u);
+    for(let i=0;i<4;i++){
+      const x1=cx+26*u-(i*13+6.5)*u, dir=i%2? -1:1;
+      q.quadraticCurveTo(x1+6.5*u*0.5, cy+12*u+dir*4.6*u, x1, cy+12*u);
+    }
+    q.closePath(); q.fill(); q.globalAlpha=1;
+    q.fillStyle='rgba(255,255,255,.5)';
+    q.beginPath(); q.ellipse(cx-10*u, cy-10*u, 8*u, 4.6*u, -0.4, 0, Math.PI*2); q.fill();
+    q.lidColor='#5E8FCC';
+    monEye(q, cx-9*u, cy-2*u, 5*u, 0.15, 0.45, 0.4, false);
+    monEye(q, cx+9*u, cy-2*u, 5*u, 0.15, 0.45, 0.4, false);
+    q.strokeStyle='#3E6AA0'; q.lineWidth=1.8*u;
+    q.beginPath(); q.arc(cx, cy+8*u, 4.6*u, Math.PI*1.15, Math.PI*1.85); q.stroke();
+  },
+  /* ナゲダシ大魔王：三つの顔をもつ 大きな影。いま話す顔が 光る */
+  boss(q, W, H, face, m){
+    const pal = (m && m.bpal) || {r0:'#5A4890',r1:'#39295E',r2:'#150E2C',aura:'rgba(168,85,247,.30)'};
+    const cx=W/2, u=W/100, foot=H*0.97;
+    let gr=q.createRadialGradient(cx, H*0.5, 2, cx, H*0.5, W*0.62);
+    gr.addColorStop(0,pal.aura); gr.addColorStop(1,'rgba(0,0,0,0)');
+    q.fillStyle=gr; q.fillRect(0,0,W,H);
+    gr=q.createLinearGradient(cx, H*0.16, cx, foot);
+    gr.addColorStop(0,pal.r0); gr.addColorStop(0.5,pal.r1); gr.addColorStop(1,pal.r2);
+    q.fillStyle=gr;
+    q.beginPath();
+    q.moveTo(cx-40*u, foot);
+    q.quadraticCurveTo(cx-34*u, H*0.45, cx-22*u, H*0.30);
+    q.lineTo(cx-30*u, H*0.26); q.lineTo(cx-18*u, H*0.24);
+    q.quadraticCurveTo(cx, H*0.15, cx+18*u, H*0.24);
+    q.lineTo(cx+30*u, H*0.26); q.lineTo(cx+22*u, H*0.30);
+    q.quadraticCurveTo(cx+34*u, H*0.45, cx+40*u, foot);
+    for(let i=0;i<5;i++){
+      q.lineTo(cx+40*u - (i*16+8)*u, foot - ((i%2)? 0 : 9*u));
+    }
+    q.closePath(); q.fill();
+    gr=q.createLinearGradient(cx, H*0.42, cx, foot);
+    gr.addColorStop(0,'#241945'); gr.addColorStop(1,'#0C0720');
+    q.fillStyle=gr;
+    q.beginPath();
+    q.moveTo(cx-16*u, H*0.44); q.quadraticCurveTo(cx, H*0.40, cx+16*u, H*0.44);
+    q.lineTo(cx+12*u, foot-2*u); q.lineTo(cx-12*u, foot-2*u);
+    q.closePath(); q.fill();
+    q.strokeStyle='rgba(245,200,66,.5)'; q.lineWidth=1.8*u;
+    q.beginPath(); q.arc(cx, H*0.55, 7*u, 0, Math.PI*2); q.stroke();
+    q.beginPath(); q.moveTo(cx, H*0.55-7*u); q.lineTo(cx, H*0.55+7*u); q.stroke();
+    gr=q.createRadialGradient(cx-4*u, H*0.26, 2, cx, H*0.29, 15*u);
+    gr.addColorStop(0,'#2E2450'); gr.addColorStop(1,'#171030');
+    q.fillStyle=gr; q.beginPath(); q.arc(cx, H*0.29, 12.5*u, 0, Math.PI*2); q.fill();
+    [[-1,0],[1,0]].forEach(([sgn])=>{
+      gr=q.createRadialGradient(cx+sgn*5*u, H*0.285, 0.5, cx+sgn*5*u, H*0.285, 3.4*u);
+      gr.addColorStop(0,'#FFD166'); gr.addColorStop(1,'rgba(255,209,102,0)');
+      q.fillStyle=gr; q.beginPath(); q.arc(cx+sgn*5*u, H*0.285, 3.4*u, 0, Math.PI*2); q.fill();
+    });
+    gr=q.createLinearGradient(cx, H*0.14, cx, H*0.22);
+    gr.addColorStop(0,'#F5C842'); gr.addColorStop(1,'#B8860B');
+    q.fillStyle=gr;
+    q.beginPath();
+    q.moveTo(cx-12*u, H*0.225);
+    q.lineTo(cx-11*u, H*0.155); q.lineTo(cx-6*u, H*0.20);
+    q.lineTo(cx, H*0.135); q.lineTo(cx+6*u, H*0.20);
+    q.lineTo(cx+11*u, H*0.155); q.lineTo(cx+12*u, H*0.225);
+    q.closePath(); q.fill();
+    /* 三つの顔（ゆうわく・ふあん・あき）。いま話している顔が大きく光る */
+    const masks = [
+      {dx:-33, dy:H*0.36, base:'#B06AE8', dark:'#6E3AB0', kind:0},
+      {dx:  0, dy:H*0.20, base:'#9FD6E8', dark:'#5E8FA8', kind:1},
+      {dx: 33, dy:H*0.36, base:'#C9A278', dark:'#8A6A48', kind:2},
+    ];
+    masks.forEach((mk,i)=>{
+      const on = (i===face);
+      const mx2 = cx+mk.dx*u, my2 = (i===1)? mk.dy - 8*u : mk.dy;
+      const r = (on? 11:8.4)*u;
+      q.save();
+      if(!on) q.globalAlpha = 0.62;
+      if(on){
+        gr=q.createRadialGradient(mx2,my2,1,mx2,my2,r*2);
+        gr.addColorStop(0,'rgba(255,214,102,.5)'); gr.addColorStop(1,'rgba(255,214,102,0)');
+        q.fillStyle=gr; q.beginPath(); q.arc(mx2,my2,r*2,0,Math.PI*2); q.fill();
+      }
+      gr=q.createRadialGradient(mx2-r*0.3,my2-r*0.4,1,mx2,my2,r);
+      gr.addColorStop(0,mk.base); gr.addColorStop(1,mk.dark);
+      q.fillStyle=gr; q.beginPath(); q.ellipse(mx2,my2,r*0.85,r,0,0,Math.PI*2); q.fill();
+      q.fillStyle='#1B1430';
+      if(mk.kind===0){
+        q.beginPath(); q.ellipse(mx2-r*0.32,my2-r*0.2,r*0.14,r*0.2,0,0,Math.PI*2); q.fill();
+        q.beginPath(); q.ellipse(mx2+r*0.32,my2-r*0.2,r*0.14,r*0.2,0,0,Math.PI*2); q.fill();
+        q.strokeStyle='#1B1430'; q.lineWidth=r*0.12; q.lineCap='round';
+        q.beginPath(); q.arc(mx2,my2+r*0.28,r*0.4,Math.PI*0.15,Math.PI*0.85); q.stroke();
+      } else if(mk.kind===1){
+        q.strokeStyle='#1B1430'; q.lineWidth=r*0.13; q.lineCap='round';
+        q.beginPath(); q.moveTo(mx2-r*0.48,my2-r*0.1); q.lineTo(mx2-r*0.12,my2-r*0.26); q.stroke();
+        q.beginPath(); q.moveTo(mx2+r*0.48,my2-r*0.1); q.lineTo(mx2+r*0.12,my2-r*0.26); q.stroke();
+        q.beginPath(); q.ellipse(mx2,my2+r*0.4,r*0.16,r*0.22,0,0,Math.PI*2); q.fill();
+      } else {
+        q.strokeStyle='#1B1430'; q.lineWidth=r*0.13; q.lineCap='round';
+        q.beginPath(); q.moveTo(mx2-r*0.45,my2-r*0.12); q.lineTo(mx2-r*0.1,my2-r*0.12); q.stroke();
+        q.beginPath(); q.moveTo(mx2+r*0.45,my2-r*0.12); q.lineTo(mx2+r*0.1,my2-r*0.12); q.stroke();
+        q.beginPath(); q.ellipse(mx2,my2+r*0.35,r*0.28,r*0.18,0,0,Math.PI*2); q.fill();
+      }
+      q.restore();
+    });
+  },
+};
+
 function fitBt(){
   const r = btCanvas.getBoundingClientRect();
   fitHiDPI(btCanvas, btx, r.width, r.height);
@@ -3405,32 +4658,28 @@ function drawBattleFrame(){
   if(!battleOverlay.classList.contains('show')){ btAnim.raf=null; return; }
   btAnim.t += 0.016;
   const w = btCanvas.cssW, h = btCanvas.cssH;
-  // 洞窟背景
+  // 舞台の背景（テーマ色）
+  const bTH = caveTheme();
   const grd = btx.createLinearGradient(0,0,0,h);
-  grd.addColorStop(0,'#0D0A18'); grd.addColorStop(1,'#241B38');
+  grd.addColorStop(0,bTH.battle[0]); grd.addColorStop(1,bTH.battle[1]);
   btx.fillStyle = grd; btx.fillRect(0,0,w,h);
-  // 岩壁シルエット
-  btx.fillStyle='#1B1430';
+  // 遠景シルエット
+  btx.fillStyle=bTH.battle[2];
   btx.beginPath(); btx.moveTo(0,h*0.5);
   for(let i=0;i<=8;i++){ btx.lineTo(w*i/8, h*(0.42 + (i%2)*0.1 + (i%3)*0.03)); }
   btx.lineTo(w,h); btx.lineTo(0,h); btx.closePath(); btx.fill();
   // 水晶
   [[0.12,0.72],[0.88,0.68]].forEach(([px,py],i)=>{
     const x=px*w, y=py*h, gl = Math.floor(btAnim.t*3+i)%2;
-    btx.fillStyle = gl? '#A78BFA':'#8B6BE8';
+    btx.fillStyle = gl? bTH.accent : bTH.accent+'B0';
     btx.beginPath(); btx.moveTo(x,y-22); btx.lineTo(x+12,y); btx.lineTo(x-12,y); btx.closePath(); btx.fill();
   });
   // 床
-  btx.fillStyle='#2E2347';
+  btx.fillStyle = bTH.dark ? '#2E2347' : 'rgba(0,0,0,.18)';
   btx.beginPath(); btx.ellipse(w/2, h*0.88, w*0.36, h*0.12, 0, 0, Math.PI*2); btx.fill();
   if(btMonster){
-    const spr = SPR[btMonster.big];
-    // ドットの元サイズ（16×16／24×24）が混在するので、画面幅に対する比率でそろえる
-    const srcW = spr.dotW;
-    const targetW = Math.min(w * (btMonster.boss ? 0.50 : 0.40), h * 0.78);
-    // ドット感を保つため整数倍に丸める
-    let px = Math.max(3, Math.round(targetW / srcW));
-    const mw = srcW*px, mh = spr.dotH*px;
+    const spr = monsterArt(btMonster, w, h);
+    const mw = spr.cssW, mh = spr.cssH;
     let mx = w/2 - mw/2, my = h*0.82 - mh;
     if(!btAnim.dead){
       my += Math.sin(btAnim.t*2.4)*4;
@@ -3439,7 +4688,7 @@ function drawBattleFrame(){
         btAnim.lunge = Math.max(0, btAnim.lunge - 0.05);
       }
       btx.save();
-      btx.imageSmoothingEnabled = false;
+      btx.imageSmoothingEnabled = true;
       btx.drawImage(spr, Math.round(mx), Math.round(my), mw, mh);
       if(btAnim.flashW > 0){
         btx.globalAlpha = btAnim.flashW;
@@ -3493,7 +4742,7 @@ const FACE_EMS   = ['◕‿◕','◔_◔','－_－'];
 function facesHTML(m){
   if(!m.faces) return '';
   const cur = m.faceIdx % m.faces.length;
-  return `<div class="bt-faces" id="btFaces">` + FACE_NAMES.map((nm,i)=>
+  return `<div class="bt-faces" id="btFaces">` + (m.faceNames||FACE_NAMES).map((nm,i)=>
     `<div class="fc f${i}${i===cur?' on':''}"><span class="em">${FACE_EMS[i]}</span>${nm}の顔</div>`
   ).join('') + `</div>`;
 }
