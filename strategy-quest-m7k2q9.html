@@ -53,6 +53,13 @@ canvas{image-rendering:pixelated;}
   display:flex; align-items:center; gap:12px;
   background:linear-gradient(0deg,rgba(0,0,0,.45),transparent);
 }
+#dirBtn{
+  font-family:"DotGothic16",monospace; font-size:12.5px; color:#fff;
+  background:#2B3357; border:3px solid #fff; border-radius:10px;
+  padding:11px 12px; box-shadow:0 4px 0 #151A31; margin-right:6px;
+}
+#dirBtn.back{ background:#B03A48; box-shadow:0 4px 0 #6E1E28; }
+#dirBtn:active{ transform:translateY(3px); box-shadow:none; }
 #diceBtn{
   font-family:"DotGothic16",monospace; font-size:15px; color:#fff;
   background:var(--gold); border:3px solid #fff; border-radius:10px;
@@ -88,6 +95,16 @@ canvas{image-rendering:pixelated;}
   background:rgba(124,58,237,.25); border:1px solid rgba(180,150,250,.5);
   border-radius:14px; padding:3px 10px; margin:4px 2px 0;
 }
+.bt-assist{ display:flex; align-items:center; gap:8px; margin:6px 0 0; }
+.bt-assist button{
+  font-family:"DotGothic16",monospace; font-size:11.5px; color:#fff;
+  background:#16A34A; border:2px solid #fff; border-radius:8px;
+  padding:6px 12px; box-shadow:0 3px 0 #0F6E30;
+}
+.bt-assist button:disabled{ background:#3A4258; box-shadow:0 3px 0 #232A3E; color:#8890b8; }
+.bt-assist button.armed{ background:#EA9F0B; box-shadow:0 3px 0 #8a5a06; }
+.bt-assist .who2{ font-size:10.5px; color:#8fe7ab; }
+.bt-cheer{ font-size:11.5px; color:#FFD166; padding:6px 12px; margin-top:6px; letter-spacing:.1em; }
 #banner button{
   font-family:"DotGothic16",monospace; font-size:14px; color:#fff;
   background:var(--purple); border:3px solid #fff; border-radius:10px; padding:11px 22px;
@@ -409,6 +426,7 @@ canvas{image-rendering:pixelated;}
     <div class="dqwin board-msg" id="boardMsg"></div>
     <div class="board-foot">
       <div id="diceFace">？</div>
+      <button id="dirBtn" title="すすむ・もどるの切りかえ">▶ すすむ</button>
       <button id="diceBtn">サイコロを ふる</button>
     </div>
   </div>
@@ -1143,6 +1161,10 @@ const SPR_VARIANTS = {
   jelly:    [GHOST,{k:'#123044',g:'#8FB6E8',G:'#4E7CC4',w:'#FFFFFF',e:'#123044'}],
 };
 for(const k in SPR_VARIANTS){ SPR[k] = makeSprite(SPR_VARIANTS[k][0], SPR_VARIANTS[k][1]); }
+/* なかま（最大4人）の姿：既存の形に別の色 */
+SPR.friendB = makeSprite(FRIEND, {k:'#221833',h:'#5C3A21',H:'#3A2513',s:'#FFD9A6',e:'#221833',c:'#2563EB',C:'#1A47B8',b:'#3A2513',B:'#241710'});
+SPR.friendC = makeSprite(FRIEND, {k:'#221833',h:'#6E4526',H:'#4A2C14',s:'#F5C9A0',e:'#221833',c:'#DE6FB0',C:'#B84A8C',b:'#5C3A21',B:'#3A2513'});
+SPR.teacher = makeSprite(SAGE, {k:'#221833',c:'#8B5E3C',C:'#6E4526',s:'#FFD9A6',e:'#221833',w:'#F5F2EA'});
 
 /* ---------------- 汎用ポップアップ ---------------- */
 const banner = document.getElementById('banner');
@@ -1912,7 +1934,7 @@ function hideRoadmap(){
   diceBtn.disabled = false;
   setTimeout(()=>{ roadVisible = false; }, 600);
   startAudio();
-  boardSay('サイコロを ふって すすもう！<br><span style="color:#8890b8;font-size:11px">イベントマスに とまると、あたまの中の ぼうけんが はじまるよ</span>');
+  boardSay('サイコロを ふって すすもう！<br><span style="color:#8890b8;font-size:11px">イベントマスに ぴったり とまると、あたまの中の ぼうけんが はじまる。<br>イベントを ２つ クリアすると ゴールできる。「◀ もどる」で 引き返すのも 作戦！</span>');
 }
 /* 小学校ステージを ゴールしたら ロードマップへ もどって 次のステージへ */
 function advanceLife(){
@@ -2362,6 +2384,16 @@ function boardSay(text){
   boardMsg.innerHTML = text;
   boardMsg.style.display = 'block';
 }
+board.dir = 1;
+document.getElementById('dirBtn').addEventListener('click', ()=>{
+  if(board.rolling || board.hop) return;
+  board.dir = -board.dir;
+  const b = document.getElementById('dirBtn');
+  b.textContent = board.dir===1 ? '▶ すすむ' : '◀ もどる';
+  b.classList.toggle('back', board.dir===-1);
+  SFX.confirm();
+  boardSay(board.dir===1 ? 'すすむ むきに した！' : 'もどる むきに した！ 来た道を 引き返せる。');
+});
 function rollDice(){
   if(board.rolling || board.hop) return;
   board.rolling = true; diceBtn.disabled = true;
@@ -2381,25 +2413,28 @@ function moveToken(steps){ traverse(steps); }
 function hopTo(to, done){
   board.hop = { from:board.pos, to, t0:performance.now(), dur:260, done };
 }
-// グラフをたどる。分岐では道を選び、あそべる未クリアイベントとゴールで強制ストップ
+/* さかのぼり用：各マスの「ひとつ前」の一覧 */
+const BOARD_PREV = BOARD.map(()=>[]);
+BOARD.forEach((sq,i)=> sq.next.forEach(n=> BOARD_PREV[n].push(i)));
+
+// グラフをたどる。イベントは「ちょうど止まった」ときだけ始まる（通過できる）。
+// ゴールだけは通過できず、そこで止まる。
 function traverse(stepsLeft){
   if(stepsLeft<=0){ board.rolling=false; arriveSquare(); return; }
-  const node = BOARD[board.pos];
-  if(!node.next.length){ board.rolling=false; arriveSquare(); return; }
-  if(node.next.length>1){
+  const links = board.dir===1 ? BOARD[board.pos].next : BOARD_PREV[board.pos];
+  if(!links.length){ board.rolling=false; arriveSquare(); return; }
+  if(links.length>1){
     SFX.appear();
     showBanner(
-      `<div class="bn-text">みちが ふたてに わかれている！</div><div class="bn-sub">どちらの みちへ すすむ？</div>`,
-      node.next.map(n=>({label:`${BOARD[n].label}の みち`, fn:()=>hopTo(n, ()=>afterHop(stepsLeft-1))}))
+      `<div class="bn-text">みちが ふたてに わかれている！</div><div class="bn-sub">どちらの みちへ ${board.dir===1?'すすむ':'もどる'}？</div>`,
+      links.map(n=>({label:`${BOARD[n].label||'まっすぐ'}の みち`, fn:()=>hopTo(n, ()=>afterHop(stepsLeft-1))}))
     );
     return;
   }
-  hopTo(node.next[0], ()=>afterHop(stepsLeft-1));
+  hopTo(links[0], ()=>afterHop(stepsLeft-1));
 }
 function afterHop(stepsLeft){
-  const sq = BOARD[board.pos];
-  const stopHere = (sq.type==='event' && !sq.locked && !board.cleared.has(board.pos)) || sq.type==='goal';
-  if(stopHere){ board.rolling=false; arriveSquare(); return; }
+  if(BOARD[board.pos].type==='goal'){ board.rolling=false; arriveSquare(); return; }
   traverse(stepsLeft);
 }
 function arriveSquare(){
@@ -2432,6 +2467,16 @@ function arriveSquare(){
       [{label:'もどる…', fn:()=>{ hopTo(sq.backTo, ()=>arriveSquare()); }}]
     );
   } else if(sq.type==='goal'){
+    if(board.cleared.size < 2){
+      SFX.talk();
+      showBanner(
+        `<div class="bn-text">ゴールの もんばん「まだ 早いぞ！」</div>
+         <div class="bn-sub">「イベントを ２つ クリアしてからだ。いまは ${board.cleared.size}こ じゃな」<br>
+         下の「◀ もどる」に 切りかえると、来た道を 引き返せるよ。</div>`,
+        [{label:'わかった', fn:()=>{ diceBtn.disabled=false; boardSay('「◀ もどる」で 引き返して、イベントに ちょうせんしよう！'); }}]
+      );
+      return;
+    }
     SFX.victory();
     showBanner(
       `<div class="bn-text">ゴール！</div>
@@ -2560,30 +2605,42 @@ function makeCastleMap(){
 }
 // 10砂浜 11海(通行不可) 12木(通行不可) 13道 14洞窟の入口 15洞窟の出口 8封印(通行不可)
 function makeFieldMap(){
-  const w=20,h=18;
+  const w=26,h=26;
   const map = Array.from({length:h},()=>Array(w).fill(0));
   // 海と砂浜（東がわ）
-  rectFill(map,15,0,19,h-1,11);
-  rectFill(map,13,0,14,h-1,10);
+  rectFill(map,21,0,25,h-1,11);
+  rectFill(map,19,0,20,h-1,10);
   // 北がわ＝城の外壁と門
-  rectFill(map,0,0,12,0,2);
+  rectFill(map,0,0,18,0,2);
   map[0][9]=5;
-  // 外周の岩
+  // 西と南のふち＝岩山
   rectFill(map,0,0,0,h-1,7);
-  rectFill(map,1,h-1,14,h-1,7);
-  // 城から南へのびる道
-  for(let y=1;y<=10;y++) map[y][9]=13;
-  for(let x=3;x<=8;x++) map[10][x]=13;
-  map[11][3]=13; map[12][3]=13;
-  // 洞窟の入口と、そのまわりの岩はだ
-  map[13][3]=14;
-  [[1,12],[2,12],[4,12],[5,12],
-   [1,13],[2,13],[4,13],[5,13],[6,13],
-   [1,14],[2,14],[3,14],[4,14],[5,14],[6,14],
-   [2,15],[4,15]].forEach(([x,y])=>{ map[y][x]=7; });
-  // 木
-  [[6,3],[6,6],[12,3],[13,7],[5,8],[11,12],[8,14],[12,14],[7,16],[13,15],[2,4],[2,8]]
+  rectFill(map,1,h-1,18,h-1,7);
+  // 道：城門から南へ、西の森ぞいへ、みずうみの下をぬけて東へ、
+  // 浜ぞいに南へ……と、じぐざぐに長くのびる
+  for(let y=1;y<=8;y++) map[y][9]=13;
+  for(let x=4;x<=9;x++) map[8][x]=13;
+  for(let y=9;y<=15;y++) map[y][4]=13;
+  for(let x=4;x<=13;x++) map[15][x]=13;
+  for(let y=16;y<=20;y++) map[y][13]=13;
+  for(let x=6;x<=13;x++) map[20][x]=13;
+  map[21][6]=13;
+  // みずうみ（すな地のふちどり）
+  rectFill(map,13,2,18,7,10);
+  rectFill(map,14,3,17,6,11);
+  // 実行ゾーンの入口と まわりの岩はだ
+  map[22][6]=14;
+  [[4,21],[5,21],[7,21],[8,21],
+   [4,22],[5,22],[7,22],[8,22],
+   [4,23],[5,23],[6,23],[7,23],[8,23],
+   [5,24],[7,24]].forEach(([x,y])=>{ map[y][x]=7; });
+  // 北西の森と、点在する木
+  [[2,2],[3,3],[5,2],[6,4],[2,5],[4,5],[6,2],[7,5],[2,7],[6,6],
+   [12,3],[11,10],[16,11],[7,12],[2,12],[15,17],[9,17],[2,18],[16,22],[11,13],
+   [3,10],[8,10],[2,16],[6,17],[10,22],[17,14],[12,7],[15,13]]
     .forEach(([x,y])=>{ if(map[y][x]===0) map[y][x]=12; });
+  // 岩山の点在
+  [[3,20],[10,4],[17,20],[2,22],[16,5]].forEach(([x,y])=>{ if(map[y][x]===0) map[y][x]=7; });
   return map;
 }
 function makeCaveMap(){
@@ -2666,6 +2723,17 @@ const CASTLE_NPCS = [
   {id:'friend', x:10, y:6, spr:'friend', name:'クラスメイト',
     lines:["「いっしょに クエスト、がんばろうね！」"]}
 ];
+/* なかまの中庭：話をして、なかまに さそえる（最大4人） */
+const RECRUITS = [
+  {id:'r1', x:2,  y:11, spr:'friendB', name:'アオイ', pkey:'aoi', recruit:true,
+    lines:["「この中庭、花のにおいが するね」","「わたし、こまってる人を ほうっておけないんだ。……いっしょに 行っても いい？」"]},
+  {id:'r2', x:4,  y:12, spr:'friendC', name:'サクラ', pkey:'sakura', recruit:true,
+    lines:["「モンスターって こわいけど……」","「だれかと いっしょなら、ちょっと 勇気が 出る気が するの」"]},
+  {id:'r3', x:9,  y:12, spr:'teacher', name:'モリ先生', pkey:'mori', recruit:true,
+    lines:["「ほう、旅に 出るのか」","「見守り役が いると、心強い ものだぞ。わしも 行こうか？」"]},
+  {id:'r4', x:11, y:11, spr:'pixie',   name:'ピカリ', pkey:'pikari', recruit:true,
+    lines:["「ボク、ピカリ！ 方略の ことなら ちょっと くわしいよ」","「つれてってー！」"]},
+];
 function KING_GO_LINES(){ const ev = questEv(); return [
   "「よくきた、ゆうしゃよ。ひとつ 使命を さずけよう」",
   `「そなたに つけてほしい力は、“${ev.goal}”じゃ」`,
@@ -2682,7 +2750,7 @@ const KING_LINES_BACK = [
 const FIELD_NPCS = [
   {id:'sage2', x:11, y:3, spr:'sage', name:'賢者',
     get lines(){ const th=caveTheme(); return [`「海ぞいの 道を 南へ ゆけば、${th.name}への 入口が 見えてくるはずじゃ」`,`「${th.name}の モンスターは、みな 学ぶときに 出あう こまりごとじゃ」`]; }},
-  {id:'sailor', x:13, y:6, spr:'friend', name:'ふなのり',
+  {id:'sailor', x:19, y:12, spr:'friend', name:'ふなのり',
     lines:["「いい風だねえ。海を見ていると、気もちが すーっと 落ちつくよ」","「行きづまったら、いっぺん はなれて みるのも 手だぜ」"]}
 ];
 
@@ -2699,6 +2767,11 @@ const world = {
   gate: {x:6, y:12}
 };
 let inputLocked = false;
+/* なかま（パーティ）。クエストをまたいで ついてくる。最大4人 */
+const party = [];
+const PARTY_MAX = 4;
+let trail = [];
+function partyHas(key){ return party.some(m=>m.key===key); }
 let gameActive = false;
 let animT = 0;
 
@@ -3232,7 +3305,34 @@ function talkNearby(){
   const p = world.player;
   const [dx,dy] = DIRV[p.dir];
   const npc = world.npcs.find(n=>n.x===p.x+dx && n.y===p.y+dy);
-  if(npc) openDialogue(npc);
+  if(!npc) return;
+  if(npc.recruit && !partyHas(npc.pkey)){
+    npc.onEnd = ()=>offerJoin(npc);
+  }
+  openDialogue(npc);
+}
+/* なかまに さそう。ことわってもよいし、4人まで */
+function offerJoin(npc){
+  if(party.length >= PARTY_MAX){
+    showBanner(
+      `<div class="bn-text">なかまは ４人まで！</div>
+       <div class="bn-sub">これ以上は いっしょに 歩けない。<br>${npc.name}「また こんど、さそってね」</div>`,
+      [{label:'とじる', fn:()=>{}}]);
+    return;
+  }
+  showBanner(
+    `<div class="bn-text">${npc.name}を なかまに する？</div>
+     <div class="bn-sub">なかまは いっしょに 歩き、声かけや さくせん会議で 力になってくれる。</div>`,
+    [{label:'なかまに する！', gold:true, fn:()=>{
+        party.push({key:npc.pkey, name:npc.name, spr:npc.spr});
+        world.npcs = world.npcs.filter(n=>n!==npc);
+        SFX.rescue();
+        showBanner(
+          `<div class="bn-text">${npc.name}が なかまに くわわった！</div>
+           <div class="bn-sub">いまの なかま：${party.map(m=>m.name).join('・')}（${party.length}人）</div>`,
+          [{label:'よろしくね！', gold:true, fn:()=>{}}]);
+      }},
+     {label:'また こんど', fn:()=>{}}]);
 }
 
 /* --- ゾーン遷移 --- */
@@ -3250,12 +3350,14 @@ function placePlayer(x,y,dir){
 function enterBrain(){
   world.zone='castle'; world.map=CASTLE; world.npcs=CASTLE_NPCS;
   quest.gotMission=false; quest.planCard=null; quest.sealOpen=false;
+  quest.cheer=0; quest.councilDone=false;
   quest.bossDown=false; quest.lookbackCard=null;
   CAVE[6][7] = 8; // 封印をかけ直す
   placePlayer(6,8,'up');
   const p = world.player;
   p.hp = p.maxHp; world.missStreak = 0;
   world.monsters = []; world.boss = null;
+  world.npcs = CASTLE_NPCS.concat(RECRUITS.filter(r=>!partyHas(r.pkey)));
   CASTLE_NPCS[0].lines = KING_GO_LINES();
   CASTLE_NPCS[2].lines = [`「いっしょに ${questEv().label}のクエスト、がんばろうね！」`];
   CASTLE_NPCS[0].onEnd = askPlanCard;
@@ -3350,7 +3452,7 @@ function exitCaveToField(){
   inputLocked = true;
   setTimeout(()=>{
     world.zone='field'; world.map=FIELD; world.npcs=FIELD_NPCS;
-    placePlayer(3,12,'up');
+    placePlayer(6,21,'up');
     setZoneLabel('海べの みち');
     bgmPlay('field');
     updateHudHp();
@@ -3463,11 +3565,18 @@ function moverStep(o, speed){
   if(d <= speed){ o.px=gx; o.py=gy; o.x=o.tx; o.y=o.ty; o.moving=false; }
   else { o.px += Math.sign(ddx)*Math.min(speed,Math.abs(ddx)); o.py += Math.sign(ddy)*Math.min(speed,Math.abs(ddy)); }
 }
+const TRAIL_GAP = Math.max(6, Math.round(TILE / WALK_SPEED) + 2);
 function gameLoop(){
   if(!gameActive) return;
   animT += 0.016;
   const p = world.player;
+  const beforeX = p.px, beforeY = p.py;
   moverStep(p, WALK_SPEED);
+  if(trail.length && (Math.abs(trail[0].x-p.px)>TILE*2 || Math.abs(trail[0].y-p.py)>TILE*2)) trail=[];
+  if(p.px!==beforeX || p.py!==beforeY){
+    trail.unshift({x:p.px, y:p.py, dir:p.dir});
+    if(trail.length > 220) trail.length = 220;
+  }
   world.monsters.forEach(m=>moverStep(m, WALK_SPEED*0.55));
   if(!p.moving && heldDir && !inputLocked) attemptStep(heldDir);
   drawGame();
@@ -3506,6 +3615,16 @@ function drawGame(){
   }
   // 描画物をy順に
   const drawables = [];
+  /* なかまは どのゾーンでも、主人公の足あとを 少しおくれて たどる */
+  party.forEach((mem,i)=>{
+    const t = trail[Math.min(trail.length-1, TRAIL_GAP*(i+1))];
+    if(!t) return;
+    drawables.push({y:t.y - 0.01, fn:()=>{
+      const bob = Math.sin(animT*2.4 + i)*1.4;
+      const spr = SPR[mem.spr];
+      ctx.drawImage(spr, Math.round(t.x-camX), Math.round(t.y-camY + bob), spr.lw, spr.lh);
+    }});
+  });
   if(world.zone!=='cave'){
     world.npcs.forEach(n=>{
       drawables.push({y:n.y*TILE, fn:()=>{
@@ -3809,6 +3928,8 @@ const btUi = document.getElementById('btUi');
 const btCanvas = document.getElementById('btCanvas');
 const btx = btCanvas.getContext('2d');
 let usedCardIdx = new Set();
+/* You（なかまと）：1回だけ「声かけ」で つぎのカードの効きが1段階上がる */
+let btAssist = {avail:false, armed:false};
 let btMonster = null;
 let btAnim = {t:0, flashW:0, flashR:0, lunge:0, dead:false, deadT:0, raf:null};
 
@@ -4716,10 +4837,71 @@ function drawBattleFrame(){
   btAnim.raf = requestAnimationFrame(drawBattleFrame);
 }
 
+/* ============================================================
+   We（みんなで）：さくせん会議
+   ボス戦の前に、めあて・進め方・時間くばりを なかまと共有する
+   （見通すフェーズの「社会的に共有された調整」）。
+   そろった数だけ「みんなの おうえん」がたまり、ボス戦で身がわりになる。
+   正解に見た目の印はつけない——自分たちで考えて選ぶのが学び。
+   ============================================================ */
+function showCouncil(done){
+  const ev = questEv();
+  quest.cheer = 0;
+  quest.councilDone = true;
+  const qs = [
+    { q:'なかま「まず、<b>めあて</b>を そろえよう。この旅は、なんのための 旅だっけ？」',
+      opts:[
+        {t:`「${ev.goal}」のため！`, good:true},
+        {t:'はやく おわらせるため', good:false},
+        {t:'なんとなく……', good:false}] },
+    { q:'なかま「つぎは <b>進め方</b>。ボスには どう いどむ？」',
+      opts:[
+        {t:'ぜんいんで 順番に 声を出す', good:true},
+        {t:'つよい人に ぜんぶ まかせる', good:false},
+        {t:'その場に なったら 考える', good:false}] },
+    { q:'なかま「さいごに <b>時間</b>。のこりの時間は どう つかう？」',
+      opts:[
+        {t:'進みぐあいを 見て、くばり直す', good:true},
+        {t:'さいごに まとめて がんばる', good:false},
+        {t:'時間の ことは 気にしない', good:false}] },
+  ];
+  let idx = 0, fb = '';
+  const step = ()=>{
+    if(idx >= qs.length){
+      const n = quest.cheer;
+      SFX.appear();
+      showBanner(
+        `<div class="bn-text">さくせん会議 おわり！</div>
+         <div class="bn-sub">${fb}みんなの おうえん <span style="color:#FFD166">${'♥'.repeat(n)}${'♡'.repeat(3-n)}</span><br>
+         ${n===3?'みんなの 心が ひとつに なった！':(n>0?'まずまず そろった。':'心は まだ バラバラかも……。')}<br>
+         おうえんは、ボス戦で ダメージの 身がわりに なってくれる。</div>`,
+        [{label:'ボスの もとへ！', gold:true, fn:done}]);
+      return;
+    }
+    const cur = qs[idx];
+    showBanner(
+      `<div class="bn-text">さくせん会議 ${idx+1}／3</div>
+       <div class="bn-sub">${fb}${cur.q}</div>`,
+      cur.opts.map(o=>({label:o.t, fn:()=>{
+        if(o.good){ quest.cheer++; fb = 'なかま「いいね！ 心が そろってきた！」<br><br>'; }
+        else { fb = 'なかま「うーん……それだと 心は そろわないかも」<br><br>'; }
+        idx++; step();
+      }})), true);
+  };
+  SFX.talk();
+  step();
+}
+
 function startBattle(monster, ambush){
+  /* We（みんなで）：ボス戦の前に「さくせん会議」で めあて・進め方・時間を共有する */
+  if(monster.boss && (questEv().modes||[]).includes('We') && !quest.councilDone){
+    showCouncil(()=>startBattle(monster, ambush));
+    return;
+  }
   inputLocked = true;
   heldDir = null;
   usedCardIdx = new Set();
+  btAssist = {avail:(questEv().modes||[]).includes('You'), armed:false};
   monster.hp = monster.maxHp;
   btMonster = monster;
   btAnim = {t:0, flashW:0, flashR:0, lunge:0, dead:false, deadT:0, raf:btAnim.raf};
@@ -4731,6 +4913,15 @@ function startBattle(monster, ambush){
   fitBt();
   if(!btAnim.raf) requestAnimationFrame(drawBattleFrame);
   bindBattleButtons(monster);
+  const vb = document.getElementById('btVoice');
+  if(vb) vb.onclick = ()=>{
+    if(!btAssist.avail || btAssist.armed) return;
+    btAssist.avail = false; btAssist.armed = true;
+    vb.classList.add('armed'); vb.textContent = '声かけ 中！';
+    SFX.talk();
+    const r = document.getElementById('btResult');
+    if(r) r.innerHTML = `<span class="tag">なかまが 声を かけてくれた！</span><br>「だいじょうぶ、いっしょに 考えよう。つぎの 一手に 力を こめて！」`;
+  };
 }
 /* 大魔王は三つの顔が代わるがわる話しかけてくる。通常モンスターは固定のせりふ */
 function curLine(m){
@@ -4759,7 +4950,13 @@ function renderBattleUI(m, ambush){
       <div class="dqwin bt-hpbox" style="text-align:right"><span class="who">${m.name}</span><span class="bt-hearts enemy" id="mHp">${heartsHTML(m.hp, m.maxHp)}</span></div>
     </div>`;
   html += facesHTML(m);
+  if(m.boss && (questEv().modes||[]).includes('We')){
+    html += `<div class="dqwin bt-cheer" id="btCheer">みんなの おうえん ${'♥'.repeat(quest.cheer)}${'♡'.repeat(Math.max(0,3-quest.cheer))}</div>`;
+  }
   html += `<div class="dqwin bt-msg" id="btResult"><span class="tag">${intro}</span><br>${curLine(m)}</div>`;
+  if(btAssist.avail || btAssist.armed){
+    html += `<div class="bt-assist"><span class="who2">なかまが いっしょに いる</span><button id="btVoice">なかまと 声かけ（あと1回）</button></div>`;
+  }
   html += `<div class="dqwin bt-cmd"><div class="bt-cmd-label">▼ どの方略カードを つかう？</div><div id="btHand">`;
   m.cards.forEach((c,i)=>{
     html += `<button class="bt-card-choice" data-i="${i}"><span class="cur">▶</span><span class="bt-chip ${c.phase}">${c.phase}</span>${c.title}</button>`;
@@ -4785,14 +4982,32 @@ function updateBattleHpUI(monster){
 }
 function onBattlePick(m, i){
   const card = m.cards[i];
+  /* 声かけ中なら、カードの効きが1段階上がる（合わない→おしい、おしい→ぴったり） */
+  let judge = card.judge, boosted = false;
+  if(btAssist.armed){
+    btAssist.armed = false;
+    const vb = document.getElementById('btVoice');
+    if(vb){ vb.classList.remove('armed'); vb.disabled = true; vb.textContent = '声かけずみ'; }
+    if(judge==='miss'){ judge='good'; boosted=true; }
+    else if(judge==='good'){ judge='perfect'; boosted=true; }
+  }
   usedCardIdx.add(i);
   if(m.faces){ m.faceIdx = (m.faceIdx + 1) % m.faces.length; updateFacesUI(m); }
   btUi.querySelectorAll('.bt-card-choice').forEach(b=>b.disabled=true);
   const resDiv = document.getElementById('btResult');
 
-  if(card.judge==='miss'){
-    const dmg = m.power + world.missStreak;
+  if(judge==='miss'){
+    let dmg = m.power + world.missStreak;
     world.missStreak++;
+    let cheerHTML = '';
+    /* We：さくせん会議でためた「みんなの おうえん」が 身がわりになる */
+    if(m.boss && quest.cheer > 0){
+      quest.cheer--;
+      dmg = 0;
+      cheerHTML = `<div class="dqwin bt-msg rescue" style="margin-top:8px"><span class="tag">みんなの おうえんが 守ってくれた！</span><br>ダメージを うけなかった。つぎの 一手を えらぼう。</div>`;
+      const cb = document.getElementById('btCheer');
+      if(cb) cb.textContent = 'みんなの おうえん ' + '♥'.repeat(quest.cheer) + '♡'.repeat(Math.max(0,3-quest.cheer));
+    }
     world.player.hp = Math.max(0, world.player.hp - dmg);
     btAnim.lunge = 1; btAnim.flashR = 1;
     SFX.damage();
@@ -4805,8 +5020,9 @@ function onBattlePick(m, i){
     }
     updateBattleHpUI(m);
     resDiv.className = 'dqwin bt-msg dmg shake';
-    resDiv.innerHTML = `<span class="tag">${m.name}の はんげき！ ${dmg}の ダメージ！</span><br>${m.result.missHint}`;
-    resDiv.insertAdjacentHTML('afterend', rescueHTML + `<button class="bt-next" id="btRetry">もう一度 えらぶ</button>`);
+    const missTag = dmg===0 ? `${m.name}の はんげき！ ……しかし！` : `${m.name}の はんげき！ ${dmg}の ダメージ！`;
+    resDiv.innerHTML = `<span class="tag">${missTag}</span><br>${m.result.missHint}`;
+    resDiv.insertAdjacentHTML('afterend', cheerHTML + rescueHTML + `<button class="bt-next" id="btRetry">もう一度 えらぶ</button>`);
     document.getElementById('btRetry').onclick = ()=>{
       SFX.confirm();
       btUi.querySelectorAll('.bt-msg.rescue, #btRetry').forEach(el=>el.remove());
@@ -4818,13 +5034,14 @@ function onBattlePick(m, i){
   }
 
   world.missStreak = 0;
-  const dmgToMonster = card.judge==='perfect' ? 2 : 1;
+  const dmgToMonster = judge==='perfect' ? 2 : 1;
   m.hp = Math.max(0, m.hp - dmgToMonster);
   btAnim.flashW = 1;
   SFX.hit();
   updateBattleHpUI(m);
-  const label = card.judge==='perfect' ? `ぴったり！ ${m.name}に ${dmgToMonster}の こうげき！` : `おしい！ ${m.name}に ${dmgToMonster}の こうげき！`;
-  const text = card.judge==='perfect' ? m.result.perfect : m.result.good;
+  const boostTag = boosted ? 'なかまの 声かけが 力になった！ ' : '';
+  const label = judge==='perfect' ? `${boostTag}ぴったり！ ${m.name}に ${dmgToMonster}の こうげき！` : `${boostTag}おしい！ ${m.name}に ${dmgToMonster}の こうげき！`;
+  const text = judge==='perfect' ? m.result.perfect : m.result.good;
   resDiv.className = 'dqwin bt-msg';
   resDiv.innerHTML = `<span class="tag">${label}</span><br>${text}`;
 
