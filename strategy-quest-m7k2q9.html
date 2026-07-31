@@ -468,6 +468,7 @@ canvas{image-rendering:pixelated;}
         <span class="dqwin hud-zone" id="zoneLabel">見通しの城</span>
       </span>
       <span class="dqwin hud-hp" id="hudHp"></span>
+      <span class="dqwin hud-hp" id="hudLv" style="font-size:10px;color:#FFD166"></span>
     </div>
     <div id="phaseBand"><div class="pb-in">
       <div class="pb-bar" id="pbBarTop"></div>
@@ -2605,43 +2606,103 @@ function makeCastleMap(){
 }
 // 10砂浜 11海(通行不可) 12木(通行不可) 13道 14洞窟の入口 15洞窟の出口 8封印(通行不可)
 function makeFieldMap(){
-  const w=26,h=26;
+  const w=26,h=29;
   const map = Array.from({length:h},()=>Array(w).fill(0));
   // 海と砂浜（東がわ）
   rectFill(map,21,0,25,h-1,11);
   rectFill(map,19,0,20,h-1,10);
-  // 北がわ＝城の外壁と門
-  rectFill(map,0,0,18,0,2);
-  map[0][9]=5;
+  // 北がわ＝城の敷地（3行）。外観はdrawCastleFacadeで上から描く
+  rectFill(map,0,0,18,2,2);
+  map[2][9]=5;
   // 西と南のふち＝岩山
   rectFill(map,0,0,0,h-1,7);
   rectFill(map,1,h-1,18,h-1,7);
   // 道：城門から南へ、西の森ぞいへ、みずうみの下をぬけて東へ、
   // 浜ぞいに南へ……と、じぐざぐに長くのびる
-  for(let y=1;y<=8;y++) map[y][9]=13;
-  for(let x=4;x<=9;x++) map[8][x]=13;
-  for(let y=9;y<=15;y++) map[y][4]=13;
-  for(let x=4;x<=13;x++) map[15][x]=13;
-  for(let y=16;y<=20;y++) map[y][13]=13;
-  for(let x=6;x<=13;x++) map[20][x]=13;
-  map[21][6]=13;
+  for(let y=3;y<=11;y++) map[y][9]=13;
+  for(let x=4;x<=9;x++) map[11][x]=13;
+  for(let y=12;y<=18;y++) map[y][4]=13;
+  for(let x=4;x<=13;x++) map[18][x]=13;
+  for(let y=19;y<=23;y++) map[y][13]=13;
+  for(let x=6;x<=13;x++) map[23][x]=13;
+  map[24][6]=13;
   // みずうみ（すな地のふちどり）
-  rectFill(map,13,2,18,7,10);
-  rectFill(map,14,3,17,6,11);
+  rectFill(map,13,5,18,10,10);
+  rectFill(map,14,6,17,9,11);
   // 実行ゾーンの入口と まわりの岩はだ
-  map[22][6]=14;
-  [[4,21],[5,21],[7,21],[8,21],
-   [4,22],[5,22],[7,22],[8,22],
-   [4,23],[5,23],[6,23],[7,23],[8,23],
-   [5,24],[7,24]].forEach(([x,y])=>{ map[y][x]=7; });
+  map[25][6]=14;
+  [[4,24],[5,24],[7,24],[8,24],
+   [4,25],[5,25],[7,25],[8,25],
+   [4,26],[5,26],[6,26],[7,26],[8,26],
+   [5,27],[7,27]].forEach(([x,y])=>{ map[y][x]=7; });
   // 北西の森と、点在する木
-  [[2,2],[3,3],[5,2],[6,4],[2,5],[4,5],[6,2],[7,5],[2,7],[6,6],
-   [12,3],[11,10],[16,11],[7,12],[2,12],[15,17],[9,17],[2,18],[16,22],[11,13],
-   [3,10],[8,10],[2,16],[6,17],[10,22],[17,14],[12,7],[15,13]]
+  [[2,5],[3,6],[5,5],[6,7],[2,8],[4,8],[6,5],[7,8],[2,10],[6,9],
+   [12,6],[11,13],[16,14],[7,15],[2,15],[15,20],[9,20],[2,21],[16,25],[11,16],
+   [3,13],[8,13],[2,19],[6,20],[10,25],[17,17],[12,10],[15,16]]
     .forEach(([x,y])=>{ if(map[y][x]===0) map[y][x]=12; });
   // 岩山の点在
-  [[3,20],[10,4],[17,20],[2,22],[16,5]].forEach(([x,y])=>{ if(map[y][x]===0) map[y][x]=7; });
+  [[3,23],[10,7],[17,23],[2,25],[16,8]].forEach(([x,y])=>{ if(map[y][x]===0) map[y][x]=7; });
   return map;
+}
+/* 城の外観（フィールド北端に そびえる）。ロードマップと同じ質感で描く */
+function drawCastleFacade(g, camX, camY){
+  const u = TILE/32;
+  const X = t => t*TILE - camX, Y = t => t*TILE - camY;
+  if(Y(3) < -TILE*0.5) return;
+  const midX = X(9.5);
+  /* うしろの本丸 */
+  let gr = g.createLinearGradient(0, Y(-0.2), 0, Y(1.3));
+  gr.addColorStop(0,'#B9AECB'); gr.addColorStop(1,'#8C81A4');
+  g.fillStyle = gr; g.fillRect(X(7.6), Y(0.1), TILE*3.8, TILE*1.3);
+  g.fillStyle = '#6E6480';
+  for(let i=0;i<5;i++){ g.fillRect(X(7.6)+ (i*0.76+0.18)*TILE, Y(0.1)-8*u, 14*u, 10*u); }
+  gr = g.createLinearGradient(0, Y(-0.75), 0, Y(0.2));
+  gr.addColorStop(0,'#B03A48'); gr.addColorStop(1,'#7E1E2C');
+  g.fillStyle = gr;
+  g.beginPath(); g.moveTo(X(7.5), Y(0.12)); g.lineTo(midX, Y(-0.8)); g.lineTo(X(11.5), Y(0.12)); g.closePath(); g.fill();
+  g.strokeStyle='#5C3A21'; g.lineWidth=2*u;
+  g.beginPath(); g.moveTo(midX, Y(-0.8)); g.lineTo(midX, Y(-1.25)); g.stroke();
+  g.fillStyle='#F5C842';
+  g.beginPath(); g.moveTo(midX, Y(-1.25)); g.lineTo(midX+16*u, Y(-1.1)); g.lineTo(midX, Y(-0.95)); g.closePath(); g.fill();
+  /* 城壁 */
+  gr = g.createLinearGradient(0, Y(0.9), 0, Y(3));
+  gr.addColorStop(0,'#A79CB2'); gr.addColorStop(1,'#7A7090');
+  g.fillStyle = gr; g.fillRect(X(4.4), Y(1.05), TILE*10.2, TILE*1.95);
+  g.fillStyle = '#B7ACC2';
+  for(let i=0;i<13;i++){ g.fillRect(X(4.4)+(i*0.8+0.1)*TILE, Y(0.82), 0.5*TILE, 0.26*TILE); }
+  g.fillStyle = 'rgba(60,48,80,.35)';
+  for(let i=0;i<12;i++){ g.fillRect(X(4.4)+(i*0.86+0.35)*TILE, Y(1.45), 7*u, 16*u); }
+  g.fillStyle = 'rgba(0,0,0,.14)'; g.fillRect(X(4.4), Y(2.72), TILE*10.2, 0.28*TILE);
+  /* 左右の塔 */
+  [[4.9],[13.05]].forEach(([tx])=>{
+    gr = g.createLinearGradient(X(tx), 0, X(tx+1.5), 0);
+    gr.addColorStop(0,'#C2B7CE'); gr.addColorStop(0.5,'#9A8FAB'); gr.addColorStop(1,'#7A7090');
+    g.fillStyle = gr; g.fillRect(X(tx), Y(0.45), TILE*1.5, TILE*2.55);
+    gr = g.createLinearGradient(0, Y(-0.55), 0, Y(0.5));
+    gr.addColorStop(0,'#2E6EA6'); gr.addColorStop(1,'#1E4E7E');
+    g.fillStyle = gr;
+    g.beginPath(); g.moveTo(X(tx-0.18), Y(0.5)); g.lineTo(X(tx+0.75), Y(-0.65)); g.lineTo(X(tx+1.68), Y(0.5)); g.closePath(); g.fill();
+    g.fillStyle='#F5C842';
+    g.beginPath(); g.moveTo(X(tx+0.75), Y(-0.65)); g.lineTo(X(tx+0.75)+14*u, Y(-0.52)); g.lineTo(X(tx+0.75), Y(-0.39)); g.closePath(); g.fill();
+    g.strokeStyle='#5C3A21'; g.lineWidth=1.6*u;
+    g.beginPath(); g.moveTo(X(tx+0.75), Y(-0.65)); g.lineTo(X(tx+0.75), Y(-0.39)); g.stroke();
+    g.fillStyle='#3A3050';
+    g.beginPath(); g.arc(X(tx+0.75), Y(1.15), 6*u, 0, Math.PI*2); g.fill();
+    g.fillRect(X(tx+0.75)-6*u, Y(1.15), 12*u, 14*u);
+  });
+  /* 門（とびらは開いている＝通れる） */
+  gr = g.createLinearGradient(0, Y(1.5), 0, Y(3));
+  gr.addColorStop(0,'#8C81A4'); gr.addColorStop(1,'#6E6480');
+  g.fillStyle = gr; g.fillRect(X(8.6), Y(1.35), TILE*1.8, TILE*1.65);
+  g.fillStyle = '#B7ACC2';
+  for(let i=0;i<3;i++){ g.fillRect(X(8.6)+(i*0.62+0.08)*TILE, Y(1.16), 0.42*TILE, 0.22*TILE); }
+  g.fillStyle = '#120D1F';
+  g.beginPath();
+  g.moveTo(X(9.12), Y(3.0)); g.lineTo(X(9.12), Y(2.1));
+  g.quadraticCurveTo(midX, Y(1.62), X(9.88), Y(2.1));
+  g.lineTo(X(9.88), Y(3.0)); g.closePath(); g.fill();
+  g.strokeStyle='rgba(255,243,176,.5)'; g.lineWidth=2*u;
+  g.beginPath(); g.moveTo(X(9.12), Y(2.12)); g.quadraticCurveTo(midX, Y(1.64), X(9.88), Y(2.12)); g.stroke();
 }
 function makeCaveMap(){
   const w=15,h=24;
@@ -2696,6 +2757,8 @@ function phaseFlash(k, sub, done){
 /* --- クエストの進みぐあい --- */
 const quest = {gotMission:false, planCard:null, sealOpen:false, bossDown:false, lookbackCard:null, event:null};
 function questEv(){ return quest.event || EVENTS.homework; }
+/* 自己調整だけのクエスト（家庭学習など）では、なかまは城で待つ（B案） */
+function soloQuest(){ const m=(quest.event&&quest.event.modes)||['I']; return m.length===1 && m[0]==='I'; }
 
 /* --- 見通すフェーズ・振り返るフェーズで えらぶ方略カード（実カードと同一文言） --- */
 const PLAN_CARDS = [
@@ -2740,6 +2803,7 @@ function KING_GO_LINES(){ const ev = questEv(); return [
   `「${ev.label}の とちゅうで あたまに うかんだ、あの気もち……おぼえておるか」`,
   (()=>{ const b=BOSSDEX[questEv().key]||BOSSDEX.homework; return `「あれは ${caveTheme().place}に すむ モンスターの しわざじゃ。“${b.faceNames[0]}”“${b.faceNames[1]}”“${b.faceNames[2]}”……そして、たばねる ${b.short}がおる」`; })(),
   `「このクエストは ${(ev.modes||['I']).map(k=>MODES[k].name).join('、')}（${(ev.modes||['I']).map(k=>MODES[k].full).join('・')}）で いどむ 旅じゃ」`,
+  ...(soloQuest() ? (party.length ? ["「この旅は “じぶんで ととのえる”修行じゃ。なかまたちは 中庭で 待たせておこう」"] : ["「この旅は “じぶんで ととのえる”修行じゃ。ひとりで いどむのじゃ」"]) : ["「中庭の 子らに 声をかけて、なかまを つのって いくとよいぞ」"]),
   "「まずは 見通すのじゃ。どんな 方略で いどむかを 決めてから 旅立つがよい」"
 ]; }
 const KING_LINES_BACK = [
@@ -2748,9 +2812,9 @@ const KING_LINES_BACK = [
   "「さいごに 振り返るのじゃ。きょうの 旅で 使えた方略を、ことばに してみよ」"
 ];
 const FIELD_NPCS = [
-  {id:'sage2', x:11, y:3, spr:'sage', name:'賢者',
+  {id:'sage2', x:11, y:12, spr:'sage', name:'賢者',
     get lines(){ const th=caveTheme(); return [`「海ぞいの 道を 南へ ゆけば、${th.name}への 入口が 見えてくるはずじゃ」`,`「${th.name}の モンスターは、みな 学ぶときに 出あう こまりごとじゃ」`]; }},
-  {id:'sailor', x:19, y:12, spr:'friend', name:'ふなのり',
+  {id:'sailor', x:19, y:15, spr:'friend', name:'ふなのり',
     lines:["「いい風だねえ。海を見ていると、気もちが すーっと 落ちつくよ」","「行きづまったら、いっぺん はなれて みるのも 手だぜ」"]}
 ];
 
@@ -3325,7 +3389,12 @@ function offerJoin(npc){
      <div class="bn-sub">なかまは いっしょに 歩き、声かけや さくせん会議で 力になってくれる。</div>`,
     [{label:'なかまに する！', gold:true, fn:()=>{
         party.push({key:npc.pkey, name:npc.name, spr:npc.spr});
-        world.npcs = world.npcs.filter(n=>n!==npc);
+        if(soloQuest()){
+          npc.recruit = false;
+          npc.lines = ["「この旅は ひとりで いどむんだね。ここで まってるよ！」","「いってらっしゃい！」"];
+        } else {
+          world.npcs = world.npcs.filter(n=>n!==npc);
+        }
         SFX.rescue();
         showBanner(
           `<div class="bn-text">${npc.name}が なかまに くわわった！</div>
@@ -3344,6 +3413,7 @@ function setZoneLabel(text){
 function placePlayer(x,y,dir){
   const p = world.player;
   p.x=x; p.y=y; p.tx=x; p.ty=y; p.px=x*TILE; p.py=y*TILE; p.dir=dir; p.moving=false;
+  trail = Array(90).fill({x:p.px, y:p.py, dir});
 }
 
 /* ① 見通すフェーズ：城 */
@@ -3351,6 +3421,8 @@ function enterBrain(){
   world.zone='castle'; world.map=CASTLE; world.npcs=CASTLE_NPCS;
   quest.gotMission=false; quest.planCard=null; quest.sealOpen=false;
   quest.cheer=0; quest.councilDone=false;
+  quest.charmLeft = charmMax();
+  world.player.maxHp = calcMaxHp();
   quest.bossDown=false; quest.lookbackCard=null;
   CAVE[6][7] = 8; // 封印をかけ直す
   placePlayer(6,8,'up');
@@ -3358,8 +3430,18 @@ function enterBrain(){
   p.hp = p.maxHp; world.missStreak = 0;
   world.monsters = []; world.boss = null;
   world.npcs = CASTLE_NPCS.concat(RECRUITS.filter(r=>!partyHas(r.pkey)));
+  if(soloQuest()){
+    /* B案:自己調整だけの旅では、なかまは中庭で見送り役として立つ */
+    const spots=[[3,11],[5,12],[8,12],[10,11]];
+    party.forEach((m,i)=>{ const [x,y]=spots[i%4];
+      world.npcs = world.npcs.concat([{id:'wait'+i, x, y, spr:m.spr, name:m.name,
+        lines:["「この旅は ひとりで いどむんだね。ここで まってるよ！」","「いってらっしゃい！」"]}]);
+    });
+  }
   CASTLE_NPCS[0].lines = KING_GO_LINES();
-  CASTLE_NPCS[2].lines = [`「いっしょに ${questEv().label}のクエスト、がんばろうね！」`];
+  CASTLE_NPCS[2].lines = soloQuest()
+    ? [`「${questEv().label}の旅は、じぶんで ととのえる 修行なんだって」`,"「中庭の みんなが 見送ってくれるよ」"]
+    : ["「なかまを さがすなら、南の中庭だよ」","「話しかけると、さそえるんだ。４人まで いっしょに 行けるよ！」"];
   CASTLE_NPCS[0].onEnd = askPlanCard;
   document.getElementById('zoneLabel').textContent='見通しの城';
   bgmPlay('castle');
@@ -3400,7 +3482,7 @@ function enterField(){
   setTimeout(()=>{
     world.zone='field'; world.map=FIELD; world.npcs=FIELD_NPCS;
     world.monsters=[]; world.boss=null;
-    placePlayer(9,1,'down');
+    placePlayer(9,3,'down');
     setZoneLabel('海べの みち');
     bgmPlay('field');
     setPhase('do');
@@ -3452,7 +3534,7 @@ function exitCaveToField(){
   inputLocked = true;
   setTimeout(()=>{
     world.zone='field'; world.map=FIELD; world.npcs=FIELD_NPCS;
-    placePlayer(6,21,'up');
+    placePlayer(6,24,'up');
     setZoneLabel('海べの みち');
     bgmPlay('field');
     updateHudHp();
@@ -3507,7 +3589,7 @@ function kingApproval(){
   const back = quest.lookbackCard ? quest.lookbackCard.title : '―';
   showBanner(
     `<div class="bn-text">王様「みごとであった、ゆうしゃよ！」</div>
-     <div class="bn-sub">「そなたは “${questEv().goal}”を<br>たしかに 身につけた。ここに みとめよう」</div>
+     <div class="bn-sub">「そなたは “${questEv().goal}”を<br>たしかに 身につけた。ここに みとめよう」${soloQuest()&&party.length? `<br><br>なかまたち「おかえり！ ひとりで やりきったね！」`:''}</div>
      <div class="dqwin" style="margin-top:12px;padding:10px;text-align:left;font-size:11px;line-height:1.9">
        <span style="color:#8fb4ff">見通す</span>　${plan}<br>
        <span style="color:#7ee79b">実行する</span>　５たい＋大魔王を しずめた<br>
@@ -3516,7 +3598,30 @@ function kingApproval(){
     [{label:'クエスト クリア！', gold:true, fn:()=>{ inputLocked=false; exitBrain(); }}]);
 }
 
+/* まちがえすぎて げんきが0に：ゆうわくに まけて、学習・活動を中断 */
+function questInterrupted(m){
+  battleOverlay.classList.remove('show');
+  btMonster = null;
+  bgmPlay(null);
+  showBanner(
+    `<div class="bn-text" style="color:#FF9EAA">『${questEv().label}』を 中断してしまった……</div>
+     <div class="bn-sub">${m.short}の ゆうわくに まけて、きょうは 手に つかなかった。<br><br>
+     でも、だいじょうぶ。<b>しっぱいは おわりじゃない</b>。<br>
+     どの方略が 効かなかったかを おぼえておけば、つぎは もっと うまく たたかえる。</div>`,
+    [{label:'すごろくへ もどる', fn:()=>{
+        gameActive = false;
+        gw.style.opacity='0'; gw.style.pointerEvents='none';
+        board.active = true;
+        bgmPlay('board');
+        requestAnimationFrame(drawBoard);
+        diceBtn.disabled = false;
+        boardSay('もういちど イベントマスに ぴったり とまれば、さいちょうせんできる！<br><span style="color:#8890b8;font-size:11px">こんどは ちがう方略も ためしてみよう</span>');
+      }}]
+  );
+}
+
 function exitBrain(){
+  gainSP(3);   // クエスト達成ボーナス
   bgmPlay('board');
   gameActive = false;
   gw.style.opacity='0'; gw.style.pointerEvents='none';
@@ -3527,7 +3632,9 @@ function exitBrain(){
   setTimeout(()=>{
     showBanner(
       `<div class="bn-text">クエスト たっせい！</div>
-       <div class="bn-sub">『家庭学習』を クリアした！<br>じしんが ついて、レベルが あがった気がする……！</div>`,
+       <div class="bn-sub">『${questEv().label}』を クリアした！（たっせいボーナス ⭐+3）<br>
+       ⭐ ストラテジーポイント <b style="color:#F5C842">${growth.sp}</b>　いまの強さ <b style="color:#F5C842">Lv${growth.lv}</b><br>
+       ${growth.lv<5? `つぎのレベルまで あと ${LV_TH[growth.lv]-growth.sp}ポイント！` : 'さいこうレベルだ！'}</div>`,
       [{label:'すごろくへ もどる', gold:true, fn:()=>{ diceBtn.disabled=false; boardSay('つぎの サイコロを ふろう！'); }}]
     );
   }, 500);
@@ -3601,6 +3708,7 @@ function drawGame(){
       drawTile(world.map[y][x], x*TILE-camX, y*TILE-camY, x, y);
     }
   }
+  if(world.zone==='field') drawCastleFacade(ctx, camX, camY);
   // 松明（城）
   if(world.zone==='castle'){
     TORCHES.forEach(([tx,ty])=>{
@@ -3615,8 +3723,9 @@ function drawGame(){
   }
   // 描画物をy順に
   const drawables = [];
-  /* なかまは どのゾーンでも、主人公の足あとを 少しおくれて たどる */
-  party.forEach((mem,i)=>{
+  /* なかまは どのゾーンでも、主人公の足あとを 少しおくれて たどる
+     （自己調整だけのクエスト中は 城で待っているので描かない＝B案） */
+  if(!soloQuest()) party.forEach((mem,i)=>{
     const t = trail[Math.min(trail.length-1, TRAIL_GAP*(i+1))];
     if(!t) return;
     drawables.push({y:t.y - 0.01, fn:()=>{
@@ -3918,6 +4027,7 @@ function heartsHTML(hp, maxHp){
 function updateHudHp(){
   const el = document.getElementById('hudHp');
   if(el) el.textContent = heartsHTML(world.player.hp, world.player.maxHp);
+  if(typeof updateHudLv==='function') updateHudLv();
 }
 
 /* ============================================================
@@ -3930,6 +4040,66 @@ const btx = btCanvas.getContext('2d');
 let usedCardIdx = new Set();
 /* You（なかまと）：1回だけ「声かけ」で つぎのカードの効きが1段階上がる */
 let btAssist = {avail:false, armed:false};
+
+/* ============================================================
+   成長システム：ストラテジーポイント（SP）とレベル
+   モンスターに勝つとSPがもらえ、たまるとレベルが上がる。
+   ・Lv2／Lv4：ねばり強さ＋1（さいだいHPが増える）
+   ・Lv3：おまもり「ふみとどまる力」×1（クエスト中1回、ミスのダメージを0に）
+   ・Lv5：おまもりが×2に
+   がんばりの記録は この端末に残る（localStorage）。
+   ============================================================ */
+const growth = { sp:0, lv:1 };
+const LV_TH = [0, 10, 24, 42, 64];   // Lv1..Lv5 に必要な累計SP
+const LV_REWARD = {
+  2:'ねばり強さが 高まった！（さいだいHP +1）',
+  3:'おまもり「ふみとどまる力」を おぼえた！（クエスト中1回、ミスのダメージを 0にする）',
+  4:'ねばり強さが さらに 高まった！（さいだいHP +1）',
+  5:'「ふみとどまる力」が 2回 つかえるように なった！',
+};
+function calcMaxHp(){ return 5 + (growth.lv>=2?1:0) + (growth.lv>=4?1:0); }
+function charmMax(){ return growth.lv>=5? 2 : (growth.lv>=3? 1 : 0); }
+function saveGrowth(){ try{ localStorage.setItem('sq-growth', JSON.stringify(growth)); }catch(e){} }
+function loadGrowth(){ try{ const g=JSON.parse(localStorage.getItem('sq-growth')||'null');
+  if(g && g.sp>=0){ growth.sp=g.sp; growth.lv=g.lv||1; } }catch(e){} }
+loadGrowth();
+function updateHudLv(){
+  const el = document.getElementById('hudLv');
+  if(!el) return;
+  const next = LV_TH[growth.lv] !== undefined && growth.lv < 5 ? LV_TH[growth.lv] : null;
+  el.textContent = `Lv${growth.lv} ⭐${growth.sp}` + (next? `／${next}` : '');
+}
+/* レベルアップの お知らせ（戦闘の流れを止めない小さなトースト） */
+function lvToast(text){
+  let t = document.getElementById('lvToast');
+  if(!t){
+    t = document.createElement('div'); t.id='lvToast';
+    t.style.cssText = 'position:absolute;left:50%;top:14%;transform:translateX(-50%);z-index:60;'+
+      'font-family:"DotGothic16",monospace;font-size:13px;color:#fff;background:rgba(20,16,44,.95);'+
+      'border:3px solid #F5C842;border-radius:12px;padding:10px 16px;max-width:86%;text-align:center;'+
+      'box-shadow:0 6px 20px rgba(0,0,0,.5);transition:opacity .4s;line-height:1.8;pointer-events:none;';
+    document.getElementById('stage').appendChild(t);
+  }
+  t.innerHTML = text;
+  t.style.opacity = '1';
+  clearTimeout(t._tm);
+  t._tm = setTimeout(()=>{ t.style.opacity='0'; }, 3200);
+}
+function gainSP(n){
+  growth.sp += n;
+  while(growth.lv < 5 && growth.sp >= LV_TH[growth.lv]){
+    growth.lv++;
+    const p = world.player;
+    p.maxHp = calcMaxHp();
+    p.hp = Math.min(p.maxHp, p.hp + 1);
+    quest.charmLeft = Math.min(charmMax(), (quest.charmLeft||0) + 1);
+    SFX.victory();
+    lvToast(`⭐ <span style="color:#F5C842">レベルアップ！ Lv${growth.lv}</span><br>${LV_REWARD[growth.lv]||''}`);
+  }
+  saveGrowth();
+  updateHudLv();
+  updateHudHp();
+}
 let btMonster = null;
 let btAnim = {t:0, flashW:0, flashR:0, lunge:0, dead:false, deadT:0, raf:null};
 
@@ -4811,6 +4981,20 @@ function drawBattleFrame(){
       btx.save();
       btx.imageSmoothingEnabled = true;
       btx.drawImage(spr, Math.round(mx), Math.round(my), mw, mh);
+      /* ダメージ数字が ふわりと うかぶ */
+      if(btAnim.pop && btAnim.pop.t < 1){
+        const pp = btAnim.pop; pp.t += 0.022;
+        const px2 = pp.onMonster ? mx + mw/2 : w*0.5;
+        const py2 = (pp.onMonster ? my + mh*0.3 : h*0.82) - pp.t*36;
+        btx.globalAlpha = Math.min(1, 2-2*pp.t);
+        btx.font = 'bold ' + Math.round(h*0.085) + 'px DotGothic16, monospace';
+        btx.textAlign='center';
+        btx.lineWidth = 5; btx.strokeStyle = 'rgba(10,8,24,.85)';
+        btx.strokeText(pp.text, px2, py2);
+        btx.fillStyle = pp.color;
+        btx.fillText(pp.text, px2, py2);
+        btx.globalAlpha = 1;
+      }
       if(btAnim.flashW > 0){
         btx.globalAlpha = btAnim.flashW;
         btx.globalCompositeOperation = 'source-atop';
@@ -5008,21 +5192,29 @@ function onBattlePick(m, i){
       const cb = document.getElementById('btCheer');
       if(cb) cb.textContent = 'みんなの おうえん ' + '♥'.repeat(quest.cheer) + '♡'.repeat(Math.max(0,3-quest.cheer));
     }
+    /* Lv3で おぼえる おまもり「ふみとどまる力」 */
+    if(dmg > 0 && (quest.charmLeft||0) > 0){
+      quest.charmLeft--;
+      dmg = 0;
+      cheerHTML += `<div class="dqwin bt-msg rescue" style="margin-top:8px"><span class="tag">おまもり「ふみとどまる力」が 光った！</span><br>ダメージを うけなかった。（のこり ${quest.charmLeft}回）</div>`;
+    }
     world.player.hp = Math.max(0, world.player.hp - dmg);
     btAnim.lunge = 1; btAnim.flashR = 1;
+    btAnim.pop = dmg>0 ? {text:'-'+dmg, color:'#FF6E7E', t:0} : {text:'まもった！', color:'#8FD3F4', t:0};
     SFX.damage();
-    let rescueHTML = '';
-    if(world.player.hp <= 0){
-      world.player.hp = Math.min(world.player.maxHp, 2);
-      world.missStreak = 0;
-      rescueHTML = `<div class="dqwin bt-msg rescue" style="margin-top:8px"><span class="tag">なかまが かけつけた！</span><br>賢者「大丈夫、いっしょに立て直そう！」―げんきが少し回復した。</div>`;
-      setTimeout(()=>SFX.rescue(), 500);
-    }
     updateBattleHpUI(m);
+    /* まちがえすぎると、ゆうわくに まけて 学習・活動が 中断してしまう */
+    if(world.player.hp <= 0){
+      resDiv.className = 'dqwin bt-msg dmg shake';
+      resDiv.innerHTML = `<span class="tag">${m.name}の はんげき！ ${dmg}の ダメージ！</span><br>目のまえが ぐらり……ゆうわくの ささやきに のみこまれていく……`;
+      resDiv.insertAdjacentHTML('afterend', `<button class="bt-next" id="btFail">……</button>`);
+      document.getElementById('btFail').onclick = ()=>questInterrupted(m);
+      return;
+    }
     resDiv.className = 'dqwin bt-msg dmg shake';
     const missTag = dmg===0 ? `${m.name}の はんげき！ ……しかし！` : `${m.name}の はんげき！ ${dmg}の ダメージ！`;
     resDiv.innerHTML = `<span class="tag">${missTag}</span><br>${m.result.missHint}`;
-    resDiv.insertAdjacentHTML('afterend', cheerHTML + rescueHTML + `<button class="bt-next" id="btRetry">もう一度 えらぶ</button>`);
+    resDiv.insertAdjacentHTML('afterend', cheerHTML + `<button class="bt-next" id="btRetry">もう一度 えらぶ</button>`);
     document.getElementById('btRetry').onclick = ()=>{
       SFX.confirm();
       btUi.querySelectorAll('.bt-msg.rescue, #btRetry').forEach(el=>el.remove());
@@ -5037,6 +5229,7 @@ function onBattlePick(m, i){
   const dmgToMonster = judge==='perfect' ? 2 : 1;
   m.hp = Math.max(0, m.hp - dmgToMonster);
   btAnim.flashW = 1;
+  btAnim.pop = {text:'-'+dmgToMonster, color:'#FFF3C4', t:0, onMonster:true};
   SFX.hit();
   updateBattleHpUI(m);
   const boostTag = boosted ? 'なかまの 声かけが 力になった！ ' : '';
@@ -5048,6 +5241,9 @@ function onBattlePick(m, i){
   if(m.hp<=0){
     btAnim.dead = true; btAnim.deadT = 0;
     SFX.victory();
+    const spGain = m.boss ? 5 : 2;
+    gainSP(spGain);
+    resDiv.innerHTML += `<br><span style="color:#F5C842">⭐ ストラテジーポイント +${spGain}！（合計 ${growth.sp}）</span>`;
     resDiv.insertAdjacentHTML('afterend', `<button class="bt-next" id="btNext">たびを つづける</button>`);
     document.getElementById('btNext').onclick = ()=>{
       m.alive = false;
