@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>自己調整スキル診断 v1.1 | AK-Learning Lab</title>
+<title>自己調整スキル診断 v1.2 | AK-Learning Lab</title>
 <style>
   :root{
     --main:#2b7a78; --main-dark:#17252a; --accent:#f6a821; --bg:#f4f9f9;
@@ -83,7 +83,7 @@
 <body>
 <header>
   <div class="eyebrow">AK-Learning Lab</div>
-  <h1><span id="pageTitle">自己調整スキル診断</span> <span style="font-size:.55em; opacity:.85;">v1.1</span></h1>
+  <h1><span id="pageTitle">自己調整スキル診断</span> <span style="font-size:.55em; opacity:.85;">v1.2</span></h1>
   <p id="pageSub">じぶんの学習をふりかえって、できていたことにチェックしよう</p>
   <p id="unitNote" style="font-size:12px; opacity:.92; margin-top:8px; line-height:1.6;">単元や長い期間を振り返るときには、「半分ぐらいの授業でそのようにしたか、しようとしたか」を考えて振り返ってみてください。</p>
   <p style="font-size:11px; opacity:.8; margin-top:6px;">開発：木村明憲（Kimura Akinori）</p>
@@ -172,6 +172,7 @@
       <ol>
         <li><strong>学級平均</strong>：見通す・実行する・振り返るの3フェーズと合計の平均％がバーで表示され、いちばん低いフェーズ（＝授業で意図的に方略を働かせる場を設けたいフェーズ）が助言として示されます。</li>
         <li><strong>個人一覧</strong>：<span style="background:#fde8e4; padding:0 6px; border-radius:4px;">赤＝40％未満（重点支援）</span>／<span style="background:#e6f4ea; padding:0 6px; border-radius:4px;">緑＝80％以上（強み）</span>の色つきで、支援したい子と学級の強みがひと目でわかります。</li>
+        <li><strong>項目別の集計</strong>：記録には「どの項目にチェックがついたか」も含まれているので、方略ごとに学級の何％の子がチェックをつけたかの一覧が表示されます。チェック率の低い方略＝授業で意識して働かせる場を設けたい方略が具体的にわかります。</li>
         <li><strong>記録に残す</strong>：「🖨 集計を印刷」でそのまま印刷（またはPDF保存）できます。</li>
       </ol>
 
@@ -196,7 +197,7 @@
 </main>
 <footer>
   AK-Learning Lab ｜ 出典：自己/共/社会的に共有された調整方略リスト（自己調整学習方略）・『自己調整学習と自由進度学習』<br>
-  自己調整スキル診断 v1.1 ｜ 開発：木村明憲（Kimura Akinori）
+  自己調整スキル診断 v1.2 ｜ 開発：木村明憲（Kimura Akinori）
 </footer>
 
 <script>
@@ -322,7 +323,7 @@ const ITEMS={
 ]
 };
 
-const CSV_HEADER=["名前","レベル","ことば","日付","見通す済","見通す全","実行する済","実行する全","振り返る済","振り返る全","合計%"];
+const CSV_HEADER=["名前","レベル","ことば","日付","見通す済","見通す全","実行する済","実行する全","振り返る済","振り返る全","合計%","チェック項目"];
 const LS_KEY="akl_srl_check_history";
 
 /* ============ 状態 ============ */
@@ -591,8 +592,9 @@ function loadHistory(){ try{ return JSON.parse(localStorage.getItem(LS_KEY))||[]
 function currentRow(){
   const s=stats();
   const tpct=s.合計.total?Math.round(s.合計.done/s.合計.total*100):0;
+  const bits=ITEMS[LEVEL].map((_,i)=>checks[LEVEL].has(i)?"1":"0").join("");
   const row=[ $("userName").value.trim()||"noname", LEVEL, WORD==="easy"?"やさしい":"くわしい", today(),
-    s["見通す"].done, s["見通す"].total, s["実行する"].done, s["実行する"].total, s["振り返る"].done, s["振り返る"].total, tpct ];
+    s["見通す"].done, s["見通す"].total, s["実行する"].done, s["実行する"].total, s["振り返る"].done, s["振り返る"].total, tpct, bits ];
   return {s, tpct, row};
 }
 function recordHistory(s,tpct){
@@ -657,7 +659,8 @@ function parseCsvText(text){
     const nums=c.slice(4,11).map(Number);
     if (nums.some(isNaN)) return;
     rows.push({name:c[0], level:c[1], date:c[3],
-      p1:{d:+c[4],t:+c[5]}, p2:{d:+c[6],t:+c[7]}, p3:{d:+c[8],t:+c[9]}, total:+c[10]});
+      p1:{d:+c[4],t:+c[5]}, p2:{d:+c[6],t:+c[7]}, p3:{d:+c[8],t:+c[9]}, total:+c[10],
+      bits:(c[11]&&/^[01]+$/.test(c[11].trim()))?c[11].trim():null});
   });
   return rows;
 }
@@ -694,9 +697,38 @@ $("aggBtn").addEventListener("click", async ()=>{
       return `<tr><td>${r.name}</td><td>${r.date}</td><td>${r.level}</td>${cell(r.p1.d,r.p1.t)}${cell(r.p2.d,r.p2.t)}${cell(r.p3.d,r.p3.t)}<td><strong>${r.total}%</strong></td></tr>`;
     }).join("")+
     `</table></div>
-    <p style="font-size:12px;color:#678;margin-top:6px;">赤＝40%未満（重点支援）／緑＝80%以上（強み）</p>
-    <div class="btn-row no-print"><button class="btn" onclick="window.print()">🖨 集計を印刷</button></div></div>`;
+    <p style="font-size:12px;color:#678;margin-top:6px;">赤＝40%未満（重点支援）／緑＝80%以上（強み）</p></div>`+
+    itemAggHtml(rows)+
+    `<div class="btn-row no-print"><button class="btn" onclick="window.print()">🖨 集計を印刷</button></div>`;
 });
+
+/* 項目別の集計（どの項目にチェックがついたか） */
+function itemAggHtml(rows){
+  const hexes={見通す:"#e76f51", 実行する:"#2a9d8f", 振り返る:"#457b9d"};
+  let html="";
+  ["初級","中級","上級"].forEach(lv=>{
+    const lvRows=rows.filter(r=>r.level===lv && r.bits && r.bits.length===ITEMS[lv].length);
+    if (!lvRows.length) return;
+    const counts=ITEMS[lv].map((_,i)=>lvRows.reduce((s,r)=>s+(r.bits[i]==="1"?1:0),0));
+    html+=`<div class="card"><h2>項目別の集計：${lv}（${lvRows.length}人）</h2>
+      <p style="font-size:12px;color:#678;">それぞれの方略に、何％の子がチェックをつけたかを表します。</p>`;
+    PHASES.forEach(ph=>{
+      html+=`<h3 style="color:${ph.hex}; font-size:14px; margin:12px 0 2px;">${ph.key}</h3>
+        <table><tr><th style="text-align:left;">項目</th><th style="width:64px;">チェック率</th></tr>`;
+      ITEMS[lv].forEach((it,i)=>{
+        if (it.p!==ph.key) return;
+        const p=Math.round(counts[i]/lvRows.length*100);
+        const bg=p<40?"#fde8e4":p>=80?"#e6f4ea":"";
+        html+=`<tr><td style="text-align:left;">${it.g}｜${it.e}</td><td style="background:${bg};">${p}%</td></tr>`;
+      });
+      html+=`</table>`;
+    });
+    html+=`<p style="font-size:12px;color:#678;margin-top:6px;">赤＝40%未満（授業で意識して働かせたい方略）／緑＝80%以上（学級の強み）</p></div>`;
+  });
+  const noBits=rows.filter(r=>!r.bits).length;
+  if (html && noBits) html+=`<div class="card"><p style="font-size:12px;color:#678;">※旧い形式の記録（${noBits}人分）には項目情報がないため、項目別の集計には含まれていません（フェーズ別・個人一覧には含まれています）。</p></div>`;
+  return html;
+}
 
 /* ============ 初期化 ============ */
 render();
