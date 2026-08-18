@@ -105,6 +105,43 @@ canvas{image-rendering:pixelated;}
 .bt-assist button.armed{ background:#EA9F0B; box-shadow:0 3px 0 #8a5a06; }
 .bt-assist .who2{ font-size:10.5px; color:#8fe7ab; }
 .bt-cheer{ font-size:11.5px; color:#FFD166; padding:6px 12px; margin-top:6px; letter-spacing:.1em; }
+/* ===== 幼稚園ミニゲーム ===== */
+#miniWrap{ position:absolute; inset:0; z-index:13; display:none;
+  background:rgba(10,8,24,.72); align-items:center; justify-content:center; padding:14px; }
+#miniCard{ width:100%; max-width:430px; background:#FFF8EC; border:4px solid #F5A742;
+  border-radius:20px; padding:16px 14px 18px; color:#4A3A20;
+  font-family:"DotGothic16",monospace; text-align:center; }
+.mg-title{ font-size:19px; color:#D9780B; margin:2px 0 4px; }
+.mg-sub{ font-size:12.5px; line-height:1.8; margin-bottom:10px; color:#7A6238; }
+#mgArea{ position:relative; height:300px; background:#FDF1DA; border-radius:14px;
+  border:2px dashed #E8C88C; overflow:hidden; touch-action:none; }
+.mg-toy{ position:absolute; font-size:36px; line-height:1; cursor:grab; user-select:none;
+  filter:drop-shadow(0 3px 2px rgba(0,0,0,.2)); touch-action:none; }
+#mgBox{ position:absolute; left:50%; bottom:8px; transform:translateX(-50%);
+  width:150px; height:78px; background:#E8B96A; border:3px solid #B4690A; border-radius:12px;
+  font-size:13px; color:#6E4526; display:flex; align-items:flex-end; justify-content:center;
+  padding-bottom:6px; }
+#mgBox.pop{ animation:mgpop .3s; }
+@keyframes mgpop{ 50%{ transform:translateX(-50%) scale(1.12); } }
+.mg-card{ display:inline-block; font-size:15px; background:#fff; border:3px solid #E8C88C;
+  border-radius:12px; padding:12px 10px; margin:6px; min-width:86px; }
+.mg-card .big{ font-size:34px; display:block; margin-bottom:4px; }
+.mg-card:disabled{ opacity:.35; }
+.mg-card.shake{ animation:mgshake .3s; border-color:#E86A5C; }
+@keyframes mgshake{ 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+.mg-germ{ position:absolute; font-size:30px; cursor:pointer; user-select:none; transition:transform .15s; }
+.mg-germ:active{ transform:scale(1.3); }
+.mg-done-row{ min-height:34px; font-size:22px; letter-spacing:6px; margin-top:6px; }
+/* ===== マリオ風 ===== */
+#platWrap{ position:absolute; inset:0; z-index:13; display:none; background:#000; }
+#platCanvas{ width:100%; height:100%; display:block; }
+#platHud{ position:absolute; left:10px; top:10px; font-size:12px; padding:6px 12px; }
+#platCtl{ position:absolute; left:0; right:0; bottom:14px; display:flex; gap:10px;
+  justify-content:space-between; padding:0 16px; }
+#platCtl button{ font-family:"DotGothic16",monospace; color:#fff; border:3px solid #fff;
+  border-radius:14px; background:rgba(20,16,44,.85); font-size:16px; padding:16px 22px;
+  box-shadow:0 4px 0 rgba(0,0,0,.5); touch-action:none; }
+#plJ{ margin-left:auto; background:#EA9F0B !important; box-shadow:0 4px 0 #8a5a06 !important; }
 #banner button{
   font-family:"DotGothic16",monospace; font-size:14px; color:#fff;
   background:var(--purple); border:3px solid #fff; border-radius:10px; padding:11px 22px;
@@ -305,12 +342,19 @@ canvas{image-rendering:pixelated;}
   background:rgba(255,255,255,.09); border:1px solid rgba(255,255,255,.22);
 }
 #roadPanel .rp-chip.on{ background:var(--green); border-color:#fff; color:#fff; }
-#roadBtn{
+.rp-stagebtn{
+  font-family:"DotGothic16",monospace; font-size:11.5px; color:#fff;
+  background:#2B3357; border:2px solid #fff; border-radius:8px;
+  padding:7px 10px; margin:4px 4px 0 0; box-shadow:0 3px 0 #151A31;
+}
+.rp-stagebtn:active{ transform:translateY(2px); box-shadow:none }
+#roadBtn, #roadBtn2{
   display:block; margin:8px auto 1px; font-family:"DotGothic16",monospace; font-size:12.5px;
   color:#fff; background:var(--gold); border:3px solid #fff; border-radius:9px;
   padding:7px 18px; box-shadow:0 4px 0 #8a5a06;
 }
-#roadBtn:active{ transform:translateY(3px); box-shadow:none }
+#roadBtn:active, #roadBtn2:active{ transform:translateY(3px); box-shadow:none }
+#roadBtn2{ background:#2B3357; box-shadow:0 4px 0 #151A31; }
 
 /* ===== 音の オン・オフ ===== */
 #soundBtn{
@@ -339,7 +383,7 @@ canvas{image-rendering:pixelated;}
 <div id="mgate" role="dialog" aria-modal="true" aria-label="あいことばの入力">
   <div id="mgate-card">
     <p id="mgate-badge">モニター版</p>
-    <h1 id="mgate-title">ストラテジークエスト<br>-ストクエ-</h1>
+    <h1 id="mgate-title">ストラテジークエスト -ストクエ-</h1>
     <p id="mgate-lead">あそんでみて、きづいたことを おしえてください。</p>
     <label id="mgate-label" for="mgate-input">あいことば</label>
     <input id="mgate-input" type="text" inputmode="latin" autocomplete="off"
@@ -421,7 +465,8 @@ canvas{image-rendering:pixelated;}
   <div id="boardworld" class="layer">
     <canvas id="boardCanvas"></canvas>
     <div class="board-hud">
-      <div class="dqwin board-title">げんじつ世界　小学校ステージ</div>
+      <div class="dqwin board-title" id="boardTitle">げんじつ世界　小学校ステージ</div>
+      <span class="dqwin hud-hp" id="boardLv" style="font-size:10px;color:#FFD166"></span>
     </div>
     <div class="dqwin board-msg" id="boardMsg"></div>
     <div class="board-foot">
@@ -489,6 +534,19 @@ canvas{image-rendering:pixelated;}
   </div>
 
   <!-- ④ 戦闘 -->
+  <!-- 幼稚園のミニゲーム（指先あそび） -->
+  <div id="miniWrap">
+    <div id="miniCard"></div>
+  </div>
+  <!-- 高校のマリオ風ミニゲーム -->
+  <div id="platWrap">
+    <canvas id="platCanvas"></canvas>
+    <div class="dqwin" id="platHud"></div>
+    <div id="platCtl">
+      <button id="plL">◀</button><button id="plR">▶</button>
+      <button id="plJ">ジャンプ</button>
+    </div>
+  </div>
   <div id="battleOverlay">
     <canvas id="btCanvas"></canvas>
     <div class="bt-ui" id="btUi"></div>
@@ -1445,20 +1503,21 @@ opSkip.addEventListener('click', ()=>{ SFX.confirm(); opFinished = true; opEnd()
 const LIFE = [
   {key:'birth',  name:'生まれる', age:'0さい',      state:'move',
    cap:'生まれた。ここから きみの ものがたりが はじまる。'},
-  {key:'kinder', name:'幼稚園',   age:'3〜5さい',   state:'move',
-   cap:'幼稚園。あそびの なかで、たくさんの ことを 学んだ。'},
+  {key:'kinder', name:'幼稚園',   age:'3〜5さい',   state:'play',
+   cap:'幼稚園。あそびの なかで、じぶんの せいかつを ととのえる 力が そだつ。',
+   scenes:['おかたづけ','あさの じゅんび','はみがき']},
   {key:'elem',   name:'小学校',   age:'6〜12さい',  state:'play',
    cap:'小学校に 入学した。ここから ぼうけんが はじまる！',
    scenes:['授業','家庭学習','友達関係','運動会','クラブ活動','総合的な学習','修学旅行','学芸会']},
-  {key:'junior', name:'中学校',   age:'13〜15さい', state:'soon',
+  {key:'junior', name:'中学校',   age:'13〜15さい', state:'play',
    cap:'中学校。学びも 人とのかかわりも、ぐんと ひろがる。',
-   scenes:['授業','定期テスト','部活動','委員会','進路を えらぶ']},
-  {key:'high',   name:'高校',     age:'16〜18さい', state:'soon',
+   scenes:['授業','定期テスト','部活動','委員会','友人関係','進路を えらぶ']},
+  {key:'high',   name:'高校',     age:'16〜18さい', state:'play',
    cap:'高校。じぶんで えらぶ ことが 多くなる。',
-   scenes:['授業','受験の勉強','部活動','アルバイト','進路を きめる']},
-  {key:'univ',   name:'大学',     age:'19〜22さい', state:'soon',
+   scenes:['授業','受験の勉強','部活動（マリオ風）','アルバイト（マリオ風）','友人関係','進路を きめる']},
+  {key:'univ',   name:'大学',     age:'19〜22さい', state:'play',
    cap:'大学。学びたいことを、じぶんで 深めていく。',
-   scenes:['講義','ゼミ・研究','サークル','アルバイト','就職の活動']},
+   scenes:['授業','課題','友人関係','海外研究','就職活動（企業・教員・公務員・進学）']},
   {key:'work',   name:'仕事',     age:'23さい〜',   state:'soon',
    cap:'仕事。学びは ここで おわらず、ずっと つづいていく。',
    scenes:['仕事を すすめる','学びなおす','チームで 進める','くらしとの バランス']},
@@ -1475,7 +1534,7 @@ const roadEl     = document.getElementById('roadmap');
 const roadCanvas = document.getElementById('roadCanvas');
 const rctx       = roadCanvas.getContext('2d');
 const roadPanel  = document.getElementById('roadPanel');
-const life = { pos:0, idx:0, walking:false, cleared:new Set() };
+const life = { pos:0, idx:0, walking:false, cleared:new Set(), career:null };
 let roadRaf = null, roadT = 0, roadVisible = false, roadPathCache = null;
 
 function roadFit(){
@@ -1868,6 +1927,8 @@ function roadLoop(){
 
 /* ---------------- 進み方（自動） ---------------- */
 function roadWalk(to, done){
+  /* ロードマップが閉じたあとに残ったタイマーが life を動かさないように */
+  if(!roadVisible){ return; }
   const from = life.pos, dur = 950*Math.abs(to-from);
   const t0 = performance.now();
   life.walking = true;
@@ -1882,31 +1943,53 @@ function roadWalk(to, done){
 function roadCaption(text){
   roadPanel.innerHTML = `<div class="rp-cap">${text}</div>`;
 }
+const UNIV_IDX = LIFE.findIndex(n=>n.key==='univ');
+const ELEM_IDX = LIFE.findIndex(n=>n.key==='elem');
+/* ロードマップからステージのすごろくへ入る（盤面をそのステージに切り替える） */
+function enterStageBoard(nodeIdx){
+  life.idx = nodeIdx; life.pos = nodeIdx;
+  const k = LIFE[nodeIdx].key;
+  setStage(STAGE_RANK[k] !== undefined ? k : 'elem');
+  hideRoadmap();
+}
 function roadShowPanel(i){
   const st = LIFE[i];
   const chips = (st.scenes||[]).map(sc=>{
     const on = (st.state==='play');
     return `<span class="rp-chip${on?' on':''}">${sc}</span>`;
   }).join('');
-  let note, btn;
+  let cap = st.cap;
+  if(st.key==='work' && life.career){
+    cap = `きみが えらんだのは「${CAREERS[life.career]}」。<br>その先の ものがたりは、これから つくられます。`;
+  }
+  let note, btns;
   if(st.state==='play'){
     note = 'この ステージの 場面を すすめよう。';
-    btn  = `<button id="roadBtn">${st.name}ステージへ すすむ</button>`;
+    btns = `<button id="roadBtn">${st.name}ステージへ すすむ</button>`;
   } else {
-    note = 'このステージは これから つくられます。<br>いまは 小学校ステージを あそべます。';
-    btn  = `<button id="roadBtn">小学校に もどって あそぶ</button>`;
+    note = 'このステージは これから つくられます。';
+    btns = '';
   }
+  /* 試作版：どのステージへも とべる えらび方 */
+  const strip = `<div class="rp-note" style="margin-top:10px">ためせる ステージ（試作版）：</div>
+    <div>` + LIFE.filter(n=>n.state==='play').map(n=>
+      `<button class="rp-stagebtn" data-i="${LIFE.indexOf(n)}">${n.name}${life.cleared.has(n.key)?'✓':''}</button>`).join('') + `</div>`;
   roadPanel.innerHTML =
     `<div><span class="rp-stage">${st.name}</span><span class="rp-age">${st.age}</span></div>
-     <div class="rp-cap">${st.cap}</div>
+     <div class="rp-cap">${cap}</div>
      <div class="rp-scenes">${chips}</div>
-     <div class="rp-note">${note}</div>${btn}`;
+     <div class="rp-note">${note}</div>${btns}${strip}`;
   const b = document.getElementById('roadBtn');
-  b.onclick = ()=>{
-    SFX.confirm();
-    if(st.state==='play'){ hideRoadmap(); }
-    else { roadPanel.innerHTML = `<div class="rp-cap">小学校に もどろう。</div>`; roadWalk(2, ()=>hideRoadmap()); }
-  };
+  if(b) b.onclick = ()=>{ SFX.confirm(); enterStageBoard(i); };
+  roadPanel.querySelectorAll('.rp-stagebtn').forEach(sb=>{
+    sb.onclick = ()=>{
+      SFX.confirm();
+      const to = +sb.dataset.i;
+      roadPanel.innerHTML = `<div class="rp-cap">${LIFE[to].name}へ むかおう。</div>`;
+      if(to === Math.round(life.pos)){ enterStageBoard(to); }
+      else roadWalk(to, ()=>enterStageBoard(to));
+    };
+  });
 }
 function showRoadmap(mode){
   roadVisible = true;
@@ -1926,7 +2009,7 @@ function showRoadmap(mode){
     }), 1300);
   } else {
     const to = Math.min(LIFE.length-1, life.idx+1);
-    roadCaption('小学校ステージの たびを やりきった！');
+    roadCaption(`${LIFE[life.idx].name}ステージの たびを やりきった！`);
     setTimeout(()=>roadWalk(to, ()=>roadShowPanel(to)), 1200);
   }
 }
@@ -1939,8 +2022,9 @@ function hideRoadmap(){
 }
 /* 小学校ステージを ゴールしたら ロードマップへ もどって 次のステージへ */
 function advanceLife(){
-  life.cleared.add('elem');
-  board.pos = 0; board.cleared.clear();
+  life.cleared.add(board.stageKey);
+  board.pos = 0; board.cleared = new Set();
+  board.saved[board.stageKey] = { pos:0, cleared:new Set() };
   showRoadmap('next');
 }
 
@@ -2030,10 +2114,80 @@ const EVENTS = {
   trip:{ key:'trip', label:'修学旅行', monsters:['timebug','pixie','mouse','bee','owl'], vtheme:'sea', modes:['I','We'], goal:'修学旅行の 計画を 仲間と ととのえる力',
     scene:'班で 見学コースを 決める 話し合い。時間は ４０分。',
     thoughts:['行きたい場所が バラバラだ……','時間内に 決まるかな……','ぼくの意見、言い出せるかな……'] },
+  /* ---- 大学ステージ（2026-08-14 CEOご指示） ---- */
+  uni_class:{ key:'uni_class', label:'授業', monsters:['golem','eraser','pixie','rhino','bee'], bossKey:'class', vtheme:'tower', modes:['I','You','We'], goal:'講義で じぶんから 学びに向かう力',
+    scene:'大学の 講義。むずかしい 問いが 投げかけられた。',
+    thoughts:['発言してみようかな、どうしよう……','まわりは みんな 分かって いるのかな……','あとで 質問しに 行こうかな……'] },
+  uni_report:{ key:'uni_report', label:'課題', monsters:['mist','golem','tangle','timebug','imp'], bossKey:'homework', vtheme:'library', modes:['I'], goal:'レポート課題を 計画的に やりとげる力',
+    scene:'しめ切りは 来週。レポートの 資料が 机に つみあがる。',
+    thoughts:['どこから 手を つけよう……','しめ切りまで あと 何日……','ちょっと 動画を 見てからに しようかな……'] },
+  uni_friends:{ key:'uni_friends', label:'友人関係', monsters:['oni','jelly','crab','mole','owl'], bossKey:'friends', vtheme:'forest', modes:['I','You'], goal:'友人と 気もちを つたえ合う力',
+    scene:'サークルの あつまりで、ちょっと すれちがいが あった。',
+    thoughts:['どう 声を かけよう……','わたしが 気にしすぎ なのかな……','はなれて いくのは さみしいな……'] },
+  uni_abroad:{ key:'uni_abroad', label:'海外研究', monsters:['ghost','crab','owl','pixie','jelly'], bossKey:'uni_abroad', vtheme:'sea', modes:['I','We'], goal:'海外研究に ふみ出して やりぬく力',
+    scene:'海外での 研究プログラムの ぼしゅうが 出た。行ってみたい。でも……',
+    thoughts:['ことばが 通じるかな……','ひとりで くらせるかな……','しっぱいしたら どうしよう……'] },
+  job_company:{ key:'job_company', label:'就活・企業', monsters:['crab','goat','timebug','slug','jelly'], bossKey:'shukatsu', vtheme:'mountain', modes:['I','We'], goal:'じぶんに合う 仕事を 見つけて いどむ力',
+    scene:'エントリーシートと めんせつ。じぶんの ことばで 語る 練習だ。',
+    thoughts:['じぶんの 強みって なんだろう……','おちたら どうしよう……','まわりは もう 内定を もらってる……'] },
+  job_teacher:{ key:'job_teacher', label:'就活・教員', monsters:['eraser','mole','bee','ghost','crab'], bossKey:'shukatsu', vtheme:'theater', modes:['I','We'], goal:'先生になる ゆめに むかって つみ上げる力',
+    scene:'教員採用試験と もぎ授業。教壇に 立つ日を めざして。',
+    thoughts:['子どもたちの 前で うまく 話せるかな……','おぼえることが 山ほど ある……','ほんとうに 先生に なれるのかな……'] },
+  job_koumuin:{ key:'job_koumuin', label:'就活・公務員', monsters:['mist','eraser','slug','timebug','bat'], bossKey:'shukatsu', vtheme:'cave', modes:['I','We'], goal:'公務員試験に ねばり強く 取り組む力',
+    scene:'試験科目は はばひろい。長い じゅんびの 道のりが 始まる。',
+    thoughts:['計画どおりに 進むかな……','あきずに つづけられるかな……','みんなの 役に立つ 仕事が したい……'] },
+  job_grad:{ key:'job_grad', label:'就活・進学', monsters:['mist','owl','tangle','chameleon','mole'], bossKey:'sougou', vtheme:'sky', modes:['I','We'], goal:'研究の 問いを 追いつづける力',
+    scene:'大学院への 進学。じぶんの「知りたい」を きわめる道。',
+    thoughts:['この 問いで いいのかな……','けんきゅうって どう 進めるのかな……','もっと 深く 知りたい……'] },
+  /* ---- 中学校ステージ ---- */
+  jr_class:{ key:'jr_class', label:'授業', monsters:['golem','eraser','pixie','rhino','bee'], bossKey:'class', vtheme:'tower', modes:['I','You','We'], goal:'授業で 考えを 出し合って 深める力',
+    scene:'数学の 証明問題。となりと 考えを くらべる 時間だ。',
+    thoughts:['じぶんの 考え、言って いいのかな……','まちがってたら はずかしい……','あの子の 考え、聞いてみたいな……'] },
+  jr_test:{ key:'jr_test', label:'定期テスト', monsters:['mist','eraser','timebug','imp','bat'], bossKey:'homework', vtheme:'cave', modes:['I'], goal:'定期テストに 計画的に 取り組む力',
+    scene:'テスト1週間前。5教科の 範囲表が くばられた。',
+    thoughts:['どの教科から 手を つけよう……','スマホが 気になるな……','一夜づけに なりそう……'] },
+  jr_club:{ key:'jr_club', label:'部活動', monsters:['crab','goat','slug','jelly','bat'], bossKey:'club', vtheme:'mountain', modes:['I','We'], goal:'部活動で 目標に むかって きたえる力',
+    scene:'大会まで 1か月。きょうも 基礎練習が つづく。',
+    thoughts:['基礎練 ばっかりで あきてきた……','レギュラーに なれるかな……','せんぱいとの 差が 大きいな……'] },
+  jr_committee:{ key:'jr_committee', label:'委員会', monsters:['golem','tangle','bee','mouse','pixie'], bossKey:'trip', vtheme:'library', modes:['I','We'], goal:'委員会の 話し合いを まとめる力',
+    scene:'文化祭の 出しものを きめる 話し合い。意見が バラバラだ。',
+    thoughts:['意見が まとまらない……','時間だけが すぎていく……','だれかが きめて くれないかな……'] },
+  jr_friends:{ key:'jr_friends', label:'友人関係', monsters:['oni','jelly','crab','mole','owl'], bossKey:'friends', vtheme:'forest', modes:['I','You'], goal:'友達と 気もちを つたえ合う力',
+    scene:'グループの 中で、なんとなく 気まずい 空気が ながれた。',
+    thoughts:['どうして すれちがったんだろう……','SNSの 返事、どう しよう……','ほんとうの 気もちを 言えて いない……'] },
+  jr_shinro:{ key:'jr_shinro', label:'進路をえらぶ', monsters:['owl','ghost','pixie','chameleon','mole'], bossKey:'shukatsu', vtheme:'sky', modes:['I','We'], goal:'じぶんの 進路を じぶんで えらぶ力',
+    scene:'進路希望調査の 紙が くばられた。高校って どう えらぶんだろう。',
+    thoughts:['やりたいことが まだ 見つからない……','友達と 同じ高校で いいのかな……','親の 期待も 気になる……'] },
+  /* ---- 高校ステージ（部活動・アルバイトはマリオ風） ---- */
+  hs_class:{ key:'hs_class', label:'授業', monsters:['golem','rhino','bee','pixie','eraser'], bossKey:'class', vtheme:'tower', modes:['I','You','We'], goal:'授業で 問いを 立てて 学びを 深める力',
+    scene:'探究の 授業。じぶんたちで 問いを 立てる ところから 始まる。',
+    thoughts:['問いって どう 立てるんだろう……','グループの 役わりが かたよってる……','発表まで 時間が ない……'] },
+  hs_juken:{ key:'hs_juken', label:'受験の勉強', monsters:['mist','eraser','timebug','jelly','imp'], bossKey:'homework', vtheme:'cave', modes:['I'], goal:'受験勉強を 自分で 組み立てて つづける力',
+    scene:'模試の 結果が 返ってきた。志望校との 距離が 見えた。',
+    thoughts:['判定が 気になって ねむれない……','何から やり直せば いいの……','スマホを 見る手が とまらない……'] },
+  hs_club:{ key:'hs_club', label:'部活動', mario:true, level:'club', goal:'さいごの 大会まで 走りぬく力',
+    scene:'引退前 さいごの 大会へ。きょうも 夕方の グラウンドを 走る。',
+    thoughts:['つかれが たまってきた……','勉強との 両立が きつい……','でも、さいごまで やりきりたい！'] },
+  hs_baito:{ key:'hs_baito', label:'アルバイト', mario:true, level:'baito', goal:'やくそくを 守って やりとげる力',
+    scene:'はじめての アルバイト。おぼえることが 山ほど ある。',
+    thoughts:['時間に まにあうかな……','しっぱいしたら どうしよう……','じぶんで かせぐって どんな 気もちだろう……'] },
+  hs_friends:{ key:'hs_friends', label:'友人関係', monsters:['oni','jelly','crab','mole','owl'], bossKey:'friends', vtheme:'forest', modes:['I','You'], goal:'友達と ささえ合う力',
+    scene:'進路も 部活も それぞれ。すこし 距離が できた 気がする。',
+    thoughts:['みんな いそがしそう……','さそったら めいわくかな……','会って 話したいな……'] },
+  hs_shinro:{ key:'hs_shinro', label:'進路をきめる', monsters:['owl','ghost','crab','chameleon','tangle'], bossKey:'shukatsu', vtheme:'sky', modes:['I','We'], goal:'じぶんの 進路を きめ切る力',
+    scene:'三者面談が 近い。志望を 一つに しぼる ときが きた。',
+    thoughts:['ほんとうに これで いいのかな……','ちがう道も 気になる……','じぶんで きめたい……'] },
+  /* ---- 幼稚園ステージ（指先で あそぶ ミニゲーム） ---- */
+  kg_katazuke:{ key:'kg_katazuke', label:'おかたづけ', mini:'katazuke', goal:'つかったものを もとに もどす力',
+    scene:'あそんだ おもちゃが いっぱい。おかたづけの じかんだよ。' },
+  kg_junbi:{ key:'kg_junbi', label:'あさのじゅんび', mini:'junbi', goal:'あさの したくを じゅんばんに する力',
+    scene:'あさだよ！ ようちえんに いく じゅんびを しよう。' },
+  kg_hamigaki:{ key:'kg_hamigaki', label:'はみがき', mini:'hamigaki', goal:'じぶんの からだを きれいに する力',
+    scene:'ごはんの あとは はみがき。バイキンを やっつけよう！' },
 };
 
 // 小学校ステージの8場面（設計案v2 §4）をすべて配置。分岐・すすむ/もどるマス付き
-const BOARD = [
+const BOARD_ELEM = [
   {label:'スタート', type:'start', next:[1]},          // 0
   {label:'', type:'plain', next:[2]},                  // 1
   {label:'家庭学習', type:'event', event:'homework', next:[3]}, // 2 ★あそべる
@@ -2054,14 +2208,142 @@ const BOARD = [
   {label:'ゴール', type:'goal', next:[]},               // 17
 ];
 // 480x640基準の相対座標（w,hに合わせてスケール）
-const BOARD_POS = [
+const BOARD_POS_ELEM = [
   [0.13,0.67],[0.33,0.70],[0.53,0.67],[0.73,0.63],
   [0.85,0.55],[0.74,0.48],
   [0.55,0.46],[0.38,0.50],[0.21,0.46],[0.12,0.36],
   [0.86,0.41],[0.70,0.36],[0.53,0.33],[0.37,0.30],
   [0.24,0.24],[0.44,0.19],[0.64,0.17],[0.83,0.21],
 ];
-const board = { pos:0, cleared:new Set(), rolling:false, hop:null, active:true };
+/* 大学ステージの盤面：授業→課題→友人関係→海外研究とすすみ、
+   「しんろの分かれ道」で 企業・教員・公務員・進学 の4本に分岐。
+   それぞれの道の先に 就活イベントと 専用ゴールがある */
+const BOARD_UNIV = [
+  {label:'入学', type:'start', next:[1]},                       // 0
+  {label:'', type:'plain', next:[2]},                           // 1
+  {label:'授業', type:'event', event:'uni_class', next:[3]},    // 2
+  {label:'２すすむ', type:'move', fwd:2, next:[4]},             // 3
+  {label:'課題', type:'event', event:'uni_report', next:[5]},   // 4
+  {label:'', type:'plain', next:[6]},                           // 5
+  {label:'友人関係', type:'event', event:'uni_friends', next:[7]}, // 6
+  {label:'１もどる', type:'move', backTo:6, next:[8]},          // 7
+  {label:'海外研究', type:'event', event:'uni_abroad', next:[9]}, // 8
+  {label:'', type:'plain', next:[10]},                          // 9
+  {label:'', type:'fork', next:[11,13,15,17]},                  // 10 しんろの分かれ道
+  {label:'就活・企業', type:'event', event:'job_company', next:[12]},   // 11
+  {label:'企業', type:'goal', career:'company', next:[]},              // 12
+  {label:'就活・教員', type:'event', event:'job_teacher', next:[14]},   // 13
+  {label:'教員', type:'goal', career:'teacher', next:[]},              // 14
+  {label:'就活・公務員', type:'event', event:'job_koumuin', next:[16]}, // 15
+  {label:'公務員', type:'goal', career:'koumuin', next:[]},            // 16
+  {label:'就活・進学', type:'event', event:'job_grad', next:[18]},      // 17
+  {label:'大学院', type:'goal', career:'grad', next:[]},               // 18
+];
+const BOARD_POS_UNIV = [
+  [0.14,0.13],[0.37,0.10],[0.60,0.13],[0.84,0.10],
+  [0.62,0.26],[0.38,0.26],[0.14,0.27],
+  [0.24,0.41],[0.48,0.40],[0.72,0.41],
+  [0.50,0.53],
+  [0.14,0.66],[0.14,0.80],
+  [0.38,0.67],[0.38,0.81],
+  [0.62,0.67],[0.62,0.81],
+  [0.86,0.66],[0.86,0.80],
+];
+/* えらんだ進路（ゴールごと）。次のステージ「仕事」の姿が変わる */
+const CAREERS = {
+  company:'会社で はたらく道', teacher:'学校の 先生になる道',
+  koumuin:'公務員として はたらく道', grad:'大学院で 研究する道',
+};
+
+/* 中学校ステージ（小学校と同じ形の盤を使う） */
+const BOARD_JR = [
+  {label:'スタート', type:'start', next:[1]},
+  {label:'', type:'plain', next:[2]},
+  {label:'授業', type:'event', event:'jr_class', next:[3]},
+  {label:'２すすむ', type:'move', fwd:2, next:[4]},
+  {label:'定期テスト', type:'event', event:'jr_test', next:[5]},
+  {label:'', type:'fork', next:[6,10]},
+  {label:'部活動', type:'event', event:'jr_club', next:[7]},
+  {label:'', type:'plain', next:[8]},
+  {label:'１もどる', type:'move', backTo:7, next:[9]},
+  {label:'委員会', type:'event', event:'jr_committee', next:[14]},
+  {label:'友人関係', type:'event', event:'jr_friends', next:[11]},
+  {label:'２すすむ', type:'move', fwd:2, next:[12]},
+  {label:'進路をえらぶ', type:'event', event:'jr_shinro', next:[13]},
+  {label:'', type:'plain', next:[14]},
+  {label:'', type:'plain', next:[15]},
+  {label:'', type:'plain', next:[16]},
+  {label:'', type:'plain', next:[17]},
+  {label:'ゴール', type:'goal', next:[]},
+];
+/* 高校ステージ（部活動とアルバイトは スーパーマリオ風のミニゲーム） */
+const BOARD_HS = [
+  {label:'スタート', type:'start', next:[1]},
+  {label:'', type:'plain', next:[2]},
+  {label:'授業', type:'event', event:'hs_class', next:[3]},
+  {label:'２すすむ', type:'move', fwd:2, next:[4]},
+  {label:'受験の勉強', type:'event', event:'hs_juken', next:[5]},
+  {label:'', type:'fork', next:[6,10]},
+  {label:'部活動', type:'event', event:'hs_club', next:[7]},
+  {label:'', type:'plain', next:[8]},
+  {label:'１もどる', type:'move', backTo:7, next:[9]},
+  {label:'アルバイト', type:'event', event:'hs_baito', next:[14]},
+  {label:'友人関係', type:'event', event:'hs_friends', next:[11]},
+  {label:'２すすむ', type:'move', fwd:2, next:[12]},
+  {label:'進路をきめる', type:'event', event:'hs_shinro', next:[13]},
+  {label:'', type:'plain', next:[14]},
+  {label:'', type:'plain', next:[15]},
+  {label:'', type:'plain', next:[16]},
+  {label:'', type:'plain', next:[17]},
+  {label:'ゴール', type:'goal', next:[]},
+];
+/* 幼稚園ステージ（ちいさな すごろく。イベントは 指先で あそぶ ミニゲーム） */
+const BOARD_KG = [
+  {label:'スタート', type:'start', next:[1]},
+  {label:'', type:'plain', next:[2]},
+  {label:'おかたづけ', type:'event', event:'kg_katazuke', next:[3]},
+  {label:'', type:'plain', next:[4]},
+  {label:'あさのじゅんび', type:'event', event:'kg_junbi', next:[5]},
+  {label:'２すすむ', type:'move', fwd:2, next:[6]},
+  {label:'はみがき', type:'event', event:'kg_hamigaki', next:[7]},
+  {label:'', type:'plain', next:[8]},
+  {label:'ゴール', type:'goal', next:[]},
+];
+const BOARD_POS_KG = [
+  [0.15,0.14],[0.45,0.10],[0.75,0.16],
+  [0.82,0.34],[0.55,0.42],[0.26,0.48],
+  [0.42,0.62],[0.70,0.68],[0.50,0.84],
+];
+
+let BOARD = BOARD_ELEM, BOARD_POS = BOARD_POS_ELEM;
+function buildPrev(b){ const pr=b.map(()=>[]); b.forEach((sq,i)=>sq.next.forEach(n=>pr[n].push(i))); return pr; }
+const board = { pos:0, cleared:new Set(), rolling:false, hop:null, active:true,
+  stageKey:'elem', saved:{ kinder:{pos:0, cleared:new Set()}, elem:{pos:0, cleared:new Set()},
+    junior:{pos:0, cleared:new Set()}, high:{pos:0, cleared:new Set()}, univ:{pos:0, cleared:new Set()} } };
+const STAGE_TITLES = {
+  kinder:'げんじつ世界　幼稚園ステージ', elem:'げんじつ世界　小学校ステージ',
+  junior:'げんじつ世界　中学校ステージ', high:'げんじつ世界　高校ステージ',
+  univ:'げんじつ世界　大学ステージ' };
+const STAGE_NAMES = { kinder:'幼稚園', elem:'小学校', junior:'中学校', high:'高校', univ:'大学' };
+/* ステージが上がるほど モンスターは強くなる（名鑑の幼体→強化形態の考え方） */
+const STAGE_RANK = { kinder:0, elem:1, junior:2, high:3, univ:4 };
+function stageRank(){ return STAGE_RANK[board.stageKey] !== undefined ? STAGE_RANK[board.stageKey] : 1; }
+function setStage(key){
+  board.saved[board.stageKey] = { pos:board.pos, cleared:board.cleared };
+  board.stageKey = key;
+  const BMAP = { kinder:[BOARD_KG, BOARD_POS_KG], elem:[BOARD_ELEM, BOARD_POS_ELEM],
+    junior:[BOARD_JR, BOARD_POS_ELEM], high:[BOARD_HS, BOARD_POS_ELEM], univ:[BOARD_UNIV, BOARD_POS_UNIV] };
+  BOARD = (BMAP[key]||BMAP.elem)[0];
+  BOARD_POS = (BMAP[key]||BMAP.elem)[1];
+  BOARD_PREV = buildPrev(BOARD);
+  const st = board.saved[key] || {pos:0, cleared:new Set()};
+  board.pos = st.pos; board.cleared = st.cleared;
+  board.dir = 1;
+  const db = document.getElementById('dirBtn');
+  if(db){ db.textContent='▶ すすむ'; db.classList.remove('back'); }
+  const t = document.getElementById('boardTitle');
+  if(t) t.textContent = STAGE_TITLES[key] || STAGE_TITLES.elem;
+}
 const boardMsg = document.getElementById('boardMsg');
 const diceBtn = document.getElementById('diceBtn');
 const diceFace = document.getElementById('diceFace');
@@ -2317,7 +2599,7 @@ function drawBoard(){
         g.fillStyle='#F59E0B'; g.beginPath(); g.arc(x, y-4, 11, 0, Math.PI*2); g.fill();
         g.strokeStyle='#fff'; g.lineWidth=3.5; g.beginPath();
         g.moveTo(x-5,y-4); g.lineTo(x-1,y+1); g.lineTo(x+6,y-9); g.stroke();
-      } else if(sq.event==='homework'){
+      } else if(sq.event==='homework' || sq.event==='uni_report'){
         g.fillStyle='#B4690A'; g.fillRect(x-10, y-13, 20, 13);
         g.fillStyle='#FFF7E6'; g.fillRect(x-8, y-11, 16, 9);
         g.fillStyle='#B4690A'; g.fillRect(x-5, y-8, 10, 2); g.fillRect(x-5, y-5, 7, 2);
@@ -2414,9 +2696,8 @@ function moveToken(steps){ traverse(steps); }
 function hopTo(to, done){
   board.hop = { from:board.pos, to, t0:performance.now(), dur:260, done };
 }
-/* さかのぼり用：各マスの「ひとつ前」の一覧 */
-const BOARD_PREV = BOARD.map(()=>[]);
-BOARD.forEach((sq,i)=> sq.next.forEach(n=> BOARD_PREV[n].push(i)));
+/* さかのぼり用：各マスの「ひとつ前」の一覧（ステージ切替時に作り直す） */
+let BOARD_PREV = buildPrev(BOARD);
 
 // グラフをたどる。イベントは「ちょうど止まった」ときだけ始まる（通過できる）。
 // ゴールだけは通過できず、そこで止まる。
@@ -2443,6 +2724,26 @@ function arriveSquare(){
   if(sq.type==='event' && !board.cleared.has(i)){
     const ev = EVENTS[sq.event] || EVENTS.homework;
     quest.event = ev;
+    if(ev.mini){
+      SFX.appear();
+      showBanner(
+        `<div class="bn-text">『${ev.label}』！</div>
+         <div class="bn-scene">${ev.scene}</div>
+         <div class="bn-sub" style="margin-top:8px">ゆびさきを つかって あそぼう！</div>`,
+        [{label:'あそぶ！', gold:true, fn:()=>startMiniGame(ev)}]);
+      return;
+    }
+    if(ev.mario){
+      SFX.appear();
+      showBanner(
+        `<div class="bn-text">『${ev.label}』！</div>
+         <div class="bn-scene">${ev.scene}</div>
+         <div class="bn-thlabel">― あたまの中では ―</div>
+         <div>${ev.thoughts.map(t=>`<span class="bn-th">${t}</span>`).join('')}</div>
+         <div class="bn-sub" style="margin-top:10px">◀▶で 走り、ジャンプで とびこえろ！<br>★方略スターを あつめて、ゴールの 旗まで 走りぬけよう！</div>`,
+        [{label:'スタート！', gold:true, fn:()=>startPlatformer(ev)}]);
+      return;
+    }
     SFX.appear();
     showBanner(
       `<div class="bn-text">イベント『${ev.label}』！</div>
@@ -2479,11 +2780,20 @@ function arriveSquare(){
       return;
     }
     SFX.victory();
-    showBanner(
-      `<div class="bn-text">ゴール！</div>
-       <div class="bn-sub">小学校ステージの たびは ここまで。<br>人生の ロードマップに もどって、つぎの ステージを 見てみよう。</div>`,
-      [{label:'ロードマップへ', gold:true, fn:advanceLife}]
-    );
+    if(sq.career){
+      life.career = sq.career;
+      showBanner(
+        `<div class="bn-text">『${CAREERS[sq.career]}』を えらんだ！</div>
+         <div class="bn-sub">大学ステージの たびは ここまで。<br>きみの えらんだ道が、つぎの ステージ「仕事」に つながっていく。</div>`,
+        [{label:'ロードマップへ', gold:true, fn:advanceLife}]
+      );
+    } else {
+      showBanner(
+        `<div class="bn-text">ゴール！</div>
+         <div class="bn-sub">${STAGE_NAMES[board.stageKey]||''}ステージの たびは ここまで。<br>人生の ロードマップに もどって、つぎの ステージを 見てみよう。</div>`,
+        [{label:'ロードマップへ', gold:true, fn:advanceLife}]
+      );
+    }
   } else {
     diceBtn.disabled = false;
     boardSay('サイコロを ふって すすもう！');
@@ -3216,21 +3526,67 @@ const BOSSDEX = {
       missHint:"なかまの声「話し合いが ぐちゃぐちゃの ときは、“ならべて 整理”が 効くよ」"} },
 };
 
+BOSSDEX.uni_abroad = { name:'フミダセナイ大魔王', short:'フミダセナイ大魔王', cat:'動機づけ方略（総合）',
+  bpal:{r0:'#3E7A9E',r1:'#26506E',r2:'#0C1E30',aura:'rgba(110,190,230,.26)'},
+  faceNames:['ことばのかべ','ホームシック','しっぱいこわい'],
+  faces:[
+    "ことばのかべの顔「つたわらないぞ。だまって いた ほうが 楽だろう？」",
+    "ホームシックの顔「知らない 町、知らない ごはん……帰りたく なるぞ」",
+    "しっぱいこわいの顔「うまく いかなかったら、どうするんだ？」"],
+  line:"海の むこうから 三つの顔――「その一歩、ふみ出せるのか？」",
+  cards:[
+    {title:"挑戦と考えて前向きになる", phase:"実行する", judge:"perfect"},
+    {title:"気持ちを切りかえる", phase:"実行する", judge:"good"},
+    {title:"一旦離れる・得意なところを見つける", phase:"実行する", judge:"good"},
+    {title:"くり返して覚える", phase:"実行する", judge:"miss"},
+    {title:"学習環境を調節する", phase:"実行する", judge:"miss"}],
+  result:{
+    perfect:"「つたわらなくても、ちょうせんだ！」――ふみ出した 一歩の先に、あたらしい 世界が ひらけた！",
+    good:"気もちが 少し 軽くなった。あとは 一歩 ふみ出すだけだ。",
+    missHint:"賢者「この王には、“ちょうせんと 考える”一手が いちばん 効くのじゃ」"} };
+BOSSDEX.shukatsu = { name:'ジブンナンテ大魔王', short:'ジブンナンテ大魔王', cat:'動機づけ方略（総合）',
+  bpal:{r0:'#6E7A96',r1:'#464F66',r2:'#161A26',aura:'rgba(170,180,210,.26)'},
+  faceNames:['くらべすぎ','おちたらこわい','きめられない'],
+  faces:[
+    "くらべすぎの顔「あの人は もう 決まったぞ。それに くらべて……」",
+    "おちたらこわいの顔「ことわられるのが こわいだろう？ 出さなければ 傷つかない」",
+    "きめられないの顔「ほんとうに この道で いいのか？ まだ 決めるな」"],
+  line:"かがみのような 三つの顔――「ジブンナンテ、と ささやいてやろう」",
+  cards:[
+    {title:"一旦離れる・得意なところを見つける", phase:"実行する", judge:"perfect"},
+    {title:"挑戦と考えて前向きになる", phase:"実行する", judge:"good"},
+    {title:"考えを構造化する", phase:"実行する", judge:"good"},
+    {title:"くり返して覚える", phase:"実行する", judge:"miss"},
+    {title:"時間配分を調節する", phase:"実行する", judge:"miss"}],
+  result:{
+    perfect:"「わたしの 得意は これだ」――じぶんの ことばが 見つかった しゅんかん、三つの顔が くもった！",
+    good:"前向きな 気もちと 整理の力。じぶんの 強みに あと一歩だ。",
+    missHint:"なかまの声「この王には、いったん はなれて “じぶんの 得意”を 見つめ直すのが 効くよ」"} };
+
 const SPAWN_POS = [[3,10],[11,11],[5,15],[10,17],[7,13]];
 function spawnCaveMonsters(){
   const ev = questEv();
   const lineup = ev.monsters || ['mist','imp','ghost','bat','oni'];
+  const rank = stageRank();
+  const hpUp = Math.min(2, Math.max(0, rank-1));       // 中学+1、高校・大学+2
+  const powUp = rank>=3 ? 1 : 0;                        // 高校からは攻撃も+1
+  const mark = rank>=2 ? '＋'.repeat(rank-1) : '';      // 強化のしるし（まよいの霧＋＋）
   world.monsters = lineup.map((key,i)=>{
     const d = JSON.parse(JSON.stringify(MONDEX[key] || MONDEX.mist));
     const [x,y] = SPAWN_POS[i % SPAWN_POS.length];
+    d.hp += hpUp; d.power += powUp;
+    if(mark){ d.name += mark; d.short += mark; }
     return Object.assign(d, {id:'m'+(i+1), x, y, px:x*TILE, py:y*TILE, tx:x, ty:y,
       moving:false, maxHp:d.hp, alive:true});
   });
-  const bkey = BOSSDEX[ev.key || 'homework'] ? (ev.key || 'homework') : 'homework';
+  const want = ev.bossKey || ev.key || 'homework';
+  const bkey = BOSSDEX[want] ? want : 'homework';
   const b = JSON.parse(JSON.stringify(BOSSDEX[bkey]));
   world.boss = Object.assign(b, {id:'boss', boss:true, bkey, x:7, y:2,
     px:7*TILE, py:2*TILE, tx:7, ty:2, moving:false, still:true,
-    spr:'boss', big:'bossBig', faceIdx:0, hp:4, maxHp:4, power:3, alive:true});
+    spr:'boss', big:'bossBig', faceIdx:0,
+    hp:4+hpUp, maxHp:4+hpUp, power:3+powUp, alive:true});
+  if(mark){ world.boss.name += mark; world.boss.short += mark; }
 }
 
 /* --- 入力（押しっぱなし移動対応） --- */
@@ -3343,6 +3699,10 @@ function typeText(text){
 }
 let dlgOnEnd = null;
 function openDialogue(npc){
+  /* なかま候補は、どんなきっかけで会話が始まっても 最後にさそいの画面を出す */
+  if(npc.recruit && !partyHas(npc.pkey)){
+    npc.onEnd = ()=>offerJoin(npc);
+  }
   inputLocked = true;
   dlgName.textContent = npc.name;
   dlgQueue = [...npc.lines];
@@ -3369,11 +3729,7 @@ function talkNearby(){
   const p = world.player;
   const [dx,dy] = DIRV[p.dir];
   const npc = world.npcs.find(n=>n.x===p.x+dx && n.y===p.y+dy);
-  if(!npc) return;
-  if(npc.recruit && !partyHas(npc.pkey)){
-    npc.onEnd = ()=>offerJoin(npc);
-  }
-  openDialogue(npc);
+  if(npc) openDialogue(npc);
 }
 /* なかまに さそう。ことわってもよいし、4人まで */
 function offerJoin(npc){
@@ -3388,17 +3744,24 @@ function offerJoin(npc){
     `<div class="bn-text">${npc.name}を なかまに する？</div>
      <div class="bn-sub">なかまは いっしょに 歩き、声かけや さくせん会議で 力になってくれる。</div>`,
     [{label:'なかまに する！', gold:true, fn:()=>{
+        if(partyHas(npc.pkey) || party.length>=PARTY_MAX) return;   // 二重押しよけ
         party.push({key:npc.pkey, name:npc.name, spr:npc.spr});
+        let joinNote;
         if(soloQuest()){
           npc.recruit = false;
           npc.lines = ["「この旅は ひとりで いどむんだね。ここで まってるよ！」","「いってらっしゃい！」"];
+          joinNote = `この旅は “じぶんで ととのえる”修行なので、<br>${npc.name}は 中庭で 見送ってくれる。<b>つぎの旅から いっしょだ！</b>`;
         } else {
           world.npcs = world.npcs.filter(n=>n!==npc);
+          /* その場から 後ろについて歩き出す：足あとを主人公の足もとへ引き直す */
+          const pp = world.player;
+          trail = Array(TRAIL_GAP*PARTY_MAX+2).fill({x:pp.px, y:pp.py, dir:pp.dir});
+          joinNote = `${npc.name}は 主人公の うしろに ついた。<b>歩き出すと、一列に ならんで ついてくる！</b>`;
         }
         SFX.rescue();
         showBanner(
           `<div class="bn-text">${npc.name}が なかまに くわわった！</div>
-           <div class="bn-sub">いまの なかま：${party.map(m=>m.name).join('・')}（${party.length}人）</div>`,
+           <div class="bn-sub">${joinNote}<br><br>いまの なかま：${party.map(m=>m.name).join('・')}（${party.length}人）</div>`,
           [{label:'よろしくね！', gold:true, fn:()=>{}}]);
       }},
      {label:'また こんど', fn:()=>{}}]);
@@ -4049,7 +4412,7 @@ let btAssist = {avail:false, armed:false};
    ・Lv5：おまもりが×2に
    がんばりの記録は この端末に残る（localStorage）。
    ============================================================ */
-const growth = { sp:0, lv:1 };
+const growth = { sp:0, lv:1, spells:[] };
 const LV_TH = [0, 10, 24, 42, 64];   // Lv1..Lv5 に必要な累計SP
 const LV_REWARD = {
   2:'ねばり強さが 高まった！（さいだいHP +1）',
@@ -4061,13 +4424,23 @@ function calcMaxHp(){ return 5 + (growth.lv>=2?1:0) + (growth.lv>=4?1:0); }
 function charmMax(){ return growth.lv>=5? 2 : (growth.lv>=3? 1 : 0); }
 function saveGrowth(){ try{ localStorage.setItem('sq-growth', JSON.stringify(growth)); }catch(e){} }
 function loadGrowth(){ try{ const g=JSON.parse(localStorage.getItem('sq-growth')||'null');
-  if(g && g.sp>=0){ growth.sp=g.sp; growth.lv=g.lv||1; } }catch(e){} }
+  if(g && g.sp>=0){ growth.sp=g.sp; growth.lv=g.lv||1; growth.spells=g.spells||[]; } }catch(e){} }
 loadGrowth();
 function updateHudLv(){
-  const el = document.getElementById('hudLv');
-  if(!el) return;
   const next = LV_TH[growth.lv] !== undefined && growth.lv < 5 ? LV_TH[growth.lv] : null;
-  el.textContent = `Lv${growth.lv} ⭐${growth.sp}` + (next? `／${next}` : '');
+  const text = `Lv${growth.lv} ⭐${growth.sp}` + (next? `／${next}` : '') + ` ⚡${growth.spells.length}`;
+  const el = document.getElementById('hudLv');
+  if(el) el.textContent = text;
+  const bl = document.getElementById('boardLv');
+  if(bl) bl.textContent = text;
+}
+/* ぴったりで勝った方略は「じゅもん」として身につく */
+function learnSpell(title){
+  if(growth.spells.includes(title)) return false;
+  growth.spells.push(title);
+  saveGrowth(); updateHudLv();
+  lvToast(`⚡ じゅもん『${title}』を おぼえた！<br>つぎから この方略は <b>3ダメージ</b>の こうげきに なる！`);
+  return true;
 }
 /* レベルアップの お知らせ（戦闘の流れを止めない小さなトースト） */
 function lvToast(text){
@@ -5143,7 +5516,8 @@ function renderBattleUI(m, ambush){
   }
   html += `<div class="dqwin bt-cmd"><div class="bt-cmd-label">▼ どの方略カードを つかう？</div><div id="btHand">`;
   m.cards.forEach((c,i)=>{
-    html += `<button class="bt-card-choice" data-i="${i}"><span class="cur">▶</span><span class="bt-chip ${c.phase}">${c.phase}</span>${c.title}</button>`;
+    const sp = growth.spells.includes(c.title) ? `<span class="bt-chip" style="background:#B8860B">⚡じゅもん</span>` : '';
+    html += `<button class="bt-card-choice" data-i="${i}"><span class="cur">▶</span><span class="bt-chip ${c.phase}">${c.phase}</span>${sp}${c.title}</button>`;
   });
   html += `</div></div>`;
   return html;
@@ -5226,14 +5600,16 @@ function onBattlePick(m, i){
   }
 
   world.missStreak = 0;
-  const dmgToMonster = judge==='perfect' ? 2 : 1;
+  const isSpell = judge==='perfect' && growth.spells.includes(card.title);
+  const dmgToMonster = isSpell ? 3 : (judge==='perfect' ? 2 : 1);
   m.hp = Math.max(0, m.hp - dmgToMonster);
   btAnim.flashW = 1;
   btAnim.pop = {text:'-'+dmgToMonster, color:'#FFF3C4', t:0, onMonster:true};
   SFX.hit();
   updateBattleHpUI(m);
   const boostTag = boosted ? 'なかまの 声かけが 力になった！ ' : '';
-  const label = judge==='perfect' ? `${boostTag}ぴったり！ ${m.name}に ${dmgToMonster}の こうげき！` : `${boostTag}おしい！ ${m.name}に ${dmgToMonster}の こうげき！`;
+  const spellTag = isSpell ? `⚡じゅもん発動 『${card.title}』！ ` : '';
+  const label = judge==='perfect' ? `${spellTag}${boostTag}ぴったり！ ${m.name}に ${dmgToMonster}の こうげき！` : `${boostTag}おしい！ ${m.name}に ${dmgToMonster}の こうげき！`;
   const text = judge==='perfect' ? m.result.perfect : m.result.good;
   resDiv.className = 'dqwin bt-msg';
   resDiv.innerHTML = `<span class="tag">${label}</span><br>${text}`;
@@ -5243,6 +5619,7 @@ function onBattlePick(m, i){
     SFX.victory();
     const spGain = m.boss ? 5 : 2;
     gainSP(spGain);
+    if(judge==='perfect') setTimeout(()=>learnSpell(card.title), 900);
     resDiv.innerHTML += `<br><span style="color:#F5C842">⭐ ストラテジーポイント +${spGain}！（合計 ${growth.sp}）</span>`;
     resDiv.insertAdjacentHTML('afterend', `<button class="bt-next" id="btNext">たびを つづける</button>`);
     document.getElementById('btNext').onclick = ()=>{
@@ -5267,6 +5644,401 @@ function onBattlePick(m, i){
     };
   }
 }
+
+/* ============================================================
+   幼稚園のミニゲーム（指先で あそぶ・生活を ととのえる）
+   ============================================================ */
+const miniWrap = document.getElementById('miniWrap');
+const miniCard = document.getElementById('miniCard');
+function startMiniGame(ev){
+  miniWrap.style.display='flex';
+  if(ev.mini==='katazuke') mgKatazuke(ev);
+  else if(ev.mini==='junbi') mgJunbi(ev);
+  else mgHamigaki(ev);
+}
+function miniClear(ev, word){
+  SFX.victory();
+  gainSP(2);
+  board.cleared.add(board.pos);
+  setTimeout(()=>{
+    miniWrap.style.display='none';
+    showBanner(
+      `<div class="bn-text">できた！ 『${ev.label}』</div>
+       <div class="bn-sub">${word}<br><span style="color:#F5C842">⭐ ストラテジーポイント +2！</span></div>`,
+      [{label:'つぎへ！', gold:true, fn:()=>{ diceBtn.disabled=false; boardSay('サイコロを ふって すすもう！'); }}]);
+  }, 500);
+}
+/* ① おかたづけ：おもちゃを ドラッグして はこへ */
+function mgKatazuke(ev){
+  const toys=['🧸','⚽','🚗','🧩','📚','🖍'];
+  miniCard.innerHTML = `<div class="mg-title">おかたづけ</div>
+    <div class="mg-sub">おもちゃを ゆびで つまんで、はこに いれてね</div>
+    <div id="mgArea"><div id="mgBox">おもちゃばこ</div></div>`;
+  const area = document.getElementById('mgArea');
+  const box = document.getElementById('mgBox');
+  let done = 0;
+  toys.forEach((t,i)=>{
+    const el = document.createElement('div');
+    el.className='mg-toy'; el.textContent=t;
+    el.style.left = (8 + (i%3)*33 + (i*7)%8) + '%';
+    el.style.top  = (6 + Math.floor(i/3)*26 + (i*11)%10) + '%';
+    area.appendChild(el);
+    el.addEventListener('pointerdown', e=>{
+      e.preventDefault();
+      el.setPointerCapture(e.pointerId);
+      const r0 = el.getBoundingClientRect(), a0 = area.getBoundingClientRect();
+      const ox = e.clientX - r0.left, oy = e.clientY - r0.top;
+      const move = me=>{
+        el.style.left = Math.max(0, Math.min(a0.width-40, me.clientX - a0.left - ox)) + 'px';
+        el.style.top  = Math.max(0, Math.min(a0.height-40, me.clientY - a0.top - oy)) + 'px';
+      };
+      const up = ue=>{
+        el.removeEventListener('pointermove', move);
+        el.removeEventListener('pointerup', up);
+        const rb = box.getBoundingClientRect(), rt = el.getBoundingClientRect();
+        const cx = rt.left + rt.width/2, cy = rt.top + rt.height/2;
+        if(cx>rb.left && cx<rb.right && cy>rb.top-20 && cy<rb.bottom){
+          SFX.confirm();
+          el.remove();
+          box.classList.remove('pop'); void box.offsetWidth; box.classList.add('pop');
+          done++;
+          box.textContent = `おもちゃばこ（${done}こ）`;
+          if(done>=toys.length) miniClear(ev,'つかったものを もとに もどすと、つぎに あそぶとき すぐ 見つかるね！');
+        }
+      };
+      el.addEventListener('pointermove', move);
+      el.addEventListener('pointerup', up);
+    });
+  });
+}
+/* ② あさのじゅんび：ただしい じゅんばんに タップ */
+function mgJunbi(ev){
+  const steps = [['🛌','おきる'],['🧼','かおを あらう'],['🍚','あさごはん'],['🎒','しゅっぱつ！']];
+  const order = [0,1,2,3];
+  const shuffled = [2,0,3,1];
+  let next = 0;
+  miniCard.innerHTML = `<div class="mg-title">あさの じゅんび</div>
+    <div class="mg-sub">あさに やる ことを、じゅんばんに タップしてね</div>
+    <div id="mgCards"></div>
+    <div class="mg-done-row" id="mgDone"></div>`;
+  const wrap = document.getElementById('mgCards');
+  shuffled.forEach(idx=>{
+    const b = document.createElement('button');
+    b.className='mg-card';
+    b.innerHTML = `<span class="big">${steps[idx][0]}</span>${steps[idx][1]}`;
+    wrap.appendChild(b);
+    b.onclick = ()=>{
+      if(idx===order[next]){
+        SFX.confirm();
+        b.disabled = true;
+        document.getElementById('mgDone').textContent += steps[idx][0] + '→';
+        next++;
+        if(next>=order.length){
+          document.getElementById('mgDone').textContent = steps.map(s=>s[0]).join('→') + '　できた！';
+          miniClear(ev,'じゅんばんに やると、あわてないで じゅんびできるね！');
+        }
+      } else {
+        SFX.talk();
+        b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake');
+      }
+    };
+  });
+}
+/* ③ はみがき：バイキンを タップで やっつける */
+function mgHamigaki(ev){
+  miniCard.innerHTML = `<div class="mg-title">はみがき</div>
+    <div class="mg-sub">歯に ついた バイキンを ぜんぶ タップしてね</div>
+    <div id="mgArea" style="background:#FFF3F0"><div style="position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);font-size:120px">😁</div></div>`;
+  const area = document.getElementById('mgArea');
+  const spots = [[26,34],[42,58],[58,36],[68,56],[34,62],[52,24]];
+  let left = spots.length;
+  spots.forEach(([x,y])=>{
+    const g = document.createElement('div');
+    g.className='mg-germ'; g.textContent='🦠';
+    g.style.left = x+'%'; g.style.top = y+'%';
+    area.appendChild(g);
+    g.addEventListener('pointerdown', ()=>{
+      SFX.hit();
+      g.textContent='✨';
+      g.style.pointerEvents='none';
+      setTimeout(()=>g.remove(), 350);
+      left--;
+      if(left<=0) miniClear(ev,'ピッカピカ！ からだを きれいに すると、気もちも すっきりするね！');
+    });
+  });
+}
+
+/* ============================================================
+   高校のマリオ風ミニゲーム（横スクロール）
+   ◀▶で走り、ジャンプで とびこえ、★方略スターを あつめて 旗へ。
+   モンスターは ふんづけると たおせる。おちたり ぶつかったりすると
+   げんきが へり、0になると「つかれに まけて 中断」。
+   ============================================================ */
+const platWrap = document.getElementById('platWrap');
+const platCanvas = document.getElementById('platCanvas');
+const plx = platCanvas.getContext('2d');
+const PT = 34;
+const PLAT_LEVELS = {
+  club:{ name:'部活の 走りこみ！', sky:['#FFC98A','#F4845F'], hill:'#B65D3C',
+    gtop:'#7FB06B', gbody:'#8B6B3D', plat:'#C9A876',
+    len:60, gaps:[[18,20],[34,36],[48,49]],
+    plats:[[10,14,9],[22,26,7],[38,42,9]],
+    stars:[[12,8],[24,6],[40,8],[30,11],[45,11],[6,11]],
+    enemies:[[16,'slime'],[29,'oni'],[44,'bat'],[24,'imp']],
+    flag:56 },
+  baito:{ name:'アルバイト はじめての おとどけ！', sky:['#8FC0E8','#C6DDF0'], hill:'#6E7A8A',
+    gtop:'#B0B6C0', gbody:'#7A828E', plat:'#D9B08A',
+    len:62, gaps:[[12,13],[26,28],[42,44]],
+    plats:[[8,11,9],[20,24,8],[32,36,9],[46,49,8]],
+    stars:[[9,8],[22,7],[34,8],[48,7],[16,11],[55,11]],
+    enemies:[[17,'mouse'],[38,'timebug'],[52,'imp'],[33,'bee']],
+    flag:58 },
+};
+let plat = null;
+function buildPlatGrid(def){
+  const rows = 14;
+  const g = [];
+  for(let y=0;y<rows;y++) g.push(Array(def.len).fill('.'));
+  for(let x=0;x<def.len;x++){
+    if(!def.gaps.some(([a,b])=>x>=a&&x<=b)){ g[12][x]='#'; g[13][x]='#'; }
+  }
+  def.plats.forEach(([a,b,y])=>{ for(let x=a;x<=b;x++) g[y][x]='='; });
+  def.stars.forEach(([x,y])=>{ g[y][x]='*'; });
+  return g;
+}
+function platSolid(g,x,y){
+  if(x<0||y<0||y>=g.length||x>=g[0].length) return x<0;
+  const t=g[y][x]; return t==='#'||t==='=';
+}
+function startPlatformer(ev){
+  quest.event = ev;
+  const def = PLAT_LEVELS[ev.level];
+  const grid = buildPlatGrid(def);
+  const enemies = def.enemies.map(([col,spr])=>{
+    let gy=0; while(gy<13 && !platSolid(grid,col,gy+1)) gy++;
+    return { x:col*PT+4, y:gy*PT+PT-26, vx:0.7*(col%2?1:-1), spr, alive:true };
+  });
+  plat = { ev, def, grid, t:0,
+    px:PT*1.2, py:10*PT, vx:0, vy:0, onG:false, face:1, inv:0,
+    stars:0, enemies, L:false, R:false, raf:null, over:false };
+  world.player.hp = world.player.maxHp;
+  platWrap.style.display='block';
+  board.active = false;
+  bgmPlay('battle');
+  platFit();
+  platLoop();
+}
+function platFit(){
+  const r = platWrap.getBoundingClientRect();
+  fitHiDPI(platCanvas, plx, r.width, r.height);
+}
+function platEnd(){
+  if(plat && plat.raf) cancelAnimationFrame(plat.raf);
+  plat = null;
+  platWrap.style.display='none';
+  board.active = true;
+  bgmPlay('board');
+  requestAnimationFrame(drawBoard);
+}
+function platWin(){
+  if(!plat || plat.over) return;
+  plat.over = true;
+  SFX.victory();
+  const got = plat.stars, ev = plat.ev;
+  gainSP(3 + got);
+  board.cleared.add(board.pos);
+  setTimeout(()=>{
+    platEnd();
+    showBanner(
+      `<div class="bn-text">ゴール！ 『${ev.label}』クリア！</div>
+       <div class="bn-sub">★方略スター ×${got}　<span style="color:#F5C842">⭐ ストラテジーポイント +${3+got}！</span><br>
+       さいごまで 走りぬく力が ついてきた！</div>`,
+      [{label:'つぎへ！', gold:true, fn:()=>{ diceBtn.disabled=false; boardSay('サイコロを ふって すすもう！'); }}]);
+  }, 700);
+}
+function platFail(){
+  if(!plat || plat.over) return;
+  plat.over = true;
+  const ev = plat.ev;
+  setTimeout(()=>{
+    platEnd();
+    showBanner(
+      `<div class="bn-text" style="color:#FF9EAA">『${ev.label}』を 中断してしまった……</div>
+       <div class="bn-sub">つかれと ゆうわくに まけてしまった。<br>でも だいじょうぶ。同じマスに 止まれば、なんども ちょうせんできる！</div>`,
+      [{label:'すごろくへ もどる', fn:()=>{ diceBtn.disabled=false; boardSay('もういちど ちょうせんしよう！'); }}]);
+  }, 500);
+}
+function platHurt(knock){
+  if(!plat || plat.inv>0 || plat.over) return;
+  SFX.damage();
+  world.player.hp = Math.max(0, world.player.hp-1);
+  plat.inv = 75;
+  plat.vy = -5; plat.vx = knock;
+  if(world.player.hp<=0) platFail();
+}
+function platStep(){
+  if(!plat || plat.over) return;
+  const P = plat, g = P.grid;
+  P.t += 0.016;
+  if(P.inv>0) P.inv--;
+  const SPD = 2.7;
+  P.vx = (P.R?SPD:0) - (P.L?SPD:0) + (P.inv>60 ? P.vx*0.5 : 0);
+  if(P.vx>0.2) P.face=1; else if(P.vx<-0.2) P.face=-1;
+  const W=20, H=26, ox=6;
+  /* よこ移動 */
+  P.px += P.vx;
+  if(P.vx>0){
+    const cx = Math.floor((P.px+ox+W)/PT);
+    if(platSolid(g,cx,Math.floor((P.py+4)/PT)) || platSolid(g,cx,Math.floor((P.py+H-2)/PT)))
+      P.px = cx*PT - ox - W - 0.1;
+  } else if(P.vx<0){
+    const cx = Math.floor((P.px+ox)/PT);
+    if(platSolid(g,cx,Math.floor((P.py+4)/PT)) || platSolid(g,cx,Math.floor((P.py+H-2)/PT)))
+      P.px = (cx+1)*PT - ox + 0.1;
+  }
+  if(P.px < 0) P.px = 0;
+  /* たて移動 */
+  P.vy = Math.min(9, P.vy + 0.5);
+  P.py += P.vy;
+  P.onG = false;
+  if(P.vy > 0){
+    const cy = Math.floor((P.py+H)/PT);
+    if(platSolid(g,Math.floor((P.px+ox+2)/PT),cy) || platSolid(g,Math.floor((P.px+ox+W-2)/PT),cy)){
+      P.py = cy*PT - H - 0.1; P.vy = 0; P.onG = true;
+    }
+  } else if(P.vy < 0){
+    const cy = Math.floor(P.py/PT);
+    if(platSolid(g,Math.floor((P.px+ox+2)/PT),cy) || platSolid(g,Math.floor((P.px+ox+W-2)/PT),cy)){
+      P.py = (cy+1)*PT + 0.1; P.vy = 0;
+    }
+  }
+  /* おっこちた */
+  if(P.py > g.length*PT + 60){
+    world.player.hp = Math.max(0, world.player.hp-1);
+    SFX.damage();
+    if(world.player.hp<=0){ platFail(); return; }
+    P.px = PT*1.2; P.py = 10*PT; P.vx=0; P.vy=0; P.inv=70;
+  }
+  /* 星あつめ */
+  const scx = Math.floor((P.px+ox+W/2)/PT), scy = Math.floor((P.py+H/2)/PT);
+  if(g[scy] && g[scy][scx]==='*'){ g[scy][scx]='.'; P.stars++; SFX.confirm(); }
+  /* ゴールの旗 */
+  if(scx >= P.def.flag){ platWin(); return; }
+  /* モンスター */
+  P.enemies.forEach(en=>{
+    if(!en.alive) return;
+    const ecx = Math.floor((en.x+12)/PT), ecy = Math.floor((en.y+12)/PT);
+    const aheadX = Math.floor((en.x+12+Math.sign(en.vx)*16)/PT);
+    if(platSolid(g,aheadX,ecy) || !platSolid(g,aheadX,ecy+1)) en.vx = -en.vx;
+    en.x += en.vx;
+    /* あたりはんてい */
+    if(P.px+ox < en.x+22 && P.px+ox+W > en.x+2 && P.py < en.y+24 && P.py+H > en.y+4){
+      if(P.vy > 1.5 && P.py+H < en.y+16){
+        en.alive = false; P.vy = -6; P.stars++; SFX.hit();   // ふんづけた！
+      } else {
+        platHurt(Math.sign(P.px-en.x)*3);
+      }
+    }
+  });
+}
+function platDraw(){
+  if(!plat) return;
+  const P = plat, g = P.grid, def = P.def;
+  const w = platCanvas.cssW, h = platCanvas.cssH;
+  const camX = Math.max(0, Math.min(def.len*PT - w, P.px - w*0.38));
+  const camY = Math.max(0, g.length*PT - h + 20);
+  let gr = plx.createLinearGradient(0,0,0,h);
+  gr.addColorStop(0,def.sky[0]); gr.addColorStop(1,def.sky[1]);
+  plx.fillStyle=gr; plx.fillRect(0,0,w,h);
+  /* とおくの山なみ */
+  plx.fillStyle = def.hill; plx.globalAlpha = 0.35;
+  for(let i=0;i<6;i++){
+    const bx = ((i*260) - camX*0.4) % (w+520) - 130;
+    plx.beginPath(); plx.moveTo(bx-130, h*0.72);
+    plx.quadraticCurveTo(bx, h*0.42, bx+130, h*0.72); plx.fill();
+  }
+  plx.globalAlpha = 1;
+  /* タイル */
+  const x0 = Math.floor(camX/PT), x1 = Math.min(def.len-1, x0 + Math.ceil(w/PT) + 1);
+  for(let y=0;y<g.length;y++){
+    for(let x=x0;x<=x1;x++){
+      const t = g[y][x];
+      const sx = x*PT-camX, sy = y*PT-camY;
+      if(t==='#'){
+        plx.fillStyle = def.gbody; plx.fillRect(sx,sy,PT,PT);
+        if(!platSolid(g,x,y-1)){ plx.fillStyle = def.gtop; plx.fillRect(sx,sy,PT,8); }
+        plx.fillStyle = 'rgba(0,0,0,.08)'; plx.fillRect(sx,sy,1.6,PT);
+      } else if(t==='='){
+        gr = plx.createLinearGradient(0,sy,0,sy+PT*0.5);
+        gr.addColorStop(0,def.plat); gr.addColorStop(1,'#8B6B3D');
+        plx.fillStyle=gr; plx.fillRect(sx,sy,PT,PT*0.5);
+        plx.fillStyle='rgba(255,255,255,.35)'; plx.fillRect(sx,sy,PT,3);
+      } else if(t==='*'){
+        const tw = 0.8 + Math.sin(P.t*5 + x)*0.2;
+        plx.save(); plx.translate(sx+PT/2, sy+PT/2); plx.rotate(Math.sin(P.t*3+x)*0.3);
+        plx.fillStyle='#F5C842';
+        plx.beginPath();
+        for(let k=0;k<10;k++){ const r=k%2? 5*tw : 11*tw; const a2=-Math.PI/2+k*Math.PI/5;
+          k? plx.lineTo(Math.cos(a2)*r, Math.sin(a2)*r) : plx.moveTo(Math.cos(a2)*r, Math.sin(a2)*r); }
+        plx.closePath(); plx.fill();
+        plx.restore();
+      }
+    }
+  }
+  /* ゴールの旗 */
+  const fx = def.flag*PT - camX;
+  plx.strokeStyle='#5C3A21'; plx.lineWidth=4;
+  plx.beginPath(); plx.moveTo(fx+PT/2, 12*PT-camY); plx.lineTo(fx+PT/2, 7*PT-camY); plx.stroke();
+  plx.fillStyle='#E84C4C';
+  plx.beginPath(); plx.moveTo(fx+PT/2, 7*PT-camY);
+  plx.lineTo(fx+PT/2+26, 7.45*PT-camY); plx.lineTo(fx+PT/2, 7.9*PT-camY); plx.closePath(); plx.fill();
+  /* モンスター */
+  plx.imageSmoothingEnabled = false;
+  P.enemies.forEach(en=>{
+    if(!en.alive) return;
+    const spr = SPR[en.spr] || SPR.slime;
+    plx.drawImage(spr, Math.round(en.x-camX-4), Math.round(en.y-camY-6), spr.lw, spr.lh);
+  });
+  /* ゆうしゃ */
+  if(!(P.inv>0 && Math.floor(P.t*20)%2)){
+    const hs = P.face>=0 ? SPR.heroRight : SPR.heroLeft;
+    const frame = P.onG && Math.abs(P.vx)>0.5 ? hs[Math.floor(P.t*8)%2] : hs[0];
+    plx.drawImage(frame, Math.round(P.px-camX-6), Math.round(P.py-camY-6), frame.lw, frame.lh);
+  }
+  /* HUD */
+  const hud = document.getElementById('platHud');
+  hud.innerHTML = `${def.name}　${heartsHTML(world.player.hp, world.player.maxHp)}　★×${P.stars}`;
+}
+function platLoop(){
+  if(!plat) return;
+  platStep();
+  if(plat){ platDraw(); plat.raf = requestAnimationFrame(platLoop); }
+}
+/* そうさ：ボタンとキーボード */
+[['plL','L'],['plR','R']].forEach(([id,key])=>{
+  const b = document.getElementById(id);
+  const on = e=>{ e.preventDefault(); if(plat) plat[key]=true; };
+  const off = e=>{ e.preventDefault(); if(plat) plat[key]=false; };
+  b.addEventListener('pointerdown', on);
+  b.addEventListener('pointerup', off);
+  b.addEventListener('pointerleave', off);
+});
+document.getElementById('plJ').addEventListener('pointerdown', e=>{
+  e.preventDefault();
+  if(plat && plat.onG){ plat.vy = -8.8; SFX.hop(); }
+});
+window.addEventListener('keydown', e=>{
+  if(!plat) return;
+  if(e.key==='ArrowLeft') plat.L=true;
+  if(e.key==='ArrowRight') plat.R=true;
+  if((e.key===' '||e.key==='ArrowUp') && plat.onG){ plat.vy=-8.8; SFX.hop(); }
+});
+window.addEventListener('keyup', e=>{
+  if(!plat) return;
+  if(e.key==='ArrowLeft') plat.L=false;
+  if(e.key==='ArrowRight') plat.R=false;
+});
+window.addEventListener('resize', ()=>{ if(plat) platFit(); });
 
 /* ---------------- 起動 ---------------- */
 window.addEventListener('resize', ()=>{ if(battleOverlay.classList.contains('show')) fitBt(); });
