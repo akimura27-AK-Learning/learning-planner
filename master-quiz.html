@@ -159,14 +159,14 @@
       <button class="btn v-x" disabled>学生版<small>準備中</small></button>
     </div>
     <div class="listenbtn"><button class="btn" onclick="openListen()">🎧 聞き流しモード<small style="display:block;font-weight:600;font-size:.68rem;opacity:.85">クイズが音声で流れます。ランニング・家事をしながらどうぞ</small></button></div>
-    <div class="protonote">※現在は<b>児童版・教師版（Lv1〜3）</b>と、教師版の<b>研修メニュー</b>（レディネステスト・うでだめしテスト・まとめテスト）、<b>聞き流しモード</b>が使えます。生徒版・学生版と「はかせ」「マスター」レベルは順次公開予定です。用語は「調整方略リスト」と方略カードゲーム self・co・shared に準拠しています。</div>
+    <div class="protonote">※現在は<b>児童版・教師版（Lv1〜3）</b>と、教師版の<b>研修メニュー</b>（レディネスチェック・うでだめしチェック・まとめチェック）、<b>聞き流しモード</b>が使えます。生徒版・学生版と「はかせ」「マスター」レベルは順次公開予定です。用語は「調整方略リスト」と方略カードゲーム self・co・shared に準拠しています。</div>
   </section>
 
   <!-- 教師版：研修メニュー -->
   <section class="screen" id="scr-tmenu">
     <div class="eyebrow">FOR TEACHERS</div>
     <h1 style="font-size:1.25rem">教師版｜研修メニュー</h1>
-    <p class="sub">研修の前・あと・まとめで使えるテストと、クイズ本編です。</p>
+    <p class="sub">研修の前・あと・まとめで使えるチェックと、クイズ本編です。</p>
     <div class="map" style="flex-direction:column" id="tmenu"></div>
   </section>
 
@@ -359,8 +359,8 @@ const LEVELS=[
  {key:"L5",titleK:"マスター",titleT:"マスター",emoji:"👑",descK:"そうごう→「調整学習マスター」（じゅんびちゅう）",descT:"総合→「調整学習マスター」認定（準備中）",lock:true}
 ];
 const PASS=8, NUM_Q=10;
-const CHECK_NAME="うでだめしテスト";  /* 中間テストの名称（案）：ほかに「成長チェック」「ふりかえりチェック」など */
-const SUMMARY_NAME="まとめテスト";
+const CHECK_NAME="うでだめしチェック";  /* 中間チェックの名称（案）：ほかに「成長チェック」「ふりかえりチェック」など */
+const SUMMARY_NAME="まとめチェック";
 const READINESS_N=5;
 
 /* ====== 状態（メモリ内のみ・保存なし） ====== */
@@ -591,7 +591,7 @@ function buildTeacherCheck(){
   ];
   return shuffle(P.map(q=>({type:'mc',tag:q.tag,text:q.text.replace(/IMG:(\w+)/,(m,k)=>imgHTML(k)),opts:shuffle(q.opts.concat()),ans:q.ans,memo:q.memo,links:q.links})));
 }
-/* レディネステスト：基礎5問（固定・研修前の力だめし） */
+/* レディネスチェック：基礎5問（固定・研修前の力だめし） */
 function buildReadiness(){
   return shuffle([
    {type:'mc',tag:'基礎 ▶ サイクル',
@@ -621,7 +621,7 @@ function buildReadiness(){
     memo:`自由進度学習＝教師が構築する学習の枠組み・形式。自己調整学習＝学習者の学びのあり方。自由進度学習によって自己調整学習を促進します。`,links:["ytJiyuVs","bookJiyu","ytStages"]}
   ]);
 }
-/* まとめテスト：研修初回資料スライドの内容から（プール12問→10問出題） */
+/* まとめチェック：研修初回資料スライドの内容から（プール12問→10問出題） */
 function buildSummary(){
   const P=[
    {tag:'理論 ▶ 援助要請',
@@ -718,8 +718,8 @@ function startVersion(v){
 function renderTMenu(){
   const m=$('tmenu');m.innerHTML='';
   const rows=[
-   {emoji:'📋',title:'レディネステスト',desc:'研修の前に。基礎の'+READINESS_N+'問（フェーズ・定義・メタ認知など）'+(state.readiness!=null?`｜受けた：${state.readiness}/${READINESS_N}問`:''),cls:state.readiness!=null?'done':'now',act:()=>showTestIntro('readiness')},
-   {emoji:'💪',title:CHECK_NAME+'（中間テスト）',desc:'研修のあとの力だめし10問（サブプロセス・共調整/We・スライド想起）'+(state.checkpoint!=null?`｜受けた：${state.checkpoint}/${NUM_Q}問`:''),cls:state.checkpoint!=null?'done':'now',act:()=>showTestIntro('checkpoint')},
+   {emoji:'📋',title:'レディネスチェック',desc:'研修の前に。基礎の'+READINESS_N+'問（フェーズ・定義・メタ認知など）'+(state.readiness!=null?`｜受けた：${state.readiness}/${READINESS_N}問`:''),cls:state.readiness!=null?'done':'now',act:()=>showTestIntro('readiness')},
+   {emoji:'💪',title:CHECK_NAME+'（中間チェック）',desc:'研修のあとの力だめし10問（サブプロセス・共調整/We・スライド想起）'+(state.checkpoint!=null?`｜受けた：${state.checkpoint}/${NUM_Q}問`:''),cls:state.checkpoint!=null?'done':'now',act:()=>showTestIntro('checkpoint')},
    {emoji:'🎓',title:SUMMARY_NAME,desc:'研修内容のまとめ10問（知能観・援助要請・目標・帰属・スライド想起など）'+(state.summary!=null?`｜受けた：${state.summary}/${NUM_Q}問`:''),cls:state.summary!=null?'done':'now',act:()=>showTestIntro('summary')},
    {emoji:'🗺️',title:'レベルマップ（クイズ本編）',desc:'見習い→チャレンジャー→名人→はかせ→マスター。興味があればその後もぜひ！',cls:'now',act:()=>{renderMap();show('scr-map');}}
   ];
@@ -736,22 +736,22 @@ function showTestIntro(kind){
   state.testKind=kind;const kids=state.ver==='kids';
   if(kind==='readiness'){
     $('ti-emoji').textContent='📋';
-    $('ti-title').textContent='研修の前に：レディネステスト';
+    $('ti-title').textContent='研修の前に：レディネスチェック';
     $('ti-msg').innerHTML='いまの理解を確かめる<b>基礎の'+READINESS_N+'問</b>です（フェーズ・定義・メタ認知など）。<br><b>点数が低くても大丈夫</b>——ここがスタート地点。研修後の「'+CHECK_NAME+'」「'+SUMMARY_NAME+'」で伸びを実感しましょう。';
-    $('ti-start').textContent='レディネステストを始める';
+    $('ti-start').textContent='レディネスチェックを始める';
     $('ti-skip').textContent='あとで受ける（もどる）';
   }else if(kind==='summary'){
     $('ti-emoji').textContent='🎓';
     $('ti-title').textContent=SUMMARY_NAME;
     $('ti-msg').innerHTML='自己調整学習の理論のまとめ10問です（知能観・マスタリー志向・援助要請・目標設定・目標階層・効力期待・原因帰属など）。<br>研修の締めくくりや、後日の振り返りにどうぞ。';
-    $('ti-start').textContent='まとめテストを始める';
+    $('ti-start').textContent='まとめチェックを始める';
     $('ti-skip').textContent='あとで受ける（もどる）';
   }else{
     $('ti-emoji').textContent='💪';
     $('ti-title').textContent=CHECK_NAME;
     $('ti-msg').innerHTML=kids?'「みならい」クリア おめでとう！<br>ここで 10もんの うでだめし。どれだけ 力が ついたか たしかめよう！'
-      :'研修内容にもとづく10問のうでだめし（方略とサブプロセス・共調整/社会的に共有された調整・スライドの振り返り）。研修のあとの力だめしにどうぞ'+(state.readiness!=null?'（レディネステストと正答率をくらべられます）':'')+'。';
-    $('ti-start').textContent=kids?'うでだめしに ちょうせん！':'うでだめしテストを始める';
+      :'研修内容にもとづく10問のうでだめし（方略とサブプロセス・共調整/社会的に共有された調整・スライドの振り返り）。研修のあとの力だめしにどうぞ'+(state.readiness!=null?'（レディネスチェックと正答率をくらべられます）':'')+'。';
+    $('ti-start').textContent=kids?'うでだめしに ちょうせん！':'うでだめしチェックを始める';
     $('ti-skip').textContent=kids?'あとで（レベルマップへ）':'あとで受ける（もどる）';
   }
   $('ti-start').onclick=()=>startTest(kind);
@@ -782,7 +782,7 @@ function renderMap(){
     d.innerHTML=`<span class="badge">${i<state.cur?'✅':L.emoji}</span><span><b>${kids?L.titleK:L.titleT}</b><small>${kids?L.descK:L.descT}${i===state.cur&&!L.lock?'（いまここ）':''}</small></span>`;
     if(!L.lock&&i<=state.cur)d.onclick=()=>startLevel(i);
     map.appendChild(d);
-    /* Lv1のすぐ上に「うでだめしテスト」の行 */
+    /* Lv1のすぐ上に「うでだめしチェック」の行 */
     if(i===0){
       const t=document.createElement('div');
       t.className='step mini '+(state.checkpoint!=null?'done':(state.cur>=1?'now':'lock'));
@@ -802,7 +802,7 @@ function startLevel(i){
   nextQ(true);show('scr-quiz');
 }
 function levelName(){
-  if(state.mode==='test')return state.testKind==='readiness'?'レディネステスト':(state.testKind==='summary'?SUMMARY_NAME:CHECK_NAME);
+  if(state.mode==='test')return state.testKind==='readiness'?'レディネスチェック':(state.testKind==='summary'?SUMMARY_NAME:CHECK_NAME);
   const L=LEVELS[state.cur];return state.ver==='kids'?L.titleK:L.titleT;
 }
 function renderQ(){
@@ -851,7 +851,7 @@ function feedbackNG(q){
   const right=q.type==='mc'?q.ans:(q.ansLabel||q.accepts[0]);
   const isTest=state.mode==='test';
   const redo=isTest
-    ?(kids?'テストだから つぎに すすもう。あとで ゆっくり おぼえれば だいじょうぶ！':'テスト中なので次へ。あとでゆっくり確認すれば大丈夫です')
+    ?(kids?'チェックだから つぎに すすもう。あとで ゆっくり おぼえれば だいじょうぶ！':'チェック中なので次へ。あとでゆっくり確認すれば大丈夫です')
     :(kids?'このもんだいは、あとで もういちど 出てくるよ（できたら せいかいと おなじ！）':'この問題は後でもう一度出題されます（そこで正解すれば学び直し完了）');
   fb.innerHTML=isTest
     ?`<b>${kids?'おしい！もういちど かんがえてみよう':'おしい！もう一度考えてみよう'}</b>${kids?'こたえ':'答え'}：${right}`+linksHTML(q.links,true)+`<div class="strat">📖 ${q.memo||''}</div><small>${redo}</small>`
@@ -910,7 +910,7 @@ function endLevel(){
     const clearedLevel=state.cur;
     state.cur++;
     if(clearedLevel===0&&state.checkpoint==null){
-      /* 見習いクリア→うでだめしテストへ */
+      /* 見習いクリア→うでだめしチェックへ */
       $('r-title').textContent=kids?`「${L.titleK}」クリア！`:`「${L.titleT}」クリア！`;
       $('r-msg').innerHTML=kids?`つぎは 10もんの「${CHECK_NAME}」。どれだけ 力が ついたか たしかめよう！`:`次は10問の「${CHECK_NAME}」。力の伸びを確かめましょう。`;
       $('r-next').textContent=kids?`「${CHECK_NAME}」へ`:`「${CHECK_NAME}」へ進む`;
@@ -970,14 +970,14 @@ function endTest(){
     state.readiness=score;
     $('tr-eyebrow').textContent='おつかれさまでした！';
     $('tr-medal').textContent='📋';
-    $('tr-title').textContent='レディネステスト 完了';
+    $('tr-title').textContent='レディネスチェック 完了';
     $('tr-score').innerHTML=`いまの正解：<b>${score}/${READINESS_N}問</b>（正答率${Math.round(score/READINESS_N*100)}%）<br><small style="color:#7c7565">ここがスタート地点。低くても大丈夫です</small>`;
     $('tr-msg').innerHTML=`研修のあとに「${CHECK_NAME}」「${SUMMARY_NAME}」で伸びを確かめましょう。クイズ本編は「見習い」からどうぞ。`;
     $('tr-next').textContent='研修メニューへもどる';
     $('tr-next').onclick=()=>{renderTMenu();show('scr-tmenu');};
   }else if(state.testKind==='summary'){
     state.summary=score;
-    $('tr-eyebrow').textContent='まとめテスト、おつかれさまでした！';
+    $('tr-eyebrow').textContent='まとめチェック、おつかれさまでした！';
     $('tr-medal').textContent='🎓';
     $('tr-title').textContent=SUMMARY_NAME+'の結果';
     let cmp='';
