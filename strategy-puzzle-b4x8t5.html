@@ -2,17 +2,20 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="robots" content="noindex,nofollow">
-<title>方略パズル（仮称）プロトタイプ v5（モニター版）</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="description" content="学びのつまずきに、自己調整学習の方略を組み合わせてぶつけるパズルゲーム。遊ぶ前に見立て、遊んだ後にふり返ります。">
+<title>方略パズル ｜ AK-Learning</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Zen+Maru+Gothic:wght@700;900&display=swap" rel="stylesheet">
 <style>
 :root{ --win:#0a0e23; --gold:#F59E0B; --purple:#7C3AED; }
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
-html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;
+   user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+/* iOS Safari 対策：ページ本体は動かさない。指の操作はゲームの中だけで完結させる */
+html{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:manipulation}
+body{position:fixed;inset:0;width:100%;height:100%;overflow:hidden;overscroll-behavior:none;touch-action:manipulation}
 body{font-family:"DotGothic16","Zen Maru Gothic",sans-serif;background:#14101f;color:#fff;display:flex;align-items:center;justify-content:center}
-#stage{position:relative;width:100%;max-width:460px;height:100%;max-height:900px;background:#0d0a18;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 0 0 6px #1c1730,0 20px 40px rgba(0,0,0,.5)}
+#stage{position:relative;width:100%;max-width:460px;height:100%;height:100dvh;max-height:900px;background:#0d0a18;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 0 0 6px #1c1730,0 20px 40px rgba(0,0,0,.5)}
 @media (min-width:481px) and (min-height:700px){ #stage{border-radius:18px} }
 canvas{image-rendering:pixelated}
 
@@ -32,7 +35,7 @@ button:disabled{opacity:.45}
 .screen{position:absolute;inset:0;display:none;flex-direction:column;overflow-y:auto;overscroll-behavior:contain}
 .screen.on{display:flex}
 .pad{padding:16px 14px 22px}
-.phasechip{display:inline-block;font-size:11px;padding:5px 10px;border-radius:6px;border:2px solid #fff;letter-spacing:.08em}
+.phasechip{display:inline-block;font-size:11px;padding:5px 10px;border-radius:6px;border:2px solid #fff;letter-spacing:.08em;white-space:nowrap;flex:0 0 auto}
 .ph-mi{background:#2563EB}.ph-ji{background:#16A34A}.ph-fu{background:#EA580C}
 h2.ttl{font-size:17px;line-height:1.7;margin:10px 0 4px}
 .lead{font-size:11.5px;line-height:1.95;color:#c3c9e8;margin-bottom:10px}
@@ -135,7 +138,15 @@ button.skip{background:transparent;border:2px solid #4b5484;box-shadow:none;font
 .grabname .gcat{font-size:9.5px;color:#c3c9e8;flex:0 0 auto}
 .grabname .gname{overflow:hidden;text-overflow:ellipsis}
 #tutoGrab{margin:8px 0 0;height:26px}
-#boardWrap{flex:0 0 auto;position:relative;margin:0 auto;touch-action:none}
+#boardWrap{flex:0 0 auto;position:relative;margin:0 auto;touch-action:none;-webkit-user-drag:none}
+/* iOSは画面の左右のふちから指を滑らせると「前のページへ戻る」が働く。
+   パズル中にそれが起きると、ゲームが止まって別の画面に変わってしまう。
+   ふちに透明な帯を置き、そこから始まる指の動きは受け止めて無効にする。 */
+/* 右上の「ことば切替」「♪」を隠さないよう、上から56px下だけを守る */
+.edgeguard{position:fixed;top:56px;bottom:0;width:26px;z-index:80;background:transparent;
+  touch-action:none;pointer-events:none;display:none}
+.edgeguard.on{display:block;pointer-events:auto}
+#edgeL{left:0} #edgeR{right:0}
 .drop{position:absolute;left:0;top:0;display:flex;align-items:center;justify-content:center;transition:transform .13s linear;will-change:transform}
 .drop canvas{display:block;border-radius:22%}
 .drop.held canvas{box-shadow:0 0 0 3px #fff,0 0 16px #fff;opacity:.9}
@@ -146,6 +157,19 @@ button.skip{background:transparent;border:2px solid #4b5484;box-shadow:none;font
 .dchip .dsp{display:flex;justify-content:center;margin-bottom:1px}
 .dchip.hop{animation:hop .45s ease}
 @keyframes hop{0%{transform:translateY(0)}30%{transform:translateY(-9px) scale(1.08)}60%{transform:translateY(0)}80%{transform:translateY(-3px)}100%{transform:translateY(0)}}
+.leaderbadge{position:absolute;left:8px;top:6px;display:flex;align-items:center;gap:6px;z-index:7;
+  background:rgba(10,14,35,.72);border:2px solid #F59E0B;border-radius:9px;padding:3px 9px 3px 4px;pointer-events:none}
+.leaderbadge .lb{font-size:9px;color:#ffd54a;line-height:1.5;text-align:left}
+.bigclear{position:absolute;left:0;right:0;top:34%;text-align:center;font-size:36px;color:#fff;
+  text-shadow:0 0 18px #F59E0B,0 4px 0 #8a5a06;opacity:0;pointer-events:none;z-index:9;letter-spacing:.04em}
+.bigclear.show{animation:bigpop 1.2s ease forwards}
+@keyframes bigpop{0%{opacity:0;transform:scale(.5)}18%{opacity:1;transform:scale(1.15)}30%{transform:scale(1)}80%{opacity:1}100%{opacity:0}}
+.mixbanner{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%) scale(.6);display:flex;align-items:center;gap:7px;
+  padding:9px 14px;opacity:0;pointer-events:none;z-index:10;transition:opacity .18s,transform .18s;border-color:#F59E0B}
+.mixbanner.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.mixbanner .mx{font-size:19px;color:#ffd54a;text-shadow:0 2px 0 #6b3d00;line-height:1.35;text-align:center}
+.emid.flash{animation:eflash .5s}
+@keyframes eflash{0%{filter:brightness(1)}25%{filter:brightness(1.9)}100%{filter:brightness(1)}}
 .characut{position:absolute;left:8px;bottom:6px;display:flex;align-items:center;gap:8px;padding:6px 10px 6px 6px;
   max-width:calc(100% - 16px);opacity:0;transform:translateX(-14px);transition:opacity .22s,transform .22s;pointer-events:none;z-index:8}
 .characut.show{opacity:1;transform:translateX(0)}
@@ -162,94 +186,36 @@ button.skip{background:transparent;border:2px solid #4b5484;box-shadow:none;font
 .note{font-size:11.5px;line-height:2;padding:11px 12px;margin:10px 0}
 .note b{color:#ffd54a}
 .foot{text-align:center;padding:12px 0 6px}
+
+/* きろくのコピー／先生・保護者の方へ（v7） */
+.sharebox{background:#1a2140;border:1px solid #3b4370;border-radius:10px;padding:9px 10px;margin:2px 0 2px;width:100%;box-sizing:border-box}
+.sharebtns{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin:6px 0 4px}
+.sharebtns button{font-family:inherit;font-size:11.5px;line-height:1.5;padding:7px 10px;border-radius:8px;
+  border:1px solid #4d56a0;background:#232b52;color:#dfe3f7;cursor:pointer}
+.sharebtns button:active{background:#2e3767}
+.sharemsg{font-size:10px;color:#7DD3E8;min-height:13px;text-align:center}
+.sharearea{width:100%;box-sizing:border-box;margin-top:6px;font-family:inherit;font-size:10.5px;line-height:1.6;
+  background:#101533;color:#dfe3f7;border:1px solid #3b4370;border-radius:7px;padding:7px;display:none}
+.adultbox{margin:10px auto 0;max-width:360px;text-align:left}
+.adulttoggle{width:100%;font-family:inherit;font-size:10.5px;padding:7px 9px;border-radius:8px;
+  border:1px dashed #4a5288;background:transparent;color:#8d95bd;cursor:pointer;text-align:left}
+.adultbody{background:#161c38;border:1px solid #3b4370;border-radius:9px;padding:10px 11px;margin-top:6px;
+  font-size:10.5px;line-height:1.85;color:#c3c9e8}
+.adultbody b{color:#dfe3f7}
+.adultbody a{color:#7DD3E8}
+.linkrow{margin:10px 0 0;font-size:11.5px}
+.linkrow a{color:#7DD3E8}
 </style>
 </head>
 <body>
-<!-- ▼▼ モニター版の入口（あいことば）　※モニター版_作成スクリプト.py が自動で挿入 ▼▼ -->
-<div id="mgate" role="dialog" aria-modal="true" aria-label="あいことばの入力">
-  <div id="mgate-card">
-    <p id="mgate-badge">モニター版</p>
-    <h1 id="mgate-title">方略パズル<br>（プロトタイプ）</h1>
-    <p id="mgate-lead">あそんでみて、きづいたことを おしえてください。</p>
-    <label id="mgate-label" for="mgate-input">あいことば</label>
-    <input id="mgate-input" type="text" inputmode="latin" autocomplete="off"
-           autocapitalize="off" autocorrect="off" spellcheck="false"
-           placeholder="ここに入力してね">
-    <p id="mgate-msg" aria-live="polite"></p>
-    <button id="mgate-btn" type="button">はじめる</button>
-    <p id="mgate-note">あいことばは、おしらせした人にきいてください。<br>
-      きづいたこと・こまったことは、LINEにコメントしてください。</p>
-  </div>
-</div>
-<style>
-#mgate{
-  position:fixed; inset:0; z-index:2147483647;
-  display:flex; align-items:center; justify-content:center;
-  padding:20px; background:#14101f;
-  font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif;
-  overflow:auto;
-}
-#mgate-card{
-  width:100%; max-width:360px; background:#FAF9F4; color:#273041;
-  border-radius:20px; padding:28px 24px 24px; text-align:center;
-  box-shadow:0 18px 40px rgba(0,0,0,.45);
-}
-#mgate-badge{
-  display:inline-block; margin:0 0 14px; padding:4px 14px;
-  background:#F59E0B; color:#fff; border-radius:999px;
-  font-size:12px; font-weight:700; letter-spacing:.08em;
-}
-#mgate-title{ margin:0 0 10px; font-size:19px; font-weight:900; line-height:1.5; }
-#mgate-lead{ margin:0 0 22px; font-size:13px; line-height:1.8; color:#5b6472; }
-#mgate-label{ display:block; margin:0 0 8px; font-size:13px; font-weight:700; }
-#mgate-input{
-  width:100%; padding:13px 14px; font-size:17px; text-align:center;
-  border:2px solid #E3DDCB; border-radius:12px; background:#fff; color:#273041;
-  font-family:inherit; user-select:text; -webkit-user-select:text;
-}
-#mgate-input:focus{ outline:none; border-color:#2563EB; }
-#mgate-msg{ min-height:1.6em; margin:10px 0 0; font-size:13px; color:#2563EB; line-height:1.6; }
-#mgate-btn{
-  width:100%; margin:12px 0 0; padding:14px; font-size:16px; font-weight:700;
-  color:#fff; background:#2563EB; border:none; border-radius:12px;
-  font-family:inherit; cursor:pointer; box-shadow:0 4px 0 #1d4ed8;
-}
-#mgate-btn:active{ transform:translateY(2px); box-shadow:0 2px 0 #1d4ed8; }
-#mgate-note{ margin:18px 0 0; font-size:11.5px; line-height:1.9; color:#8a8f99; }
-</style>
-<script>
-(function(){
-  var KEY = "sp-monitor", WANT = 1841026764;
-  var gate = document.getElementById("mgate");
-  function h32(s){ var h=5381; for(var i=0;i<s.length;i++){ h=(((h*33)>>>0) ^ s.charCodeAt(i))>>>0; } return h; }
-  function store(v){ try{ localStorage.setItem(KEY, v); }catch(e){} }
-  function open(){ if(gate && gate.parentNode){ gate.parentNode.removeChild(gate); } }
-  try{ if(localStorage.getItem(KEY) === "ok"){ open(); return; } }catch(e){}
-  var input = document.getElementById("mgate-input");
-  var msg = document.getElementById("mgate-msg");
-  function tryOpen(){
-    var v = (input.value || "").trim().toLowerCase();
-    if(!v){ msg.textContent = "あいことばを 入力してください。"; return; }
-    if(h32(v) === WANT){ store("ok"); msg.textContent = "ようこそ！ はじめます。"; setTimeout(open, 250); }
-    else { msg.textContent = "ちがうみたいです。もういちど たしかめてみてね。"; input.select(); }
-  }
-  document.getElementById("mgate-btn").addEventListener("click", tryOpen);
-  // ゲーム本体が w/a/s/d や Enter を移動・決定に使い preventDefault することがあるため、
-  // 入力欄のキー操作は本体へ渡さない（これをしないと「a」などが打てない）
-  ["keydown","keyup","keypress","input"].forEach(function(type){
-    input.addEventListener(type, function(e){ e.stopPropagation(); });
-  });
-  input.addEventListener("keydown", function(e){ if(e.key === "Enter"){ e.preventDefault(); tryOpen(); } });
-  setTimeout(function(){ try{ input.focus(); }catch(e){} }, 300);
-})();
-</script>
-<!-- ▲▲ モニター版の入口（あいことば） ▲▲ -->
-
 <div id="stage">
   <button id="bgmToggle" title="おんがく">♪</button>
   <button id="wordToggle" class="easy">あa やさしいことば</button>
 
   <!-- タイトル -->
+  <div class="edgeguard" id="edgeL"></div>
+  <div class="edgeguard" id="edgeR"></div>
+
   <div class="screen on" id="scTitle">
     <div class="logo">方略パズル</div>
     <div class="sub" id="titleSub"></div>
@@ -265,6 +231,11 @@ button.skip{background:transparent;border:2px solid #4b5484;box-shadow:none;font
       <button class="sub" id="btnTuto"></button>
       <button class="sub" id="btnDex"></button>
       <div class="entrynote" id="entryNote"></div>
+      <p class="linkrow"><a href="cardindex.html">カードずかんでくわしく見る</a></p>
+    </div>
+    <div class="adultbox">
+      <button class="adulttoggle" id="btnAdult"></button>
+      <div class="adultbody" id="adultBody" style="display:none"></div>
     </div>
   </div>
 
@@ -330,6 +301,9 @@ button.skip{background:transparent;border:2px solid #4b5484;box-shadow:none;font
       <div class="combotxt" id="comboTxt"></div>
       <div class="dmgtxt" id="dmgTxt"></div>
       <div class="characut dqwin" id="charaCut"></div>
+      <div class="leaderbadge" id="leaderBadge"></div>
+      <div class="bigclear" id="bigClear"></div>
+      <div class="mixbanner dqwin" id="mixBanner"></div>
     </div>
     <div class="timerwrap">
       <div class="timerbar"><div class="timerfill" id="timerFill"></div></div>
@@ -350,7 +324,7 @@ button.skip{background:transparent;border:2px solid #4b5484;box-shadow:none;font
     <div id="lookBars"></div>
     <div class="dqwin note" id="lookInsight"></div>
     <h2 class="ttl" style="font-size:14px;margin-top:14px" id="lookPickTtl"></h2>
-    <div id="lookPick"></div>
+    <div class="rsub" id="lookPickNote" style="margin:-2px 0 8px"></div><div id="lookPick"></div>
   </div></div>
 
   <!-- ずかん -->
@@ -368,12 +342,21 @@ button.skip{background:transparent;border:2px solid #4b5484;box-shadow:none;font
   </div></div>
 
   <!-- ⑥おわり -->
-  <div class="screen" id="scEnd"><div class="pad" style="text-align:center;padding-top:26px">
+  <div class="screen" id="scEnd"><div class="pad" style="text-align:center;padding-top:54px">
     <div style="font-size:22px;color:var(--gold);line-height:1.8" id="endTtl"></div>
     <div class="endsp" id="endSprite"></div>
     <div class="dqwin note" id="endNote" style="text-align:left;margin-top:14px"></div>
     <div class="foot" style="display:flex;flex-direction:column;gap:8px;align-items:center">
       <button class="gold" id="btnAgain"></button>
+      <div class="sharebox">
+        <div class="rsub" id="shareLead" style="text-align:center"></div>
+        <div class="sharebtns">
+          <button id="btnCopySns"></button>
+          <button id="btnCopyHome"></button>
+        </div>
+        <div class="sharemsg" id="shareMsg"></div>
+        <textarea class="sharearea" id="shareArea" rows="9" readonly></textarea>
+      </div>
       <button class="sub" id="btnEndDex"></button>
     </div>
   </div></div>
@@ -381,7 +364,7 @@ button.skip{background:transparent;border:2px solid #4b5484;box-shadow:none;font
 
 <script>
 /* ============================================================
-   方略パズル（仮称）プロトタイプ v5
+   方略パズル（仮称）プロトタイプ v6
    v2の主眼＝入口をやさしくする
      ①はじめに「1手だけ動かす」れんしゅうを置き、説明を後ろに回す
      ②カテゴリー名を子どものことばに（しらべる／たしかめる／やる気／じゅんび／きもち）
@@ -397,11 +380,11 @@ button.skip{background:transparent;border:2px solid #4b5484;box-shadow:none;font
    口ぐせは CEO のことばをもとに、そのカテゴリーの中身（サブプロセス）をなぞる形にした。
    1手ごとに順ぐりに出るので、遊ぶうちに「そのなかまが何をする子か」が自然に入る。 */
 const CATS = [
-  {key:'認知',        easy:'しらべる',   color:'#2563EB', dark:'#14337a', hint:'あつめて つなげて くみ立てる',
+  {key:'認知',        easy:'わかる',     color:'#2563EB', dark:'#14337a', hint:'あつめて つなげて、わかる！',
    chara:'ミッケ', pal:'pal0',
    linesE:['あつめる！ しらべて 知ろう','つなげる！ 集めたことを 結ぼう','いろんな 見方で 見てみよう','くみ立てる！ 考えを かたちに'],
    linesF:['情報を収集して、理解を深める','集めた情報を関連づける','情報を多面的に見る','考えを構造化する']},
-  {key:'メタ認知',    easy:'たしかめる', color:'#16A34A', dark:'#0d5c28', hint:'これで いい？ を たしかめる',
+  {key:'メタ認知',    easy:'ふりかえる', color:'#16A34A', dark:'#0d5c28', hint:'これで いい？ と ふりかえる',
    chara:'ミハリ', pal:'pal1',
    linesE:['これで いい？','うまく いってる？','気もちも のってる？','時間、だいじょうぶ？'],
    linesF:['めあてと、いまの学習はずれていないか','いまのやり方は、適切か','気持ちは、学習に向かっているか','時間と進み具合は、どうか']},
@@ -409,7 +392,7 @@ const CATS = [
    chara:'メラ',   pal:'pal2',
    linesE:['自分は できる！','できたら こんな いいことが ある','むずかしいのは チャンス！'],
    linesF:['自分ならできる、と自己効力を高める','解決後にできることを思いうかべる','困難を、やりがいのある挑戦と捉える']},
-  {key:'リソース管理',easy:'じゅんび',   color:'#0891B2', dark:'#0a4d5e', hint:'見通しと 時間を ととのえる',
+  {key:'リソース管理',easy:'どうぐ',     color:'#0891B2', dark:'#0a4d5e', hint:'時間も 場所も、学びの どうぐ',
    chara:'トキリ', pal:'pal3',
    linesE:['見通し、もった？','時間は？','まわりは ととのってる？'],
    linesF:['やり方を決めて、準備をする','時間配分を決める・調節する','学習環境（物的・人的）をととのえる']},
@@ -431,26 +414,54 @@ const CI = {}; CATS.forEach((c,i)=>CI[c.key]=i);
 
 /* ---------- 実カードデータ（self.html の46枚と完全一致）＋やさしい一言（本作で追加） ---------- */
 const CARD = {
-  分けて理解  :{title:'課題を分けて理解する', full:'課題を分解し，それらの関係を考え，解決策を検討して課題の意味を正確に理解する', cat:'認知', phase:'見通す', q:'課題が難しくて理解しづらいときはどうする?', easy:'大きい もんだいを 小さく 分けて 考える'},
-  優先順位   :{title:'やりたいことの優先順位を考える', full:'生成した目標を振り返り，優先順位を考える', cat:'メタ認知', phase:'見通す', q:'やることが多くて迷うときはどうする?', easy:'どれから やるかを 決める'},
-  解決後    :{title:'解決後にできることを考える', full:'課題を解決するとどのようなことがわかるのか，できるようになるのかを考え，前向きな気持ちを高める', cat:'動機づけ調整', phase:'見通す', q:'課題に対してやる気ができないときはどうする?', easy:'できるように なることを 思いうかべる'},
-  時間配分準備 :{title:'時間配分を決めて準備する', full:'短期課題・目標を達成するための時間配分を決め，今後の学習の準備をする', cat:'リソース管理', phase:'見通す', q:'学習を時間内に終えるためにどうする?', easy:'どこまでを 何分で やるかを 決める'},
-  気持ち切替  :{title:'気持ちを切りかえる', full:'不快な感情が生じた際，どうすれば解決できるか（学習から一旦離れる等）を考え，調節する', cat:'情動調整', phase:'実行する', q:'学習中にいやな気持ちになったときにはどうする?', easy:'いやな 気もちを 切りかえる'},
-  関連づける  :{title:'情報を関連づける', full:'情報を関連付けて理解を深める（関連ごとにカテゴリーを生成し，ラベルを付ける）', cat:'認知', phase:'実行する', q:'集めた情報を整理して理解を深めるにはどうする?', easy:'しらべた ことを つなげて まとめる'},
-  やり方確認  :{title:'学習のやり方が良いかを確かめる', full:'実行している方法・方略が適切かを自らに問いかけ，振り返り確認する', cat:'メタ認知', phase:'実行する', q:'今のやり方が合っているか確かめるにはどうする?', easy:'いまの やり方で いいか たしかめる'},
-  挑戦と考え  :{title:'挑戦と考えて前向きになる', full:'困難な課題をやりがいのある挑戦であると考え，学習に対する前向きな気持ちを高める', cat:'動機づけ調整', phase:'実行する', q:'難しい課題を前向きにとらえるにはどうする?', easy:'むずかしいのは チャンスだと 考える'},
-  環境調節   :{title:'学習環境を調節する', full:'これまでよりも学習が進みやすい物的・人的環境に調節する', cat:'リソース管理', phase:'実行する', q:'もっと学習を進めやすくするにはどうする?', easy:'まわりを 学びやすく ととのえる'},
-  気持ち原因  :{title:'気持ちの原因を考え調節する', full:'不快な感情が生じた際の動作や体の反応に目を向け，その原因や理由・意味を考え，調節する', cat:'情動調整', phase:'実行する', q:'いやな気持ちの原因に向き合うにはどうする?', easy:'なんで いやなのかを 考えて ととのえる'},
-  成果と課題  :{title:'学習の成果と課題を考える', full:'学習の課題・目標と学習結果を比較し，自らの学習活動の成果と課題を考え，自己評価する', cat:'メタ認知', phase:'振り返る', q:'学習の課題・目標について振り返るにはどうする?', easy:'できたこと・つぎの かだいを 考える'},
-  やり方成果  :{title:'やり方の成果と課題を考える', full:'効果的で効率的な方法・方略で学べたのかについて考え，自己評価する', cat:'メタ認知', phase:'振り返る', q:'学習のやり方について振り返るにはどうする?', easy:'やり方は よかったか ふりかえる'},
-  満足     :{title:'満足できた所を見つける', full:'自己評価の成果・課題を基に，自らの学習に対して満足できるところを見つけ，前向きな気持ちを高める', cat:'動機づけ調整', phase:'振り返る', q:'学習を前向きにふり返るにはどうする?', easy:'よく できた ところを 見つける'},
-  次に活かす  :{title:'次に活かすことを決める', full:'次の学習に活かすことを決め，次の学習に対する前向きな気持ちを高める', cat:'動機づけ調整', phase:'振り返る', q:'今回の学びを次に活かすにはどうする?', easy:'つぎに いかす ことを 決める'},
-  学び方見直し :{title:'学び方をどう変えれば良いかを考える', full:'次の学習に向けて，自らの学び方をどのように変化させれば良いかを考える', cat:'動機づけ調整', phase:'振り返る', q:'次に向けて学び方を見直すにはどうする?', easy:'つぎは 学び方を どう変えるか 考える'},
-  情報を集める :{title:'情報を集めて深める', full:'情報を収集して理解を深める（知っていたこと—新しく知ったこと—新たな問い）', cat:'認知', phase:'実行する', q:'知りたいことを知るためにどうする?', easy:'しらべて くわしく なる'},
-  ずれ確認   :{title:'めあてと今の学習がずれていないかを確かめる', full:'実行している学習活動が課題・目標からずれていないかを自らに問いかけ，振り返り確認する', cat:'メタ認知', phase:'実行する', q:'今の活動がめあてに合っているか確かめるにはどうする?', easy:'めあてと ずれていないか たしかめる'},
-  ごほうび   :{title:'自分へのごほうびを考える', full:'課題を解決したときの自分自身への褒美を考え，課題に対する前向きな気持ちを高める', cat:'動機づけ調整', phase:'見通す', q:'課題をがんばろうとする気持ちをたかめるにはどうする?', easy:'じぶんへの ごほうびを 考える'},
-  環境設定   :{title:'学べる環境を整える', full:'学習に適切な環境（物的・人的）を整える', cat:'リソース管理', phase:'実行する', q:'集中して学べるようにするにはどうする?', easy:'学びやすい ばしょを つくる'},
+  分けて理解　　:{title:'課題を分けて理解する', full:'課題を分解し，それらの関係を考え，解決策を検討して課題の意味を正確に理解する', cat:'認知', phase:'見通す', q:'課題が難しくて理解しづらいときはどうする?', easy:'大きい もんだいを 小さく 分けて 考える'},
+  知ってること　:{title:'知っていることを振り返る', full:'課題をもとに身近なこと，知っていることを振り返る', cat:'メタ認知', phase:'見通す', q:'課題を身近に感じるにはどうする?', easy:'しっている ことを 思い出す'},
+  解決後　　　　:{title:'解決後にできることを考える', full:'課題を解決するとどのようなことがわかるのか，できるようになるのかを考え，前向きな気持ちを高める', cat:'動機づけ調整', phase:'見通す', q:'課題に対してやる気ができないときはどうする?', easy:'できるように なることを 思いうかべる'},
+  自分を高める　:{title:'自分を高めると言い聞かせる', full:'提示された課題は大切なこと，自分の能力を高めるものであると自分に言い聞かせ，前向きな気持ちを高める', cat:'動機づけ調整', phase:'見通す', q:'課題を前向きに受け止めることができるようにするにはどうする?', easy:'じぶんを のばす ことだと 考える'},
+  ごほうび　　　:{title:'自分へのごほうびを考える', full:'課題を解決したときの自分自身への褒美を考え，課題に対する前向きな気持ちを高める', cat:'動機づけ調整', phase:'見通す', q:'課題をがんばろうとする気持ちをたかめるにはどうする?', easy:'じぶんへの ごほうびを 考える'},
+  めあて目標　　:{title:'めあてから何ができるようになりたいのかを考える', full:'課題の解決に向けた学習内容に関する目標を考える（問いを広げる—順序立てる—焦点化する）', cat:'認知', phase:'見通す', q:'学習の目標を決めるときにはどうする?', easy:'なにが できるように なりたいか 考える'},
+  優先順位　　　:{title:'やりたいことの優先順位を考える', full:'生成した目標を振り返り，優先順位を考える', cat:'メタ認知', phase:'見通す', q:'やることが多くて迷うときはどうする?', easy:'どれから やるかを 決める'},
+  能力が高まる　:{title:'能力が高まると言い聞かせる', full:'目標を達成すると自らの能力を高めることができると自らに言い聞かせ，前向きな気持ちを高める', cat:'動機づけ調整', phase:'見通す', q:'目標の達成にむけて前向きに取り組むためにはどうする?', easy:'できることが ふえると 考える'},
+  目標整理　　　:{title:'目標の中身を整理する', full:'目標の構造（内容—行動—調整）を整理し，何をすれば目標が達成するのかを考え，前向きな気持ちを高める', cat:'動機づけ調整', phase:'見通す', q:'何をすれば目標を達成できるのかを整理するにはどうする?', easy:'めあての 中みを せいりする'},
+  成長予想　　　:{title:'学習後の成長を予想する', full:'学習が終わった後の自分の成長（理解できること，身につけること）を予想し，前向きな気持ちを高める', cat:'動機づけ調整', phase:'見通す', q:'これからの学習に対する気持ちを高めるにはどうする?', easy:'おわった あとの じぶんを 思いうかべる'},
+  成果予想　　　:{title:'つくり出せる成果を予想する', full:'目標が達成した際に創り出せる考え方や成果物を予想し，前向きな気持ちを高める', cat:'動機づけ調整', phase:'見通す', q:'完成のゴールイメージをもって取り組むにはどうする?', easy:'つくれる ものを 思いうかべる'},
+  前の計画　　　:{title:'前の計画を振り返る', full:'自らが立てた過去の計画（学習活動，方法・方略，時間配分）を振り返り，学習計画の見通しをもつ', cat:'メタ認知', phase:'見通す', q:'これから取り組む学習の見通しをもつためにどうする?', easy:'まえの けいかくを ふりかえる'},
+  見本計画　　　:{title:'見本を参考に計画を立てる', full:'書籍や見本，教師・他者の計画を参考に，長期課題・目標を基に短期課題・目標と学習活動を決める', cat:'動機づけ調整', phase:'見通す', q:'計画の立て方に迷うときはどうする?', easy:'お手本を 見て けいかくを たてる'},
+  やり方準備　　:{title:'やり方を決めて準備する', full:'短期課題・目標を達成するための方法・方略を決め，今後の学習の準備をする', cat:'リソース管理', phase:'見通す', q:'今後の学習の課題を解決し，目標を達成するためにはどうする?', easy:'やり方を 決めて じゅんびする'},
+  時間配分準備　:{title:'時間配分を決めて準備する', full:'短期課題・目標を達成するための時間配分を決め，今後の学習の準備をする', cat:'リソース管理', phase:'見通す', q:'学習を時間内に終えるためにどうする?', easy:'どこまでを 何分で やるかを 決める'},
+  うまくできそう:{title:'うまくできそうか考える', full:'立案した計画を基に，学習をうまく実行することができそうかについて考え，前向きな気持ちを高める', cat:'動機づけ調整', phase:'見通す', q:'計画に自信をもって取りかかるためにどうする?', easy:'うまく できそうか 考える'},
+  環境設定　　　:{title:'学べる環境を整える', full:'学習に適切な環境（物的・人的）を整える', cat:'リソース管理', phase:'実行する', q:'集中して学べるようにするにはどうする?', easy:'学びやすい ばしょを つくる'},
+  情報を集める　:{title:'情報を集めて深める', full:'情報を収集して理解を深める（知っていたこと—新しく知ったこと—新たな問い）', cat:'認知', phase:'実行する', q:'知りたいことを知るためにどうする?', easy:'しらべて くわしく なる'},
+  関連づける　　:{title:'情報を関連づける', full:'情報を関連付けて理解を深める（関連ごとにカテゴリーを生成し，ラベルを付ける）', cat:'認知', phase:'実行する', q:'集めた情報を整理して理解を深めるにはどうする?', easy:'しらべた ことを つなげて まとめる'},
+  多面的に見る　:{title:'情報を多面的に見る', full:'情報を多面的に見て，吟味して理解を深める（視点・教科の見方を働かせ再整理する）', cat:'認知', phase:'実行する', q:'情報の見方を変え，理解を深めるにはどうする?', easy:'いろんな 見方で 見てみる'},
+  構造化　　　　:{title:'考えを構造化する', full:'情報を構造化し，考えをつくって理解を深める（整理し，伝える準備をする）', cat:'認知', phase:'実行する', q:'自分の考えをまとめて伝える準備をするにはどうする?', easy:'あつめた ことを 組み立てる'},
+  価値を創造　　:{title:'新たな価値を創造する', full:'新たな価値を創造することを通して理解を深める', cat:'認知', phase:'実行する', q:'学んだことから新しい考えを生み出すにはどうする?', easy:'あたらしい ものを つくり出す'},
+  価値を発信　　:{title:'創造した価値を発信する', full:'創造した価値を発信することを通して理解を深める（転移）', cat:'認知', phase:'実行する', q:'つくりだした考えについてさらに深めるにはどうする?', easy:'つくった ものを つたえる'},
+  くり返し覚える:{title:'くり返して覚える', full:'大切な情報をくり返し言ったり，書いたりして理解を深める（リハーサル）', cat:'認知', phase:'実行する', q:'大切なことをしっかり身につけるにはどうする?', easy:'くりかえして おぼえる'},
+  ずれ確認　　　:{title:'めあてと今の学習がずれていないかを確かめる', full:'実行している学習活動が課題・目標からずれていないかを自らに問いかけ，振り返り確認する', cat:'メタ認知', phase:'実行する', q:'今の活動がめあてに合っているか確かめるにはどうする?', easy:'めあてと ずれていないか たしかめる'},
+  やり方確認　　:{title:'学習のやり方が良いかを確かめる', full:'実行している方法・方略が適切かを自らに問いかけ，振り返り確認する', cat:'メタ認知', phase:'実行する', q:'今のやり方が合っているか確かめるにはどうする?', easy:'いまの やり方で いいか たしかめる'},
+  時間と進み　　:{title:'時間と進み具合を確かめる', full:'計画の時間配分と現在の進捗を比較し，予定時間内に達成するかを自らに問いかけ確認する', cat:'メタ認知', phase:'実行する', q:'時間内に終わりそうかを確かめるにはどうする?', easy:'時間と すすみぐあいを たしかめる'},
+  環境確認　　　:{title:'物的環境・人的環境を確かめる', full:'学習に取り組みやすい物的・人的環境になっているかを自らに問いかけ確認する', cat:'メタ認知', phase:'実行する', q:'今の環境が学習に合っているか確かめるにはどうする?', easy:'まわりの ようすを たしかめる'},
+  心の調子　　　:{title:'体の反応から心の調子を確かめる', full:'学習に向かう心や体の状態について自らに問いかけ，振り返り確認する', cat:'メタ認知', phase:'実行する', q:'学習に向かう気持ちを確かめるには?', easy:'からだと 気もちの ちょうしを たしかめる'},
+  活動を変える　:{title:'学習活動をよりよく変える', full:'学習の課題・目標を基に自らの今後の学習活動を修正し，調節する', cat:'リソース管理', phase:'実行する', q:'活動がめあてからずれていたときはどうする?', easy:'やる ことを よりよく 変える'},
+  別のやり方　　:{title:'別のやり方に変える', full:'課題・目標を達成する上でこれまでよりも効果的で効率的な方法・方略に調節する', cat:'リソース管理', phase:'実行する', q:'今のやり方でうまくいかないときはどうする?', easy:'べつの やり方に 変えてみる'},
+  時間配分調節　:{title:'時間配分を調節する', full:'進捗状況を基に学習活動の時間配分を変更し，調節する', cat:'リソース管理', phase:'実行する', q:'時間が足りなくなってきたときはどうする?', easy:'時間の わりふりを 変える'},
+  環境調節　　　:{title:'学習環境を調節する', full:'これまでよりも学習が進みやすい物的・人的環境に調節する', cat:'リソース管理', phase:'実行する', q:'もっと学習を進めやすくするにはどうする?', easy:'まわりを 学びやすく ととのえる'},
+  気持ち原因　　:{title:'気持ちの原因を考え調節する', full:'不快な感情が生じた際の動作や体の反応に目を向け，その原因や理由・意味を考え，調節する', cat:'情動調整', phase:'実行する', q:'いやな気持ちの原因に向き合うにはどうする?', easy:'なんで いやなのかを 考えて ととのえる'},
+  気持ち切替　　:{title:'気持ちを切りかえる', full:'不快な感情が生じた際，どうすれば解決できるか（学習から一旦離れる等）を考え，調節する', cat:'情動調整', phase:'実行する', q:'学習中にいやな気持ちになったときにはどうする?', easy:'いやな 気もちを 切りかえる'},
+  挑戦と考え　　:{title:'挑戦と考えて前向きになる', full:'困難な課題をやりがいのある挑戦であると考え，学習に対する前向きな気持ちを高める', cat:'動機づけ調整', phase:'実行する', q:'難しい課題を前向きにとらえるにはどうする?', easy:'むずかしいのは チャンスだと 考える'},
+  一旦離れる　　:{title:'一旦離れる・得意なところを見つける', full:'長時間行き詰まった際，向き合い方や解決方法（一旦離れる・得意な所を見つける等）を考える', cat:'動機づけ調整', phase:'実行する', q:'長く行き詰まったときはどうする?', easy:'いちど はなれて、とくいな ところを さがす'},
+  成果と課題　　:{title:'学習の成果と課題を考える', full:'学習の課題・目標と学習結果を比較し，自らの学習活動の成果と課題を考え，自己評価する', cat:'メタ認知', phase:'振り返る', q:'学習の課題・目標について振り返るにはどうする?', easy:'できたこと・つぎの かだいを 考える'},
+  やり方成果　　:{title:'やり方の成果と課題を考える', full:'効果的で効率的な方法・方略で学べたのかについて考え，自己評価する', cat:'メタ認知', phase:'振り返る', q:'学習のやり方について振り返るにはどうする?', easy:'やり方は よかったか ふりかえる'},
+  時間の成果　　:{title:'時間の使い方の成果と課題を考える', full:'学習計画を基に，学習活動の時間配分についての成果と課題を考え，自己評価する', cat:'メタ認知', phase:'振り返る', q:'時間の使い方について振り返るにはどうする?', easy:'時間の つかい方を ふりかえる'},
+  環境の成果　　:{title:'学習環境の成果と課題を考える', full:'効果的な物的・人的環境になっていたのかについての成果と課題を考え，自己評価する', cat:'メタ認知', phase:'振り返る', q:'学習環境について振り返るにはどうする?', easy:'まわりの ととのえ方を ふりかえる'},
+  気持ちの変化　:{title:'気持ちの変化について考える', full:'学習中の自らの気持ちの変化（情動／興味）について振り返り，自己評価する', cat:'メタ認知', phase:'振り返る', q:'学習中の気持ちを振り返るにはどうする?', easy:'気もちの 変わり方を ふりかえる'},
+  原因を考える　:{title:'成果・課題の原因を考える', full:'自己評価の成果・課題の原因や理由を考え，振り返る', cat:'メタ認知', phase:'振り返る', q:'なぜそのような学習の結果になったのかを振り返るにはどうする?', easy:'なぜ そうなったかを 考える'},
+  満足　　　　　:{title:'満足できた所を見つける', full:'自己評価の成果・課題を基に，自らの学習に対して満足できるところを見つけ，前向きな気持ちを高める', cat:'動機づけ調整', phase:'振り返る', q:'学習を前向きにふり返るにはどうする?', easy:'よく できた ところを 見つける'},
+  次に活かす　　:{title:'次に活かすことを決める', full:'次の学習に活かすことを決め，次の学習に対する前向きな気持ちを高める', cat:'動機づけ調整', phase:'振り返る', q:'今回の学びを次に活かすにはどうする?', easy:'つぎに いかす ことを 決める'},
+  学び方見直し　:{title:'学び方をどう変えれば良いかを考える', full:'次の学習に向けて，自らの学び方をどのように変化させれば良いかを考える', cat:'動機づけ調整', phase:'振り返る', q:'次に向けて学び方を見直すにはどうする?', easy:'つぎは 学び方を どう変えるか 考える'},
 };
+
 
 
 /* ---------- めあて（＝きょうのいちばん／リーダー） ---------- */
@@ -464,18 +475,21 @@ const GOALS = [
 const BASE_DECK = {'認知':'関連づける','メタ認知':'やり方確認','動機づけ調整':'挑戦と考え','リソース管理':'環境調節','情動調整':'気持ち原因'};
 
 /* ---------- つまずき（敵） ---------- */
-const ENEMIES = [
+/* つまずきは5体。1回のクエストでは、この中から3体があらわれ、
+   さいごに、その3体が ひとつに なった ボスと たたかう。
+   ボスは「1つの方略では たりない」ことを、しくみとして体験させるための相手。 */
+const FOES = [
   {name:'ゆうわくインプ', spr:'imp', hp:1400, weak:'リソース管理', resist:'認知',
    serif:'ちょっとだけ、動画を見てからでいいんじゃない？',
    hintE:'あそびたい 気もちが 先に 出てきたみたい。', hintF:'あそびたい気持ちが先に出てきたようだ。',
    lines:['あとで やればいいよ〜','ほら、そっちのほうが たのしいよ'],
-   whyE:'ゆうわくには、時間や まわりを ととのえる わざ（じゅんび）が よく きくよ。',
+   whyE:'ゆうわくには、時間や 場所を 味方にする わざ（どうぐ）が よく きくよ。',
    whyF:'ゆうわくには、時間や場所のじゅんびをととのえる方略（リソース管理）が よく効きます。'},
   {name:'フアンゴースト', spr:'ghost', hp:1800, weak:'メタ認知', resist:'情動調整',
    serif:'このやり方で合ってるのかな…わからなくなってきた。',
    hintE:'すすんでは いるけれど、たしかめる ものさしが 見えていないみたい。', hintF:'進んでいるのに、たしかめるものさしが見えていないようだ。',
    lines:['ほんとうに これでいいの…？','だれかに 聞いたほうが…'],
-   whyE:'ふあんには、いまの やり方を たしかめる わざ（たしかめる）が よく きくよ。',
+   whyE:'ふあんには、いまの やり方を ふりかえる わざ（ふりかえる）が よく きくよ。',
    whyF:'ふあんには、いまのやり方やめあてをたしかめる方略（メタ認知）が よく効きます。'},
   {name:'アキアキバット', spr:'bat', hp:2400, weak:'動機づけ調整', resist:'リソース管理',
    serif:'もう あきた。おなじことの くりかえしだし。',
@@ -483,7 +497,36 @@ const ENEMIES = [
    lines:['まだ やるの〜？','べつに いまじゃなくても…'],
    whyE:'あきには、この先に できるように なることを 思いうかべる わざ（やる気）が よく きくよ。',
    whyF:'あきには、この学びの先にあるものを見つけ直す方略（動機づけ調整）が よく効きます。'},
+  {name:'モヤモヤクラゲ', spr:'jelly', hp:1600, weak:'認知', resist:'メタ認知',
+   serif:'なにが わからないのか、それが わからない…',
+   hintE:'もやが かかって、なにを しらべれば いいか 見えていないみたい。', hintF:'もやがかかって、何を調べればよいかが見えていないようだ。',
+   lines:['ぼんやり……','どこから 手を つけよう…'],
+   whyE:'もやもやには、あつめて つなげて 組み立てる わざ（わかる）が よく きくよ。',
+   whyF:'もやもやには、情報を集め、関連づけ、構造化する方略（認知）が よく効きます。'},
+  {name:'プンプンボム', spr:'bomb', hp:2000, weak:'情動調整', resist:'動機づけ調整',
+   serif:'うまく いかない！　もう やめる！',
+   hintE:'いやな 気もちが 大きくなって、手が 止まって しまったみたい。', hintF:'不快な気持ちが大きくなって、手が止まってしまったようだ。',
+   lines:['ムカムカする〜！','もう しらない！'],
+   whyE:'イライラには、気もちの わけを 考えて 切りかえる わざ（きもち）が よく きくよ。',
+   whyF:'イライラには、気持ちの原因を考え、切りかえる方略（情動調整）が よく効きます。'},
 ];
+/* なかまごとの「なぜ効くのか」。ボスは段階で弱点が変わるので、ここから文をつくる。 */
+const CATWHY={
+  '認知':        {e:'この つまずきには、あつめて・つなげて・組み立てる わざ（わかる）が きくよ。',   f:'このつまずきには、情報を集め、関連づけ、構造化する方略（認知）が効きます。'},
+  'メタ認知':    {e:'この つまずきには、めあてや やり方を たしかめる わざ（ふりかえる）が きくよ。', f:'このつまずきには、めあてややり方をたしかめる方略（メタ認知）が効きます。'},
+  '動機づけ調整':{e:'この つまずきには、この先を 思いうかべる わざ（やる気）が きくよ。',           f:'このつまずきには、学びの先にあるものを見つけ直す方略（動機づけ調整）が効きます。'},
+  'リソース管理':{e:'この つまずきには、時間や 場所を 味方に する わざ（どうぐ）が きくよ。',       f:'このつまずきには、時間・方法・環境をととのえる方略（リソース管理）が効きます。'},
+  '情動調整':    {e:'この つまずきには、気もちを ととのえる わざ（きもち）が きくよ。',             f:'このつまずきには、気持ちの原因を考え、切りかえる方略（情動調整）が効きます。'},
+};
+/* ボス：3段階。段階ごとに弱点が変わり、そのたびに「みたて」をやり直す。
+   ＝ 1つの方略を速く回すだけでは勝てない、という設計。 */
+const BOSS={name:'ゴチャマゼドラゴン', spr:'dragon', boss:true, hp:5400, resist:null,
+  serif:'ぜんぶ いっしょに おそいかかるぞ。ひとつの わざでは たりないぞ。',
+  hintE:'いろんな つまずきが まざっている。ようすを 見ながら 合わせて いこう。',
+  hintF:'いろいろなつまずきが混ざっている。ようすを見ながら合わせていこう。',
+  lines:['まだまだ！','ひとつでは たりないぞ'],
+  shiftE:'ようすが かわった！　よわい ところが うごいたぞ',
+  shiftF:'ようすが変わった！　弱いところが動いた'};
 
 /* ============================================================ 効果音 ============================================================ */
 let AC=null;
@@ -507,6 +550,8 @@ const SFX={
   victory(){ [523,659,784,1046].forEach((f,i)=>tone(f,.14,'square',.07,i*.11)); },
   appear(){ tone(220,.1,'square',.07); tone(165,.14,'square',.07,.09); },
   timeup(){ tone(330,.18,'square',.06,0,180); },
+  mix(n){ [523,659,784,988,1175].slice(0,2+n).forEach((f,i)=>tone(f,.11,'square',.08,i*.06)); },
+  bigclear(){ [784,988,1319].forEach((f,i)=>tone(f,.13,'triangle',.09,i*.07)); tone(1568,.3,'triangle',.07,.24); },
 };
 
 
@@ -530,14 +575,14 @@ const TRACKS={
          67,_,71,_,74,_,77,_,  76,_,74,_,72,_,_,_],
     roots:[48,53,48,55,50,53,55,48], qual:[0,0,0,0,1,0,0,0],
     kick:[1,0,0,0,1,0,0,0], snare:[0,0,1,0,0,0,1,0], hat:[0,1,0,1,0,1,0,1], vol:1.0 },
-  /* パズル：イ短調・BPM152・きざみを強く */
-  battle:{ bpm:152,
-    mel:[69,_,72,_,76,_,72,_,  69,_,72,_,76,_,79,_,
-         77,_,76,_,72,_,69,_,  79,_,76,_,74,_,71,_,
-         69,_,72,_,76,_,81,_,  72,_,76,_,79,_,76,_,
-         77,_,81,_,77,_,76,_,  76,_,74,_,72,_,71,_],
+  /* パズル：イ短調・BPM168・ベースが8分で走る前のめりの曲 */
+  battle:{ bpm:168, bass8:true,
+    mel:[69,_,72,74,76,_,74,72,  69,_,72,74,76,_,79,_,
+         77,76,74,_,72,_,71,_,  74,72,71,_,69,_,64,_,
+         69,_,72,74,76,_,81,_,  79,77,76,_,74,_,72,_,
+         77,_,79,81,77,_,76,74,  76,_,72,_,71,_,69,_],
     roots:[45,45,41,43,45,48,41,40], qual:[1,1,0,0,1,0,0,0],
-    kick:[1,0,0,1,1,0,0,0], snare:[0,0,1,0,0,0,1,0], hat:[1,1,1,1,1,1,1,1], vol:1.0 },
+    kick:[1,0,0,1,1,0,1,0], snare:[0,0,1,0,0,0,1,0], hat:[1,1,1,1,1,1,1,1], vol:1.0 },
 };
 const BGM={
   on:true, name:null, t:null, step:0, nextT:0, timer:null, gain:null, noise:null,
@@ -576,7 +621,8 @@ const BGM={
     if(m!=null) this.voice(hz(m),t,sp*1.7,'square',0.20*T.vol,0.35);
     const bar=Math.floor(i/8), sl=i%8;
     const r=T.roots[bar%T.roots.length], third=T.qual[bar%T.qual.length]?3:4;
-    if(sl%2===0) this.voice(hz(sl===4?r+7:r),t,sp*1.5,'triangle',0.30*T.vol,0.5);   // ベース
+    if(T.bass8) this.voice(hz(sl%2?r+12:r),t,sp*0.95,'triangle',0.26*T.vol,0.5);    // 8分で走るベース
+    else if(sl%2===0) this.voice(hz(sl===4?r+7:r),t,sp*1.5,'triangle',0.30*T.vol,0.5);   // ベース
     /* すきまを埋めるアルペジオ（ノリを出す層） */
     const deg=[0,third,7,third][sl%4];
     this.voice(hz(r+12+deg),t,sp*0.9,'square',0.085*T.vol,0.45);
@@ -615,12 +661,15 @@ function bgmFor(id){ return id==='scBattle' ? 'battle' : 'menu'; }
 /* ============================================================ ドット絵 ============================================================ */
 /* モンスターのドット絵：48×48ドット・8階調（円や多角形から組み立てて生成） */
 const MON_N=48;
-const MON_ART = {"imp":["................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","...........oooo..................oooo...........","...........oaao..................oaao...........","..........ooaao....oooooooooo....oaaoo..........","..........oaaaoooooobbbbbbbbooooooaaao..........","..........oaaaaoobbbbbbbbbbbbbbooaaaao..........",".........ooaaaabbbbbbbbbbbbbbbbbbaaaaoo.........",".........oaaaabbhhhhhhbbbbbbbbbbbbaaaao.ooo.....","........ooaaabhhhhhhhhhhbbbbbbbbbbbaaaoooaoo....","........oaaoohhhhhhhhhhhhbbbbbbbbbbooaaooaaoo...","........oooooooowwwhhhhhhhbbbwwwoooooooooaaaoo..",".........oobooooooowwhhhhhbwwoooooobboooaaaaao..",".........obbwwwoooooowhhhhwooooowwwwbbooaaaaoo..","........oobbwwwwweoowwhhhhwwoeewwwwwbbooabbbo...","........obbbwwwwWWeewwhhhBwwWWeewwwwbbboobbbo...","........obbbwwweeeeeewhhBBweeeeeewwwbbboobbbo...","........obbbwwweeeeeewBBBBweeeeeewwwbbboobbbo...",".......oobbbwwwweeeewwBBBBwweeeewwwwbbbbbbbbo...","......oobbbbbwwwweewwBBBBBBwweewwwwbbbbbbbboo...",".....oobbbbbBBBwwwwBBBBBBBBBBwwwwBBBbbbbbboo....","....oobbbbbbBBBBBBBBBBBBBBBBBBBBBBBBbbbbbboo....","...oobbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBbbbbbboo...","..oobbbbbobBBBBBBBBBBBBBBBBBBBBBBBBBBbobbbbboo..","..obbbbboobBBBBBBBBBBBBBBBBBBBBBBBBBBboobbbbbo..","..obbbbooooBBBBBBoowwwwBBwwwwooBBBBBBoooobbbbo..","..oobboo..obBBBBBooBwwBBBBwwBooBBBBBbo..oobboo..","...oooo...ooBBBBBooowwBBBBwwoooBBBBBoo...oooo...","...........ooBBBBBooooooooooooBBBBBoo...........","............oBBBBBBBooooooooBBBBBBBo............","............oBBBBBBBBBBooBBBBBBBBBBo............","............oBBBBBBBBBBBBBBBBBBBBBBo............","............oBBBBBBBBBBBBBBBBBBBBBBo............","............ooBBBBBBooooooooBBBBBBoo............",".............ooBBBBoo......ooBBBBoo.............","..............oooooo........oooooo..............","................................................","................................................","................................................","................................................"],"ghost":["................................................","................................................","................................................","................................................","................................................","................................................","...................oooooooooo...................","................oooobbbbbbbboooo................","...............oobbbbbbbbbbbbbboo...............",".............ooobbbbbbbbbbbbbbbbooo.............","............oobbbbbbbbbbbbbbbbbbbboo............","...........oobhhhhoooobbbboooobbbbboo...........","...........obhhooooooohbbbooooooobbbo...........","...........oooooooooohhhbbboooooooooo...........","..........ooooooohhhhhhhbbbbbbbooooooo..........",".........ooooowwwwwwhhhhbbbbwwwwwwooooo.........",".........obbhwwwwwwwwhhhbbbwwwwwwwwbbbo.........","........oobbwwwwwwwwwwhbbbwwwwwwwwwwbboo........","........obbbwwwwwwwwwwbbbbwwwwwwwwwwbbbo........","........obbbwwwWWwwwwwbbbbwwwWWwwwwwbbbo........","........obbwwwweeeewwwwbbwwwweeeewwwwbbo........","......ooobbwwweeeeeewwwBBwwweeeeeewwwbbooo......",".....oobbbbbwweeeeeewwBBBBwweeeeeewwbbbbboo.....","....oobbbbbbwweeeeeewwBBBBwweeeeeewwbbbbbboo....","...oobbbbbbbwweeeeeewwBBBBwweeeeeewwbbbbbbboo...","..oobbbbbbbbbwweeeewwBBBBBBwweeeewwbbbbbbbbboo..",".oobbbbbobbbbbwwwwwwBBBBBBBBwwwwwwbbbbbobbbbboo.","oobbbbboobbbbBBBBBBBBBBBBBBBBBBBBBBbbbboobbbbboo","obbbbbooobbbbBBBBBBooooBBBBBBBBBBBBbbbbooobbbbbo","obbbboo.obbbbBBBBBooooooBBBBBBBBBBBbbbbo.oobbbbo","oobboo..obbbbBBBBoooBBoooBBBBBBBBBBbbbbo..oobboo",".oooo...obbbbBBBBooBBBBooBBBBBBBBBBbbbbo...oooo.","........obbbbBBBBBBBBBBBBBBBBBBBBBBbbbbo........","........obbbbbBBBBBBBBBooBBBBooBBBbbbbbo........","........obboobBBBBBBBBBoooBBoooBBBoobbbo........","........oboooobBBBBBBBBBooooooBBBoooobbo........","........obo..obbBBBBBBBBBooooBBBbo..oobo........","........ooo..oobboBBBBBBBBBBBBbboo...ooo........","..............ooooooBBBBBBBBooooo...............","...................oooooooooo...................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................"],"bat":["................................................","................................................","............ooo..................ooo............","............oboo................oobo............","............obboo..............oobbo............","............oobboo............oobboo............",".............obbboo..........oobBbo.............",".............obBbboo........oobBbbo.............",".....ooo.....oobBbboo......oobBBboo.....ooo.....",".....oBoo.....obBBbbo......obBBBbo.....ooBo.....",".....oBBoo....obBBBbo......oBBBbbo...oooBBo.....",".....oBBBooo..oobBooo......ooBBboo..ooBBBBo.....",".....oBBBBBoo..oboo.ooooooooooobo..ooBBBBBo.....",".....ooBBbBBooooooooobbbbbboooooooooBBbBBoo.....","ooo...oBBbbBBBoooohhhhbbbbbbbbooooBBBbbBBo..oooo","oBoooooBBbbbBBBohhhhhhhhbbbbbbbooBBBbbbBBooooBBo","oBBBBooBBBbbbbBBhhhhhhhhbbbbbbbbBBbbbbBBBoBBBBBo","ooBBBBBBBBbbbbbbhhhhhhhhbbbbbbbbbbbbbbBBBBBBBBoo",".oBBBbbBBBbbbbbbbbwwwhhhbbbwwwbbbbbbbbBBbbbBBBo.",".oBBBbbbbbbbbboobbbbwwwbbwwwbbbboobbbbbbbbBBBBo.",".oBBBBbbbbbbbbooooobbbbbbbbbbooooobbbbbbbbBBBBo.",".ooBBBbbbbbbbbwwwooooobbbbooooowwwbbbbbbbbBBBoo.","oooBBBbbbbbbbbwwwweeooooooooeewwwwbbbbbbbBBBBooo","oBBBBBBbbbbbbbbwweeeewooooweeeewwbbbbbbbbBBBBBBo","BBBBBbbbbbbbbbbwweeeeooooooeeeewwbbbbbbbbbBBBBBB","oBBBBbbbbbbbbbbbBweeooBBBBooeewBbbbbbbbbbbbBBBBo","ooBBBBbbbbbbbbbbBBBBooBBBBooBBBBbbbbbbbbbBBBBBoo",".ooBBBBBbbbbbbbbBBBBBBBBBBBBBBBBbbbbbbbbBBBBBoo.","..ooBBBBbbbbbbbbBBBBBBBBBBBBBBBBbbbbbbbBBBBBoo..","..ooBBBbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbBBBoo...",".ooBBBBBBBBBBBBoBBBBBwwBBwwBBBBBoBBBBBBBBBBBoo..",".oBBBBoooooooooBBBBBBBBBBBBBBBBBBoooooooooBBBo..",".oooooo......oBBBBBBBBBBBBBBBBBBBBo......ooooo..",".............oBBBBBBoBBBBBBoBBBBBBo.............",".............ooBBBBooooooooooBBBBoo.............","..............oooooo........oooooo..............","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................"],"sp1":["................................................","................................................","................................................",".....................oooooo.....................","....................ooaaaaoo....................","....................oaaaaaao....................","....................oaaaaaao....................","....................oaaaaaao....................","....................oaaaaaao....................","....................ooaaaaoo....................",".....................ooaaoo.....................","......................oaao......................","......................oaao......................","......................oaao......................","......................oaao......................","......................oaao......................","......................oaao......................","....................oooooooo....................",".................oooobbbbbboooo.................","................oobbbbbbbbbbbboo................","...............oobbbbbbbbbbbbbboo...............","..............oobhhhhhhbbbbbbbbboo..............",".............oobhhhhhhhhbbbbbbbbboo.............",".............obbhhhhhhhhbbbbbbbbbbo.............",".............obbhhhhhhhhbbbbbbbbbbo.............","............oobbhhwwhhhhbbbbwwbbbboo............","............obbbwwwwwwhbbbwwwwwwbbbo............","............obbbwwwwwwBBBBwwwwwwbbbo............","............obbbwwWewwBBBBwwWewwbbbo............","............obbbweeeewBBBBweeeewbbbo............","............obbbweeeewBBBBweeeewbbbo............","............obbBwweewwBBBBwweewwBbbo............","............oobBBBwwBoBBBBoBwwBBBboo............",".............obBBBBBoooBBoooBBBBBbo.............",".............obBBBBBBooooooBBBBBBbo.............",".............oobBBBBBBooooBBBBBBboo.............","..............oobBBBBBBBBBBBBBBboo..............","...............oobBBBBBBBBBBBBboo...............","..............ooBBBBBBBBBBBBBBBBoo..............","..............oBBBBBBbbbbbbBBBBBBo..............","..............oBBBBBBooooooBBBBBBo..............","..............ooBBBBoo....ooBBBBoo..............","...............oooooo......oooooo...............","................................................","................................................","................................................","................................................","................................................"],"sp2":["................................................","................................................","............oooooo............oooooo............","...........ooaaaaoo..........ooaaaaoo...........","...........oaaaaaao..........oaaaaaao...........","...........oaaaaaao..........oaaaaaao...........","...........oaaaaaao..........oaaaaaao...........","...........oaaaaaao..........oaaaaaao...........","...........ooaaaaoo..........ooaaaaoo...........","............oooaao............oaaooo............","..............oaaoo..........ooaao..............","..............ooaao..........oaaoo..............","...............oaaoo........ooaao...............","...............oaaaooooooooooaaao...............","...............ooaaobbbbbbbboaaoo...............","...............ooabbbbbbbbbbbbaoo...............",".ooo..........oobbbbbbbbbbbbbbbboo..........ooo.",".oaooo.......oobbhhhhbbbbbbbbbbbboo.......oooao.",".oaaaoo.....oobhhhhhhhhbbbbbbbbbbboo....oooaaao.",".oaaaaooo...obhhhhhhhhhhbbbbbbbbbbbo...ooaaaaoo.",".ooaaaaaooooobhhhhhhhhhhbbbbbbbbbbboooooaaaaao..","..oaaaaaaaoobbhhhhhhhhhhbbbbbbbbbbbbooaaaaaaao..","..oaaaaaaaaobbhhhwwhhhhhbbbbbwwbbbbboaaaaaaaao..","..oaaaaaaaabbbbwwwwwwhhbbbbwwwwwwbbbbaaaaaaaao..","..oaaaaaaaabbbwwwwwwwwBBBBwwwwwwwwbbbaaaaaaaoo..","..ooaaaaaaabbbwwWWwwwwBBBBwwWWwwwwbbbaaaaaaao...","...oaaaaaaabbbwweeeewwBBBBwweeeewwbbbaaaaaaao...","...oooaaaaabbbwweeeewwBBBBwweeeewwbbbaaaaaooo...",".....ooooaabbbwweeeewwBBBBwweeeewwbbbaaoooo.....","........ooobbbwweeeewwBBBBwweeeewwbbbooo........","..........obbBBwwwwwoBBBBBBowwwwwBBbbo..........","..........oobBBBBwwBooBBBBooBwwBBBBboo..........","..........oobBBBBBBBoooBBoooBBBBBBBboo..........","..........oaaaaaaaaaaooooooaaaaaaaaaao..........","..........ooaaaaaaaaaaaooaaaaaaaaaaaoo..........","...........oaaaaaaaaaaaaaaaaaaaaaaaao...........","...........oaaaaaaaaaaaaaaaaaaaaaaaao...........","...........ooaaaaaaaaaaaaaaaaaaaaaaoo...........","............ooooooBBBBBBBBBBBBoooooo............",".............oooBBooBBBBBBBBooBBooo.............",".............oBBBBBBooooooooBBBBBBo.............",".............oBBBBBBo......oBBBBBBo.............",".............oBBBBBBo......oBBBBBBo.............",".............oBBBBBBo......oBBBBBBo.............",".............oooBBooo......oooBBooo.............","...............oooo..........oooo...............","................................................","................................................"],"sp3":["................................................","................................................","................................................","......................oooo......................","......................oaao......................","..............oooo...ooaaoo...oooo..............","..............oaaoo..oaaaao..ooaao..............","..............oaaaooooaaaaooooaaao..............",".............ooaaaoogaaaaaagooaaaoo.............",".............oaaaaaggaaaaaaggaaaaao.............","............ooaaaaaaaaaaaaaaaaaaaaoo............","oo........ooogaaaaaaaaaaaaaaaaaaaagooo........oo","aoo......ooggaaaaaaaaaaaaaaaaaaaaaaggoo......ooa","aaoo....ooggoAAAAAAAAAAAAAAAAAAAAAAoggoo....ooaa","aaaoo..ooggooAAAAAAAAAAAAAAAAAAAAAAooggoo..ooaaa","aaaaoo.oggoooAAAAAAAbbbbbbbbAAAAAAAoooggo.ooaaaa","aaaAaooogoo.ooooobbbbbbbbbbbbbbooooo.oogoooaAaaa","aaaAAaoggo...ooobbbbbbbbbbbbbbbbooo...oggoaAAaaa","aaaAAAagoo..oobbbbbbbbbbbbbbbbbbbboo..oogaAAAaaa","oaaAAAaaoo.oobbbhhhhhhbbbbbbbbbbbbboo.ooaaAAAaao","oaaAAAAaao.obbhhhhhhhhhhbbbbbbbbbbbbo.oaaAAAaaao","oaaaAAAAaooobbhhhhhhhhhhbbbbbbbbbbbboooaAAAAaaao","oaaaAAAAAoobbhhhhhhhhhhhhbbbbbbbbbbbbooAAAAAaaao","oaaaAAAAAoobbhhhhhhhhhhhhbbbbbbbbbbbbooAAAAAaaao","oaaaAAAAAobbbbhhwwwwhhhhbbbbwwwwbbbbbboAAAAAaaao","oaaaAAAAAobbbbhwwwwwwhhhBBBwwwwwwbbbbboAAAAAaaao","oaaaaAAAAobbbbwwwwwwwwBBBBwwwwwwwwbbbboAAAAaaaao","ooaaaaAAAobbbbwwWWewwwBBBBwwWWewwwbbbboAAaaaaaoo",".ooooaaaAobbbwwweeeewwwBBwwweeeewwwbbboAaaaoooo.","....ogooaobbbwwweeeewwwBBwwweeeewwwbbboaoogo....","....ogoooobbbBwweeeewwBBBBwweeeewwBbbboooogo....","....ogoo.obbBBwweeeewwBBBBwweeeewwBBbbo.oogo....","....oggo.obbBBBwweewoBBBBBBoweewwBBBbbo.oggo....","....oogooobbBBBBwwwoooBBBBooowwwBBBBbbooogoo....",".....oggooobBBBBBBBBoooBBoooBBBBBBBBboooggo.....",".....oogooobBBBBBBBBooooooooBBBBBBBBbooogoo.....","......oggoooBBBBBBBBBBooooBBBBBBBBBBoooggo......","......oogoooAAAAAAAAAAAAAAAAAAAAAAAAooogoo......",".......oggooAAAAAAAAAAAAAAAAAAAAAAAaooggo.......",".......ooggaaAAAAAAAAAAAAAAAAAAAAAAaaggoo.......","........oogaaaaaaaaaaaaaaaaaaaaaaaaaagoo........",".........ooaaaaaaaaaaaaaaaaaaaaaaaaaaoo.........","..........oaaaaaaaaaaaaaaaaaaaaaaaaaao..........",".........ooaaaaaaaaaaaaaaaaaaaaaaaaaaoo.........",".........oaaaaaaaaaaaaaaaaaaaaaaaaaaaao.........",".........oaaaaaaaaaaaaaaaaaaaaaaaaaaaao.........",".........oooooooooooooooooooooooooooooo.........","................................................"],"pal0":["................................................","................................................","................................................","................................................","................................................","................................................","...............................oooo.............","............................ooooaaoooo..........","...........................ooaaaaaaaaoo.........","..........................ooaaaaaaaaaaoo........",".........................ooaaagWWgggaaaoo.......",".........................oaaagWWWggggaaaoooo....",".........................oaagWWWggggggaaoaaoo...","........................ooaagWWgggggggaaaaaao...","......................oooaaaggggggggggaaaaaao...","...................ooooaaaaaggggggggggaaaaaoo...",".................ooobbaaabaaggggggggggaaaaoo....","...............ooobbbbaaaaaaggggggggggaaaoo.....","..............oobbbbbaaaaaaaaggggggggaaaoo......",".............oobbbhhbbbbbbbaaaggggggaaaoo.......","............oobhhhhhhhhbbbbbaaaaaaaaaaoo........","...........oobhhhwwhhhhhbbbbwwaaaaaaaoo.........","...........obbhwwwwwwhhhbbwwwwwwaabboo..........","..........oobbwwwwwwwwhhbwwwwwwwwbbboo..........","..........obbbwwWWewwwhhbwwWWewwwbbbbo..........","..........obbbwweeeewwhbbwweeeewwbbbbo..........","..........obbbwweeeewwbbbwweeeewwbbbbo..........",".........oobbbwweeeewwBBBwweeeewwbbbboo.........","........oobbbbwwweewwwBBBwwweewwwbbbbboo........",".......oobbbbbbwwwwwwBBBBBwwwwwwBbbbbbboo.......",".....ooobbbbbbBBBwwBBBBBBBBBwwBBBBbbbbbbooo.....","....oobbbbbbbbBBBBBBBBBBBBBBBBBBBBbbbbbbbboo....","...oobbbbbbbbBBBBBBBooBBBBooBBBBBBBbbbbbbbboo...","...obbbbboobbBBBBBBBooooooooBBBBBBBbboobbbbbo...","...obbbboooobBBBBBBBBooooooBBBBBBBBboooobbbbo...","...oobboo..obBBBBBBBBBBBBBBBBBBBBBBbo..oobboo...","....oooo...oobBBBBBBBBBBBBBBBBBBBBboo...oooo....","............ooBBBBBBBBBBBBBBBBBBBBoo............",".............ooBBBBBBBBBBBBBBBBBBoo.............","..............ooBBBBBBBBBBBBBBBBoo..............",".............ooBBBBBBBBBBBBBBBBBBoo.............",".............oBBBBBBBBbbbbBBBBBBBBo.............",".............oBBBBBBBBooooBBBBBBBBo.............",".............ooBBBBBBoo..ooBBBBBBoo.............","..............ooBBBBoo....ooBBBBoo..............","...............oooooo......oooooo...............","................................................","................................................"],"pal1":["................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","...................oooooooooo.............ooo...",".................ooobbbbbbbbooo.........oooao...","...............ooobbbbbbbbbbbbooo......ooaaao...","..............oobbbbbbbbbbbbbbbboo....ooaaaao...","........ooooooobbbhhbbbbbbbbbbbbbooooooaaaaao...","........oaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaao...","........oaaaaaaaaaaaaawwwwaaaaaaaaaaaaaaaaaoo...","........oaaaaaaaaaawwwwwwwwwwaaaaaaaaaaaaaao....","........oaaaaaaaaawwwwwwwwwwwwaaaaaaaaaaaaao....","........ooobbbhhwwwwwwweewwwwwwwbbbbbooaaaao....","..........obbbbhwwwwWWWeeeewwwwwbbbbboooaaao....","..........obbbbwwwwwWWWeeeeewwwwwbbbbo.oooao....",".........oobbbbwwwwwWWWeeeeewwwwwbbbboo..ooo....","........oobbbbbwwwweeeeeeeeeewwwwbbbbboo........",".......oobbbbbbwwwweeeeeeeeeewwwwbbbbbboo.......",".....ooobbbbbbBwwwwweeeeeeeewwwwwBbbbbbbooo.....","....oobbbbbbbbBwwwwweeeeeeeewwwwwBbbbbbbbboo....","...oobbbbbbbbBBBwwwwweeeeeewwwwwBBBbbbbbbbboo...","...obbbbboobbBBBwwwwwwweewwwwwwwBBBbboobbbbbo...","...obbbboooobBBBBBwwwwwwwwwwwwBBBBBboooobbbbo...","...oobboo..obBBBBBBwwwwwwwwwwBBBBBBbo..oobboo...","....oooo...oobBBBBBBBBwwwwBBBBBBBBboo...oooo....","............ooBBBBBBooBBBBooBBBBBBoo............",".............ooBBBBBBooooooBBBBBBoo.............","..............ooBBBBBBooooBBBBBBoo..............",".............ooBBBBBBBBBBBBBBBBBBoo.............",".............oBBBBBBBBbbbbBBBBBBBBo.............",".............oBBBBBBBBooooBBBBBBBBo.............",".............ooBBBBBBoo..ooBBBBBBoo.............","..............ooBBBBoo....ooBBBBoo..............","...............oooooo......oooooo...............","................................................","................................................"],"pal2":["................................................","................................................","................................................","......................oooo......................",".....................oobboo.....................","....................oobbbbo.....................","....................obbbbboo....................","...................oobbbbbboo...................","...................obbbbbbbbo...................","..................oobbbbbbbboo.ooo..............","..................obbbbbbbbbbooobo..............",".................oobbbbbbbbbboobbo..............","................oobbbbbbbbbbbbbbbo..............","................obbbbbbbbbbbbbbbbo..............","...............oobbbbbbhhbbbbbbbbo..............","...............obbbbbbhhhhbbbbbbboo.............","..............oobbbbbhhhhhbbbbbbbbo.............",".............oobbbbbbhhhhhhbbbbbbboo............",".............obbbbbbhhhhhhhhbbbbbbboo...........","............oobbbbbhhhhhhhhhhbbbbbbbo...........","............obbbbbbhhhhhhhhhhbbbbbbbo...........","............obbbbbbhhhhhhhhhhbbbbbbbo...........","...........oobbbbbbhhhhhhhhhhbbbbbbboo..........","...........obbbbbwwwwhhhhhhwwwwbbbbbbo..........","...........obbbbwwwwwwhhhhwwwwwwbbbbbo..........","..........oobbbwwWWewwwhhwwWWewwwbbbbo..........",".........oobbbbwweeeewwhhwweeeewwbbbboo.........","........oobbbbbwweeeewwhhwweeeewwbbbbboo........",".......oobbbbbbwweeeewwhhwweeeewwbbbbbboo.......","......oobbbbbbbbwweewwhhhhwweewwbbbbbbbboo......","....ooobbbbbbbbbbwwwwhhhhhhwwwwbbbbbbbbbbooo....","...oobbbbbobbbbbbbbbhhhhhhhhbbbbbbbooobbbbboo...","...obbbbbooobbbbbbbbhhhhhhhhbbbbbbbo.oobbbbbo...","...obbbboo.obbbbbbbBBBBBBBBBBbbbbbbo..oobbbbo...","...oobboo..obbbbbBBBooBBBBooBBBbbboo...oobboo...","....oooo...obbbbBBBBBooooooBBBBBboo.....oooo....","...........oobbbBBBBBBooooBBBBBBoo..............","............oobbbBBBBBBBBBBBBBBoo...............",".............oobbbbBBBBBBBBBBboo................","..............oobbbbbbbbbbbbboo.................","...............oooobbbbbbbbooo..................","..................oooobbbooo....................",".....................ooooo......................","................................................","................................................","................................................","................................................","................................................"],"pal3":["................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","..................oooo....oooo..................","..................oaao....oaao..................",".................ooaaooooooaaoo.................","...............oooaaaabbbbaaaaooo...............","..............oowwbbbbbbbbbbbbwwoo..............",".............oowwwwbbbbbbbbbbwwwwoo.............",".............owWwwwwbbbbbbbbwWwwwwo.............","............ooweeeewhhhbbbbbweeeewoo............","...........oobweeeewhhhhbbbbweeeewboo...........","...........obbweeeewhhhaabbbweeeewbbo...........","..........oobbhweewhaaaooaaabweewbbboo..........","..........obbbhhwwaaawwoowwaaawwbbbbbo..........","..........obbbbhhaaawwwoowwwaaabbbbbbo..........","..........obbbbbbaawwwwoowwwwaabbbbbbo..........",".........oobbbbbaawwwwwoowwwwwaabbbbboo.........","........oobbbbbbawwwwwwoowwwwwwabbbbbboo........",".......oobbbbbbBawwwwwwoowwwwwwaBbbbbbboo.......",".....ooobbbbbbBaoowwwwwoooooowooaBbbbbbbooo.....","....oobbbbbbbbBaoowwwwwoooooowooaBbbbbbbbboo....","...oobbbbbbbbBBBawwwwwwwwwwwwwwaBBBbbbbbbbboo...","...obbbbboobbBBBawwwwwwwwwwwwwwaBBBbboobbbbbo...","...obbbboooobBBBaawwwwwwwwwwwwaaBBBboooobbbbo...","...oobboo..obBBBBaawwwwwwwwwwaaBBBBbo..oobboo...","....oooo...oobBBBaaawwwwwwwwaaaBBBboo...oooo....","............ooBBBBaaawwoowwaaaBBBBoo............",".............ooBBBBBaaaooaaaBBBBBoo.............","..............ooBBBBBBBaaBBBBBBBoo..............",".............ooBBBBBBBBBBBBBBBBBBoo.............",".............oBBBBBBBBbbbbBBBBBBBBo.............",".............oBBBBBBBBooooBBBBBBBBo.............",".............ooBBBBBBoo..ooBBBBBBoo.............","..............ooBBBBoo....ooBBBBoo..............","...............oooooo......oooooo...............","................................................","................................................"],"pal4":["................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................",".............oooo..............oooo.............","...........ooobbooo..........ooobbooo...........","..........oobbbbbboo........oobbbbbboo..........","..........obbbbbbbbo........obbbbbbbbo..........",".........oobbbbbbbboooooooooobbbbbbbboo.........",".........obbbbbbbbbbbbbbbbbbbbbbbbbbbbo.........",".........obbbbbbbbbbbbbbbbbbbbbbbbbbbbo.........",".........oobbbbbbbbbbbbbbbbbbbbbbbbbboo.........","..........obbbbbbbbhbbbbbbbbbbbbbbbbbo..........","..........oobbbbwwwwhhhbbbbbwwwwbbbboo..........","...........oobbwwwwwwhhhbbbwwwwwwbboo...........","...........obbwwWWewwwhhbbwwWWewwwbbo...........","..........oobbwweeeewwhhbbwweeeewwbboo..........","..........obbbwweeeewwhhbbwweeeewwbbbo..........","..........obbbwweeeewwhbbbwweeeewwbbbo..........","..........obbbbwweewwbbbbbbwweewwbbbbo..........",".........oobbbbbwwwwhhhBBhhhwwwwbbbbboo.........","........oobbbbbbbBhhhhhhhhhhhhBbbbbbbboo........",".......oobbbbbbBBhhhhohhhhohhhhBBbbbbbboo.......",".....ooobbbbbbBBBhhhhoooooohhhhBBBbbbbbbooo.....","....oobbbbbbbbBBBhhhhhoooohhhhhBBBbbbbbbbboo....","...oobbbbbbbbBBBBhhhhhhhhhhhhhhBBBBbbbbbbbboo...","...obbbbboobbBBBBBhhhhhhhhhhhhBBBBBbboobbbbbo...","...obbbboooobBBBBBBhhhhhhhhhhBBBBBBboooobbbbo...","...oobboo..obBBBBBBBBhhhhhhBBBBBBBBbo..oobboo...","....oooo...oobBBBBBBBBhhhhBBBBBBBBboo...oooo....","............ooBBBBBBBBBhhBBBBBBBBBoo............",".............ooBBBBBBBBBBBBBBBBBBoo.............","..............ooBBBBBBBBBBBBBBBBoo..............",".............ooBBBBBBBBBBBBBBBBBBoo.............",".............oBBBBBBBBbbbbBBBBBBBBo.............",".............oBBBBBBBBooooBBBBBBBBo.............",".............ooBBBBBBoo..ooBBBBBBoo.............","..............ooBBBBoo....ooBBBBoo..............","...............oooooo......oooooo...............","................................................","................................................"]}
+const MON_ART = {"imp":["................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","...........oooo..................oooo...........","...........oaao..................oaao...........","..........ooaao....oooooooooo....oaaoo..........","..........oaaaoooooobbbbbbbbooooooaaao..........","..........oaaaaoobbbbbbbbbbbbbbooaaaao..........",".........ooaaaabbbbbbbbbbbbbbbbbbaaaaoo.........",".........oaaaabbhhhhhhbbbbbbbbbbbbaaaao.ooo.....","........ooaaabhhhhhhhhhhbbbbbbbbbbbaaaoooaoo....","........oaaoohhhhhhhhhhhhbbbbbbbbbbooaaooaaoo...","........oooooooowwwhhhhhhhbbbwwwoooooooooaaaoo..",".........oobooooooowwhhhhhbwwoooooobboooaaaaao..",".........obbwwwoooooowhhhhwooooowwwwbbooaaaaoo..","........oobbwwwwweoowwhhhhwwoeewwwwwbbooabbbo...","........obbbwwwwWWeewwhhhBwwWWeewwwwbbboobbbo...","........obbbwwweeeeeewhhBBweeeeeewwwbbboobbbo...","........obbbwwweeeeeewBBBBweeeeeewwwbbboobbbo...",".......oobbbwwwweeeewwBBBBwweeeewwwwbbbbbbbbo...","......oobbbbbwwwweewwBBBBBBwweewwwwbbbbbbbboo...",".....oobbbbbBBBwwwwBBBBBBBBBBwwwwBBBbbbbbboo....","....oobbbbbbBBBBBBBBBBBBBBBBBBBBBBBBbbbbbboo....","...oobbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBbbbbbboo...","..oobbbbbobBBBBBBBBBBBBBBBBBBBBBBBBBBbobbbbboo..","..obbbbboobBBBBBBBBBBBBBBBBBBBBBBBBBBboobbbbbo..","..obbbbooooBBBBBBoowwwwBBwwwwooBBBBBBoooobbbbo..","..oobboo..obBBBBBooBwwBBBBwwBooBBBBBbo..oobboo..","...oooo...ooBBBBBooowwBBBBwwoooBBBBBoo...oooo...","...........ooBBBBBooooooooooooBBBBBoo...........","............oBBBBBBBooooooooBBBBBBBo............","............oBBBBBBBBBBooBBBBBBBBBBo............","............oBBBBBBBBBBBBBBBBBBBBBBo............","............oBBBBBBBBBBBBBBBBBBBBBBo............","............ooBBBBBBooooooooBBBBBBoo............",".............ooBBBBoo......ooBBBBoo.............","..............oooooo........oooooo..............","................................................","................................................","................................................","................................................"],"ghost":["................................................","................................................","................................................","................................................","................................................","................................................","...................oooooooooo...................","................oooobbbbbbbboooo................","...............oobbbbbbbbbbbbbboo...............",".............ooobbbbbbbbbbbbbbbbooo.............","............oobbbbbbbbbbbbbbbbbbbboo............","...........oobhhhhoooobbbboooobbbbboo...........","...........obhhooooooohbbbooooooobbbo...........","...........oooooooooohhhbbboooooooooo...........","..........ooooooohhhhhhhbbbbbbbooooooo..........",".........ooooowwwwwwhhhhbbbbwwwwwwooooo.........",".........obbhwwwwwwwwhhhbbbwwwwwwwwbbbo.........","........oobbwwwwwwwwwwhbbbwwwwwwwwwwbboo........","........obbbwwwwwwwwwwbbbbwwwwwwwwwwbbbo........","........obbbwwwWWwwwwwbbbbwwwWWwwwwwbbbo........","........obbwwwweeeewwwwbbwwwweeeewwwwbbo........","......ooobbwwweeeeeewwwBBwwweeeeeewwwbbooo......",".....oobbbbbwweeeeeewwBBBBwweeeeeewwbbbbboo.....","....oobbbbbbwweeeeeewwBBBBwweeeeeewwbbbbbboo....","...oobbbbbbbwweeeeeewwBBBBwweeeeeewwbbbbbbboo...","..oobbbbbbbbbwweeeewwBBBBBBwweeeewwbbbbbbbbboo..",".oobbbbbobbbbbwwwwwwBBBBBBBBwwwwwwbbbbbobbbbboo.","oobbbbboobbbbBBBBBBBBBBBBBBBBBBBBBBbbbboobbbbboo","obbbbbooobbbbBBBBBBooooBBBBBBBBBBBBbbbbooobbbbbo","obbbboo.obbbbBBBBBooooooBBBBBBBBBBBbbbbo.oobbbbo","oobboo..obbbbBBBBoooBBoooBBBBBBBBBBbbbbo..oobboo",".oooo...obbbbBBBBooBBBBooBBBBBBBBBBbbbbo...oooo.","........obbbbBBBBBBBBBBBBBBBBBBBBBBbbbbo........","........obbbbbBBBBBBBBBooBBBBooBBBbbbbbo........","........obboobBBBBBBBBBoooBBoooBBBoobbbo........","........oboooobBBBBBBBBBooooooBBBoooobbo........","........obo..obbBBBBBBBBBooooBBBbo..oobo........","........ooo..oobboBBBBBBBBBBBBbboo...ooo........","..............ooooooBBBBBBBBooooo...............","...................oooooooooo...................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................"],"bat":["................................................","................................................","............ooo..................ooo............","............oboo................oobo............","............obboo..............oobbo............","............oobboo............oobboo............",".............obbboo..........oobBbo.............",".............obBbboo........oobBbbo.............",".....ooo.....oobBbboo......oobBBboo.....ooo.....",".....oBoo.....obBBbbo......obBBBbo.....ooBo.....",".....oBBoo....obBBBbo......oBBBbbo...oooBBo.....",".....oBBBooo..oobBooo......ooBBboo..ooBBBBo.....",".....oBBBBBoo..oboo.ooooooooooobo..ooBBBBBo.....",".....ooBBbBBooooooooobbbbbboooooooooBBbBBoo.....","ooo...oBBbbBBBoooohhhhbbbbbbbbooooBBBbbBBo..oooo","oBoooooBBbbbBBBohhhhhhhhbbbbbbbooBBBbbbBBooooBBo","oBBBBooBBBbbbbBBhhhhhhhhbbbbbbbbBBbbbbBBBoBBBBBo","ooBBBBBBBBbbbbbbhhhhhhhhbbbbbbbbbbbbbbBBBBBBBBoo",".oBBBbbBBBbbbbbbbbwwwhhhbbbwwwbbbbbbbbBBbbbBBBo.",".oBBBbbbbbbbbboobbbbwwwbbwwwbbbboobbbbbbbbBBBBo.",".oBBBBbbbbbbbbooooobbbbbbbbbbooooobbbbbbbbBBBBo.",".ooBBBbbbbbbbbwwwooooobbbbooooowwwbbbbbbbbBBBoo.","oooBBBbbbbbbbbwwwweeooooooooeewwwwbbbbbbbBBBBooo","oBBBBBBbbbbbbbbwweeeewooooweeeewwbbbbbbbbBBBBBBo","BBBBBbbbbbbbbbbwweeeeooooooeeeewwbbbbbbbbbBBBBBB","oBBBBbbbbbbbbbbbBweeooBBBBooeewBbbbbbbbbbbbBBBBo","ooBBBBbbbbbbbbbbBBBBooBBBBooBBBBbbbbbbbbbBBBBBoo",".ooBBBBBbbbbbbbbBBBBBBBBBBBBBBBBbbbbbbbbBBBBBoo.","..ooBBBBbbbbbbbbBBBBBBBBBBBBBBBBbbbbbbbBBBBBoo..","..ooBBBbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbBBBoo...",".ooBBBBBBBBBBBBoBBBBBwwBBwwBBBBBoBBBBBBBBBBBoo..",".oBBBBoooooooooBBBBBBBBBBBBBBBBBBoooooooooBBBo..",".oooooo......oBBBBBBBBBBBBBBBBBBBBo......ooooo..",".............oBBBBBBoBBBBBBoBBBBBBo.............",".............ooBBBBooooooooooBBBBoo.............","..............oooooo........oooooo..............","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................"],"sp1":["................................................","................................................","................................................",".....................oooooo.....................","....................ooaaaaoo....................","....................oaaaaaao....................","....................oaaaaaao....................","....................oaaaaaao....................","....................oaaaaaao....................","....................ooaaaaoo....................",".....................ooaaoo.....................","......................oaao......................","......................oaao......................","......................oaao......................","......................oaao......................","......................oaao......................","......................oaao......................","....................oooooooo....................",".................oooobbbbbboooo.................","................oobbbbbbbbbbbboo................","...............oobbbbbbbbbbbbbboo...............","..............oobhhhhhhbbbbbbbbboo..............",".............oobhhhhhhhhbbbbbbbbboo.............",".............obbhhhhhhhhbbbbbbbbbbo.............",".............obbhhhhhhhhbbbbbbbbbbo.............","............oobbhhwwhhhhbbbbwwbbbboo............","............obbbwwwwwwhbbbwwwwwwbbbo............","............obbbwwwwwwBBBBwwwwwwbbbo............","............obbbwwWewwBBBBwwWewwbbbo............","............obbbweeeewBBBBweeeewbbbo............","............obbbweeeewBBBBweeeewbbbo............","............obbBwweewwBBBBwweewwBbbo............","............oobBBBwwBoBBBBoBwwBBBboo............",".............obBBBBBoooBBoooBBBBBbo.............",".............obBBBBBBooooooBBBBBBbo.............",".............oobBBBBBBooooBBBBBBboo.............","..............oobBBBBBBBBBBBBBBboo..............","...............oobBBBBBBBBBBBBboo...............","..............ooBBBBBBBBBBBBBBBBoo..............","..............oBBBBBBbbbbbbBBBBBBo..............","..............oBBBBBBooooooBBBBBBo..............","..............ooBBBBoo....ooBBBBoo..............","...............oooooo......oooooo...............","................................................","................................................","................................................","................................................","................................................"],"sp2":["................................................","................................................","............oooooo............oooooo............","...........ooaaaaoo..........ooaaaaoo...........","...........oaaaaaao..........oaaaaaao...........","...........oaaaaaao..........oaaaaaao...........","...........oaaaaaao..........oaaaaaao...........","...........oaaaaaao..........oaaaaaao...........","...........ooaaaaoo..........ooaaaaoo...........","............oooaao............oaaooo............","..............oaaoo..........ooaao..............","..............ooaao..........oaaoo..............","...............oaaoo........ooaao...............","...............oaaaooooooooooaaao...............","...............ooaaobbbbbbbboaaoo...............","...............ooabbbbbbbbbbbbaoo...............",".ooo..........oobbbbbbbbbbbbbbbboo..........ooo.",".oaooo.......oobbhhhhbbbbbbbbbbbboo.......oooao.",".oaaaoo.....oobhhhhhhhhbbbbbbbbbbboo....oooaaao.",".oaaaaooo...obhhhhhhhhhhbbbbbbbbbbbo...ooaaaaoo.",".ooaaaaaooooobhhhhhhhhhhbbbbbbbbbbboooooaaaaao..","..oaaaaaaaoobbhhhhhhhhhhbbbbbbbbbbbbooaaaaaaao..","..oaaaaaaaaobbhhhwwhhhhhbbbbbwwbbbbboaaaaaaaao..","..oaaaaaaaabbbbwwwwwwhhbbbbwwwwwwbbbbaaaaaaaao..","..oaaaaaaaabbbwwwwwwwwBBBBwwwwwwwwbbbaaaaaaaoo..","..ooaaaaaaabbbwwWWwwwwBBBBwwWWwwwwbbbaaaaaaao...","...oaaaaaaabbbwweeeewwBBBBwweeeewwbbbaaaaaaao...","...oooaaaaabbbwweeeewwBBBBwweeeewwbbbaaaaaooo...",".....ooooaabbbwweeeewwBBBBwweeeewwbbbaaoooo.....","........ooobbbwweeeewwBBBBwweeeewwbbbooo........","..........obbBBwwwwwoBBBBBBowwwwwBBbbo..........","..........oobBBBBwwBooBBBBooBwwBBBBboo..........","..........oobBBBBBBBoooBBoooBBBBBBBboo..........","..........oaaaaaaaaaaooooooaaaaaaaaaao..........","..........ooaaaaaaaaaaaooaaaaaaaaaaaoo..........","...........oaaaaaaaaaaaaaaaaaaaaaaaao...........","...........oaaaaaaaaaaaaaaaaaaaaaaaao...........","...........ooaaaaaaaaaaaaaaaaaaaaaaoo...........","............ooooooBBBBBBBBBBBBoooooo............",".............oooBBooBBBBBBBBooBBooo.............",".............oBBBBBBooooooooBBBBBBo.............",".............oBBBBBBo......oBBBBBBo.............",".............oBBBBBBo......oBBBBBBo.............",".............oBBBBBBo......oBBBBBBo.............",".............oooBBooo......oooBBooo.............","...............oooo..........oooo...............","................................................","................................................"],"sp3":["................................................","................................................","................................................","......................oooo......................","......................oaao......................","..............oooo...ooaaoo...oooo..............","..............oaaoo..oaaaao..ooaao..............","..............oaaaooooaaaaooooaaao..............",".............ooaaaoogaaaaaagooaaaoo.............",".............oaaaaaggaaaaaaggaaaaao.............","............ooaaaaaaaaaaaaaaaaaaaaoo............","oo........ooogaaaaaaaaaaaaaaaaaaaagooo........oo","aoo......ooggaaaaaaaaaaaaaaaaaaaaaaggoo......ooa","aaoo....ooggoAAAAAAAAAAAAAAAAAAAAAAoggoo....ooaa","aaaoo..ooggooAAAAAAAAAAAAAAAAAAAAAAooggoo..ooaaa","aaaaoo.oggoooAAAAAAAbbbbbbbbAAAAAAAoooggo.ooaaaa","aaaAaooogoo.ooooobbbbbbbbbbbbbbooooo.oogoooaAaaa","aaaAAaoggo...ooobbbbbbbbbbbbbbbbooo...oggoaAAaaa","aaaAAAagoo..oobbbbbbbbbbbbbbbbbbbboo..oogaAAAaaa","oaaAAAaaoo.oobbbhhhhhhbbbbbbbbbbbbboo.ooaaAAAaao","oaaAAAAaao.obbhhhhhhhhhhbbbbbbbbbbbbo.oaaAAAaaao","oaaaAAAAaooobbhhhhhhhhhhbbbbbbbbbbbboooaAAAAaaao","oaaaAAAAAoobbhhhhhhhhhhhhbbbbbbbbbbbbooAAAAAaaao","oaaaAAAAAoobbhhhhhhhhhhhhbbbbbbbbbbbbooAAAAAaaao","oaaaAAAAAobbbbhhwwwwhhhhbbbbwwwwbbbbbboAAAAAaaao","oaaaAAAAAobbbbhwwwwwwhhhBBBwwwwwwbbbbboAAAAAaaao","oaaaaAAAAobbbbwwwwwwwwBBBBwwwwwwwwbbbboAAAAaaaao","ooaaaaAAAobbbbwwWWewwwBBBBwwWWewwwbbbboAAaaaaaoo",".ooooaaaAobbbwwweeeewwwBBwwweeeewwwbbboAaaaoooo.","....ogooaobbbwwweeeewwwBBwwweeeewwwbbboaoogo....","....ogoooobbbBwweeeewwBBBBwweeeewwBbbboooogo....","....ogoo.obbBBwweeeewwBBBBwweeeewwBBbbo.oogo....","....oggo.obbBBBwweewoBBBBBBoweewwBBBbbo.oggo....","....oogooobbBBBBwwwoooBBBBooowwwBBBBbbooogoo....",".....oggooobBBBBBBBBoooBBoooBBBBBBBBboooggo.....",".....oogooobBBBBBBBBooooooooBBBBBBBBbooogoo.....","......oggoooBBBBBBBBBBooooBBBBBBBBBBoooggo......","......oogoooAAAAAAAAAAAAAAAAAAAAAAAAooogoo......",".......oggooAAAAAAAAAAAAAAAAAAAAAAAaooggo.......",".......ooggaaAAAAAAAAAAAAAAAAAAAAAAaaggoo.......","........oogaaaaaaaaaaaaaaaaaaaaaaaaaagoo........",".........ooaaaaaaaaaaaaaaaaaaaaaaaaaaoo.........","..........oaaaaaaaaaaaaaaaaaaaaaaaaaao..........",".........ooaaaaaaaaaaaaaaaaaaaaaaaaaaoo.........",".........oaaaaaaaaaaaaaaaaaaaaaaaaaaaao.........",".........oaaaaaaaaaaaaaaaaaaaaaaaaaaaao.........",".........oooooooooooooooooooooooooooooo.........","................................................"],"pal0":["................................................","................................................","................................................","................................................","................................................","................................................","...............................oooo.............","............................ooooaaoooo..........","...........................ooaaaaaaaaoo.........","..........................ooaaaaaaaaaaoo........",".........................ooaaagWWgggaaaoo.......",".........................oaaagWWWggggaaaoooo....",".........................oaagWWWggggggaaoaaoo...","........................ooaagWWgggggggaaaaaao...","......................oooaaaggggggggggaaaaaao...","...................ooooaaaaaggggggggggaaaaaoo...",".................ooobbaaabaaggggggggggaaaaoo....","...............ooobbbbaaaaaaggggggggggaaaoo.....","..............oobbbbbaaaaaaaaggggggggaaaoo......",".............oobbbhhbbbbbbbaaaggggggaaaoo.......","............oobhhhhhhhhbbbbbaaaaaaaaaaoo........","...........oobhhhwwhhhhhbbbbwwaaaaaaaoo.........","...........obbhwwwwwwhhhbbwwwwwwaabboo..........","..........oobbwwwwwwwwhhbwwwwwwwwbbboo..........","..........obbbwwWWewwwhhbwwWWewwwbbbbo..........","..........obbbwweeeewwhbbwweeeewwbbbbo..........","..........obbbwweeeewwbbbwweeeewwbbbbo..........",".........oobbbwweeeewwBBBwweeeewwbbbboo.........","........oobbbbwwweewwwBBBwwweewwwbbbbboo........",".......oobbbbbbwwwwwwBBBBBwwwwwwBbbbbbboo.......",".....ooobbbbbbBBBwwBBBBBBBBBwwBBBBbbbbbbooo.....","....oobbbbbbbbBBBBBBBBBBBBBBBBBBBBbbbbbbbboo....","...oobbbbbbbbBBBBBBBooBBBBooBBBBBBBbbbbbbbboo...","...obbbbboobbBBBBBBBooooooooBBBBBBBbboobbbbbo...","...obbbboooobBBBBBBBBooooooBBBBBBBBboooobbbbo...","...oobboo..obBBBBBBBBBBBBBBBBBBBBBBbo..oobboo...","....oooo...oobBBBBBBBBBBBBBBBBBBBBboo...oooo....","............ooBBBBBBBBBBBBBBBBBBBBoo............",".............ooBBBBBBBBBBBBBBBBBBoo.............","..............ooBBBBBBBBBBBBBBBBoo..............",".............ooBBBBBBBBBBBBBBBBBBoo.............",".............oBBBBBBBBbbbbBBBBBBBBo.............",".............oBBBBBBBBooooBBBBBBBBo.............",".............ooBBBBBBoo..ooBBBBBBoo.............","..............ooBBBBoo....ooBBBBoo..............","...............oooooo......oooooo...............","................................................","................................................"],"pal1":["................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","...................oooooooooo.............ooo...",".................ooobbbbbbbbooo.........oooao...","...............ooobbbbbbbbbbbbooo......ooaaao...","..............oobbbbbbbbbbbbbbbboo....ooaaaao...","........ooooooobbbhhbbbbbbbbbbbbbooooooaaaaao...","........oaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaao...","........oaaaaaaaaaaaaawwwwaaaaaaaaaaaaaaaaaoo...","........oaaaaaaaaaawwwwwwwwwwaaaaaaaaaaaaaao....","........oaaaaaaaaawwwwwwwwwwwwaaaaaaaaaaaaao....","........ooobbbhhwwwwwwweewwwwwwwbbbbbooaaaao....","..........obbbbhwwwwWWWeeeewwwwwbbbbboooaaao....","..........obbbbwwwwwWWWeeeeewwwwwbbbbo.oooao....",".........oobbbbwwwwwWWWeeeeewwwwwbbbboo..ooo....","........oobbbbbwwwweeeeeeeeeewwwwbbbbboo........",".......oobbbbbbwwwweeeeeeeeeewwwwbbbbbboo.......",".....ooobbbbbbBwwwwweeeeeeeewwwwwBbbbbbbooo.....","....oobbbbbbbbBwwwwweeeeeeeewwwwwBbbbbbbbboo....","...oobbbbbbbbBBBwwwwweeeeeewwwwwBBBbbbbbbbboo...","...obbbbboobbBBBwwwwwwweewwwwwwwBBBbboobbbbbo...","...obbbboooobBBBBBwwwwwwwwwwwwBBBBBboooobbbbo...","...oobboo..obBBBBBBwwwwwwwwwwBBBBBBbo..oobboo...","....oooo...oobBBBBBBBBwwwwBBBBBBBBboo...oooo....","............ooBBBBBBooBBBBooBBBBBBoo............",".............ooBBBBBBooooooBBBBBBoo.............","..............ooBBBBBBooooBBBBBBoo..............",".............ooBBBBBBBBBBBBBBBBBBoo.............",".............oBBBBBBBBbbbbBBBBBBBBo.............",".............oBBBBBBBBooooBBBBBBBBo.............",".............ooBBBBBBoo..ooBBBBBBoo.............","..............ooBBBBoo....ooBBBBoo..............","...............oooooo......oooooo...............","................................................","................................................"],"pal2":["................................................","................................................","................................................","......................oooo......................",".....................oobboo.....................","....................oobbbbo.....................","....................obbbbboo....................","...................oobbbbbboo...................","...................obbbbbbbbo...................","..................oobbbbbbbboo.ooo..............","..................obbbbbbbbbbooobo..............",".................oobbbbbbbbbboobbo..............","................oobbbbbbbbbbbbbbbo..............","................obbbbbbbbbbbbbbbbo..............","...............oobbbbbbhhbbbbbbbbo..............","...............obbbbbbhhhhbbbbbbboo.............","..............oobbbbbhhhhhbbbbbbbbo.............",".............oobbbbbbhhhhhhbbbbbbboo............",".............obbbbbbhhhhhhhhbbbbbbboo...........","............oobbbbbhhhhhhhhhhbbbbbbbo...........","............obbbbbbhhhhhhhhhhbbbbbbbo...........","............obbbbbbhhhhhhhhhhbbbbbbbo...........","...........oobbbbbbhhhhhhhhhhbbbbbbboo..........","...........obbbbbwwwwhhhhhhwwwwbbbbbbo..........","...........obbbbwwwwwwhhhhwwwwwwbbbbbo..........","..........oobbbwwWWewwwhhwwWWewwwbbbbo..........",".........oobbbbwweeeewwhhwweeeewwbbbboo.........","........oobbbbbwweeeewwhhwweeeewwbbbbboo........",".......oobbbbbbwweeeewwhhwweeeewwbbbbbboo.......","......oobbbbbbbbwweewwhhhhwweewwbbbbbbbboo......","....ooobbbbbbbbbbwwwwhhhhhhwwwwbbbbbbbbbbooo....","...oobbbbbobbbbbbbbbhhhhhhhhbbbbbbbooobbbbboo...","...obbbbbooobbbbbbbbhhhhhhhhbbbbbbbo.oobbbbbo...","...obbbboo.obbbbbbbBBBBBBBBBBbbbbbbo..oobbbbo...","...oobboo..obbbbbBBBooBBBBooBBBbbboo...oobboo...","....oooo...obbbbBBBBBooooooBBBBBboo.....oooo....","...........oobbbBBBBBBooooBBBBBBoo..............","............oobbbBBBBBBBBBBBBBBoo...............",".............oobbbbBBBBBBBBBBboo................","..............oobbbbbbbbbbbbboo.................","...............oooobbbbbbbbooo..................","..................oooobbbooo....................",".....................ooooo......................","................................................","................................................","................................................","................................................","................................................"],"pal3":["................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","..................oooo....oooo..................","..................oaao....oaao..................",".................ooaaooooooaaoo.................","...............oooaaaabbbbaaaaooo...............","..............oowwbbbbbbbbbbbbwwoo..............",".............oowwwwbbbbbbbbbbwwwwoo.............",".............owWwwwwbbbbbbbbwWwwwwo.............","............ooweeeewhhhbbbbbweeeewoo............","...........oobweeeewhhhhbbbbweeeewboo...........","...........obbweeeewhhhaabbbweeeewbbo...........","..........oobbhweewhaaaooaaabweewbbboo..........","..........obbbhhwwaaawwoowwaaawwbbbbbo..........","..........obbbbhhaaawwwoowwwaaabbbbbbo..........","..........obbbbbbaawwwwoowwwwaabbbbbbo..........",".........oobbbbbaawwwwwoowwwwwaabbbbboo.........","........oobbbbbbawwwwwwoowwwwwwabbbbbboo........",".......oobbbbbbBawwwwwwoowwwwwwaBbbbbbboo.......",".....ooobbbbbbBaoowwwwwoooooowooaBbbbbbbooo.....","....oobbbbbbbbBaoowwwwwoooooowooaBbbbbbbbboo....","...oobbbbbbbbBBBawwwwwwwwwwwwwwaBBBbbbbbbbboo...","...obbbbboobbBBBawwwwwwwwwwwwwwaBBBbboobbbbbo...","...obbbboooobBBBaawwwwwwwwwwwwaaBBBboooobbbbo...","...oobboo..obBBBBaawwwwwwwwwwaaBBBBbo..oobboo...","....oooo...oobBBBaaawwwwwwwwaaaBBBboo...oooo....","............ooBBBBaaawwoowwaaaBBBBoo............",".............ooBBBBBaaaooaaaBBBBBoo.............","..............ooBBBBBBBaaBBBBBBBoo..............",".............ooBBBBBBBBBBBBBBBBBBoo.............",".............oBBBBBBBBbbbbBBBBBBBBo.............",".............oBBBBBBBBooooBBBBBBBBo.............",".............ooBBBBBBoo..ooBBBBBBoo.............","..............ooBBBBoo....ooBBBBoo..............","...............oooooo......oooooo...............","................................................","................................................"],"pal4":["................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................","................................................",".............oooo..............oooo.............","...........ooobbooo..........ooobbooo...........","..........oobbbbbboo........oobbbbbboo..........","..........obbbbbbbbo........obbbbbbbbo..........",".........oobbbbbbbboooooooooobbbbbbbboo.........",".........obbbbbbbbbbbbbbbbbbbbbbbbbbbbo.........",".........obbbbbbbbbbbbbbbbbbbbbbbbbbbbo.........",".........oobbbbbbbbbbbbbbbbbbbbbbbbbboo.........","..........obbbbbbbbhbbbbbbbbbbbbbbbbbo..........","..........oobbbbwwwwhhhbbbbbwwwwbbbboo..........","...........oobbwwwwwwhhhbbbwwwwwwbboo...........","...........obbwwWWewwwhhbbwwWWewwwbbo...........","..........oobbwweeeewwhhbbwweeeewwbboo..........","..........obbbwweeeewwhhbbwweeeewwbbbo..........","..........obbbwweeeewwhbbbwweeeewwbbbo..........","..........obbbbwweewwbbbbbbwweewwbbbbo..........",".........oobbbbbwwwwhhhBBhhhwwwwbbbbboo.........","........oobbbbbbbBhhhhhhhhhhhhBbbbbbbboo........",".......oobbbbbbBBhhhhohhhhohhhhBBbbbbbboo.......",".....ooobbbbbbBBBhhhhoooooohhhhBBBbbbbbbooo.....","....oobbbbbbbbBBBhhhhhoooohhhhhBBBbbbbbbbboo....","...oobbbbbbbbBBBBhhhhhhhhhhhhhhBBBBbbbbbbbboo...","...obbbbboobbBBBBBhhhhhhhhhhhhBBBBBbboobbbbbo...","...obbbboooobBBBBBBhhhhhhhhhhBBBBBBboooobbbbo...","...oobboo..obBBBBBBBBhhhhhhBBBBBBBBbo..oobboo...","....oooo...oobBBBBBBBBhhhhBBBBBBBBboo...oooo....","............ooBBBBBBBBBhhBBBBBBBBBoo............",".............ooBBBBBBBBBBBBBBBBBBoo.............","..............ooBBBBBBBBBBBBBBBBoo..............",".............ooBBBBBBBBBBBBBBBBBBoo.............",".............oBBBBBBBBbbbbBBBBBBBBo.............",".............oBBBBBBBBooooBBBBBBBBo.............",".............ooBBBBBBoo..ooBBBBBBoo.............","..............ooBBBBoo....ooBBBBoo..............","...............oooooo......oooooo...............","................................................","................................................"],"jelly":["...................oooooooooo...................", ".................ooohhhhhhhhooo.................", "................oohhhhhhhhhhhhoo................", "................ohhhhhhhhhhhhhho................", "......oooo......ohhhhhhhhhhhhhho....oooooooo....", "...oooohhoooo...oohhhhhhhhhhhhoo..ooohhhhhhooo..", "..oohhhhhhhhoo...ooohhhhhhhhooo...ohhhhhhhhhho..", ".oohhhhhhhhhhoo....oooooooooo.....ohhhhhhhhhho..", ".ohhhhhhhhhhhho...................ohhhhhhhhhho..", ".ohhhhhhhhhhhho....oooooooooo.....ohhhhhhhhhho..", ".oohhhhhhhhhhoo.oooobbbbbbbboooo..ooohhhhhaaooo.", "..oohhhhhhhhooooohhbbbbbbbbbbbbooo..ooooaaaaaao.", "...oooohhooooohhhhhhhhBBBBBBbbbbbooo...oaaooaao.", "......oooo.oohhhhhhhhhhbbbbbBBBbbbboo..oaoooaao.", "..........oobhhhhhhhhhhbbbbbbbbBBbbboo.ooo.ooao.", "..........obbhhhhhhhhhhbbbbbbbbbBBbbbo....ooaoo.", ".........ooboooohhhhhhhbbbbbbbbbooooboo...oaao..", ".........obbBoooooohhhbbbbbbbooooooBbbo..ooaao..", "........oobbBBbwoooooobbbboooooowbBBbboo.oaaoo..", "........obbbBBwwwwwoooobboooowwwwwBBbbbo.oooo...", "........obbbBbbbbbbbwwbbbbwwbbbbbbbBbbbo.oaao...", "........obbbbwbbbbbbbbbbbbbbbbbbbbwbbbbo.oaao...", "........obbbbwwweeeewwbbbbwweeeewwwbbbbo.oooo...", "........obbbbbwweeeewwbbbbwweeeewwbbbbbo........", "........obbbbbwweeeewwbbbbwweeeewwbbbBBooo......", "......ooobbbbBBwwwwwwBooBBoowwwwwbbBBBBBBooooo..", "..oooooBBbbbBBBBBBBooooooooooBBbbbBBBBBBBBhhhooo", "ooohhhBBBBBBBBBBBBBooooooooooBBBBBBBBBBBBhhhhhho", "ohhhhhhBBBbbBBbbBBBBoobBooBBbbBBbbBbbBBhhhhhhhhh", "ohhhhhhhBBbbBBbbBBBBBbbBBBBBbbBBbbBbbBBhhhhhhhhh", "ohhhhhhhhoBBBBBBbbbbBBBbbbbBBbbbBBBoBBohhhhhhhho", "ohhhhhhhhoooBboBbbbbbbbbbbbBBbbbbboooBboohhhhooo", "ooohhhhooo.oobbbbbbbbbbbbbbbbbbobbboobbboooooo..", "..oooooo...ooBBooBBoBBbbBBbboooBBoooooBBo.......", "...........obbBooBboBbboBboooobBBo..oobBo.......", ".........ooobboooobbobbobboooobboo.oobboo.......", ".........oBBooo..oBBooBBoBBooBBoo..oBBoo........", "........ooBBo..oooBBooBBoBBooBBoooooBBo.........", "........obboo.oobbooooobboobbbbboobbboo.........", "........oBBo..oBBbo..oBBboobBBbBBoBBoo..........", "........oBBooooBBoo.ooBBooooBBoBBoBBoo..........", "........oobboobboo..obboo..obboobbobbo..........", ".........obboobbo...obbo...obboobbobbo..........", ".........oooooooo...oooo...ooooooooooo..........", "................................................", "................................................", "................................................", "................................................"],"bomb":["................................ooaaoo..........", "...............................ooaaaaoo.........", "..............................ooaawwaao.........", "........oooooo..............oooAawwwwaoo........", "........oaaaao.............ooAAAaawwaaao........", ".......ooaaaao............ooAAAAAaaaaaao........", "......ooaaaaoo...........ooAAAooooaaaaao........", "......oaaaaoo............oAAAAo..oooaaaoo.......", ".....ooaaaao............ooAAAoo....oaaaao.......", ".....oaaaaoo............oAAAoo.....oaaaao.......", ".....oaaooo.............oAAoo......oaaooo.......", ".....oooo...............oooo.......oooo.........", "...................oooooooooo...................", "...................oBBBBBBBBo...................", "................ooooBBBBBBBBoooo................", "..............ooobbBBBBBBBBBBbbooo..............", ".............oobbbbBBBBBBBBBBbbbboo.............", "............oobbbhhbbbbbbbbbbbbbbboo............", "...........oobhhhhhhhhbbbbbbbbbbbbboo...........", "..........oobhhhhhhhhhhbbbbbbbbbbbbboo..........", "..........obohhhhhhhhhhbbbbbbbbbbbbobo..........", ".........oobooohhhhhhhhbbbbbbbbbboooboo.........", ".........obbooooowwhhhhbbbbbbwoooooobbo.........", "........oobbbooooooowhbbbbbwooooooobbboo........", "........obbbbbwwooooooBBBBoooooowwbbbbbo........", ".......oobbbbwwwWWoooooBBoooooewwwwbbbboo.......", ".....ooobbbbbwwweeeewowBBwoweeeewwwbbbbbooo.....", "oooooobbbbbbbwwweeeewwwBBwwweeeewwwbbbbbbboooooo", "oBBBBbbbbbbbbwwweeeewwwBBwwweeeewwwbbbbbbbbBBBBo", "BBBBBBbbbbbbBBwweeeewwBBBBwweeeewwBBbbbbbbBBBBBB", "BBBBBBBbobbbBBBwweewwBBBBBBwweewwBBBbbbobBBBBBBB", "BBBBBBBoobbbBBBBBwwBBBBBBBBBBwwBBBBBbbbooBBBBBBB", "BBBBBBBooobbBBBBBBBBBooooooBBBBBBBBBbboooBBBBBBB", "BBBBBBBo.obbBBBBBBBBwwwowwwoBBBBBBBBbbo.oBBBBBBB", "BBBBBBoo.oobBBBBBBBoowoeewoooBBBBBBBboo.ooBBBBBB", "oBBBBoo...obBBBBBBBooeeeeeeooBBBBBBBbo...ooBBBBo", "oooooo....ooBBBBBBBBoeeeeeeoBBBBBBBBoo....oooooo", "...........ooBBBBBBBBeeeeeeBBBBBBBBoo...........", "............ooBBBBBBBBBBBBBBBBBBBBoo............", ".............ooBBBBBBBBBBBBBBBBBBoo.............", "............ooBBBBBBBBBBBBBBBBBBBBoo............", "............oBBBBBBBBBBBBBBBBBBBBBBo............", "............oBBBBBBBBooooooBBBBBBBBo............", "............ooBBBBBBoo....ooBBBBBBoo............", ".............ooBBBBoo......ooBBBBoo.............", "..............oooooo........oooooo..............", "................................................", "................................................"],"dragon":["......................ooo.......................", ".......ooo............oAoo............ooo.......", ".......oaoo...........oAAo...........ooao.......", ".......oaaoo.........ooAAo..........ooaoo.......", ".......ooaaoo.....ooooAAAooooo.....ooaao........", "........oaaaoo.oooogggAAAAgggoooo.ooaaao........", "........oaaaaooogggggoAAAAogggggoooaaaoo........", "........ooaaaagggooooAAAAAooooogggaaaao.......oo", "oo.......oaaaaaooo..oAAAAAAo..oooaaaaao......ooB", "Boo.....ooaaaaaaoo..oooooooo..ooaaaaagoo....ooBB", "BBoo...ooggaaaaaao............oaaaaaaggoo..ooBBB", "oBBoo.ooggoaaaaaao.oooooooooo.oaaaaaaoggooooBBBo", "oBBBoooggooaaaaooooobbbbbbbboooooaaaoooggooBBBBo", "oBBBBoggooooaoooobbbbbbbbbbbbbbooooao.ooggBBBBBo", "oBBBbBgoo..oooobbbbbbbbbbbbbbbbbboooo..ooBBbBBBo", "oBBBBbBoo..oobbbbbbbbbaaaabbbbbbbbboo.ooBBbBBBBo", "oBBBBbbBoooobhhhhhhhhbaaaabbbbbbbbbboooBBbbBBBBo", "ooBBBbbbBoobhhhhhhhhhaaeeaabbbbbbbbbboBBbbbBBBoo", ".oBBBbbbbBbhhhhhhhhhhaaeeaabbbbbbbbbbbBbbbbBBBo.", "ooBBBBbbbbohhhhhhhhhhhaeeabbbbbbbbbbbobbbbBBBBoo", "BBBBBBbbbboooohhhhhhhhaaaabbbbbbbboooobbbbBBBBBB", "BBBBbbbbbboooooowwwhhhhbbbbbbwwwoooooobbbbbBBBBB", "BBBbbbbbbbbooooooowwwhbbbbbwwwooooooobbbbbbbbBBB", "BBBBbbbbbbbbwwooooooowbbbbwooooooowwbbbbbbbbBBBB", "BBBBbbbbbbbbwwwWWoooooBBBBoooooewwwwbbbbbbbbBBBB", "BBBBBbbbbbbbwwweeeewowBBBBwoweeeewwwbbbbbbbBBBBB", "BBBBBbbbbbbbwweeeeeewwBBBBwweeeeeewwbbbbbbbBBBBB", "oBBBBBbbbbbbwweeeeeewwBBBBwweeeeeewwbbbbbbBBBBBo", "oBBBBBbbbbbbwwweeeewwwBBBBwwweeeewwwbbbbbbBBBBBo", "oogoobbbbbbBBwwweewwwBBBBBBwwweewwwBBbbbbbboogoo", "oogobbbbbbbBBBBwwwwBBBBBBBBBBwwwwBBBBbbbbbbbogoo", "BBBBbbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbbbbbBBBB", "BBBBBbbobbBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbobbBBBBB", "BBBBBBoobbBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbooBBBBBB", "BBBBBBoobbBBBBBBBowwwwBBBBBBwwwwBBBBBBbbooBBBBBB", "BBBBBBooobBBBBBBooowwBBwwwwBBwwoBBBBBBboooBBBBBB", "BBBBBBooooBBBBAAAoowwAAAwwAAAwwAAABBBBooooBBBBBB", "BBBBBggooobBBBAAAoowwaaawwaaowwAAABBBboooggBBBBB", "BBBBooggoooBBBBAAaooooaawwooooaAABBBBBBoggooBBBB", "oooooooggoooBBBAAAAooooooooooAAAABBBBBBBBaoooooo", "......ooggoooBBAAaaaaooooooaaaaAABBBBBBBaaaoo...", ".......ooggooooAAaaaaaaaaaaaaaaAAooooBBBaaaaoo..", "........ooggoooAAAAAAAAAAAAAAAAAAoooggoBaaaaaoo.", ".........oooggooAaaaaaaaaaaaaaaAooggoooaaaaaaao.", "...........oogggAaaaaaaaaaaaaaaAgggoo.oaaaaoooo.", "............oooogggggoooooogggggoooo..oooooo....", "...............ooooggggggggggoooo...............", "..................oooooooooooo.................."]}
 
 const MON_PAL={
   imp:  {o:'#2A1140',b:'#A855F7',B:'#7127C4',h:'#D8B4FE',w:'#FFFFFF',W:'#FFFFFF',e:'#1B0A2E',a:'#F5C842',A:'#B8860B',g:'#F5C842'},
   ghost:{o:'#0B2436',b:'#7DD3E8',B:'#3E97B5',h:'#D8F4FB',w:'#FFFFFF',W:'#FFFFFF',e:'#0B2436',a:'#7DD3E8',A:'#3E97B5',g:'#7DD3E8'},
   bat:  {o:'#241408',b:'#C98A4B',B:'#8A5A2B',h:'#E8C79A',w:'#FFFFFF',W:'#FFFFFF',e:'#241408',a:'#8A5A2B',A:'#5C3A1C',g:'#C98A4B'},
+  jelly:{o:'#1A2436',b:'#94A3B8',B:'#5A6B85',h:'#DDE5F0',w:'#FFFFFF',W:'#FFFFFF',e:'#111828',a:'#F5C842',A:'#B8860B',g:'#DDE5F0'},
+  bomb: {o:'#3B0A0A',b:'#EF4444',B:'#A31515',h:'#FF8A7A',w:'#FFFFFF',W:'#FFFFFF',e:'#2A0606',a:'#F5C842',A:'#B8860B',g:'#FFD54A'},
+  dragon:{o:'#05060D',b:'#3A3560',B:'#1E1B38',h:'#6E68A8',w:'#FFFFFF',W:'#FFFFFF',e:'#05060D',a:'#F5C842',A:'#B8860B',g:'#FFD54A'},
   sp:   {o:'#5A3A00',b:'#FFE9B8',B:'#E8B94A',h:'#FFFBF0',w:'#FFFFFF',W:'#FFFFFF',e:'#3A2500',a:'#F59E0B',A:'#B8720B',g:'#FFD54A'},
   /* 5つのなかま（攻撃タイプのキャラクター） */
   pal0: {o:'#0B1D46',b:'#2563EB',B:'#19439F',h:'#358FFF',w:'#FFFFFF',W:'#FFFFFF',e:'#081533',a:'#F5C842',A:'#B8860B',g:'#EAF4FF'},
@@ -872,6 +921,7 @@ const G={
   easy:true, mode:'normal',
   leaderKey:null, leaderCat:null, deck:{},
   eIndex:0, enemy:null, eHp:0, pHp:5, pMax:5,
+  foes:[], bossWeaks:[], bossPhase:0, bossNext:-1,
   guessCat:null, guessHit:false,
   grid:[], els:[], busy:false, held:null, timer:null, tStart:0, turn:0,
   tutoStep:0, tGrid:[], tEls:[], tHeld:null, tBusy:false, seenTuto:false,
@@ -892,11 +942,13 @@ const LEVELS=[
   {min:2500, name:'マスター',      sp:'sp3'},
 ];
 function levelOf(pts){ let i=0; for(let k=0;k<LEVELS.length;k++){ if(pts>=LEVELS[k].min) i=k; } return i; }
-/* レベルが上がるたびに、使える方略が1枚ふえる */
-const UNLOCK={1:'情報を集める',2:'ずれ確認',3:'ごほうび',4:'環境設定'};
-/* なかまごとの持ちものの候補（先頭は最初から使える） */
-const POOL={'認知':['関連づける','情報を集める'],'メタ認知':['やり方確認','ずれ確認'],
-            '動機づけ調整':['挑戦と考え','ごほうび'],'リソース管理':['環境調節','環境設定'],'情動調整':['気持ち原因']};
+/* なかまごとの持ちものの候補（先頭＝最初から使える1枚。以降はレベルで開いていく）
+   全46枚がここに入っているので、図鑑46枚はすべて入手できる。 */
+const POOL={'認知':['関連づける','分けて理解','めあて目標','情報を集める','多面的に見る','構造化','価値を創造','価値を発信','くり返し覚える'],'メタ認知':['やり方確認','知ってること','優先順位','前の計画','ずれ確認','時間と進み','環境確認','心の調子','成果と課題','やり方成果','時間の成果','環境の成果','気持ちの変化','原因を考える'],'動機づけ調整':['挑戦と考え','解決後','自分を高める','ごほうび','能力が高まる','目標整理','成長予想','成果予想','見本計画','うまくできそう','一旦離れる','満足','次に活かす','学び方見直し'],'リソース管理':['環境調節','やり方準備','時間配分準備','環境設定','活動を変える','別のやり方','時間配分調節'],'情動調整':['気持ち原因','気持ち切替']};
+/* レベルが1つ上がるごとに、各なかまで えらべる枚数が1枚ふえる。
+   さらに、ふりかえりで「つぎに使ってみたい」に選んだ方略は、その場で開く。 */
+function openCount(lv){ return 2+lv; }              /* Lv.1で2枚 → Lv.5で6枚（最初から えらべる楽しみを残す） */
+function autoOpen(catKey,lv){ return POOL[catKey].slice(0,Math.min(POOL[catKey].length,openCount(lv))); }
 const TITLES=[
   {id:'mix',  name:'くみあわせの名人', need:s=>(s.mixes||0)>=10, noteE:'3つ いじょうの わざを 10回 いっしょに つかった', noteF:'3種類以上の方略を10回同時に使った'},
   {id:'guess',name:'みたての達人',     need:s=>(s.hits||0)>=10,  noteE:'つまずきの みたてに 10回 あてた',              noteF:'つまずきのみたてに10回あてた'},
@@ -915,7 +967,11 @@ function markTutoSeen(){ const o=loadSave(); o.tuto=1; putSave(o); G.seenTuto=tr
 function forgetTuto(){ const o=loadSave(); delete o.tuto; putSave(o); G.seenTuto=false; }
 function normSave(o){ o.pts=o.pts||0; o.quests=o.quests||0; o.hits=o.hits||0; o.mixes=o.mixes||0; o.best=o.best||0;
   o.dex=o.dex||{}; o.titles=o.titles||[]; o.unlocked=o.unlocked||[]; o.use=o.use||{}; return o; }
-function unlockedOf(catKey){ const sv=normSave(loadSave()); return POOL[catKey].filter((k,i)=>i===0||sv.unlocked.indexOf(k)>=0); }
+function unlockedOf(catKey,sv){ sv=sv||normSave(loadSave());
+  const auto=autoOpen(catKey,levelOf(sv.pts));
+  return POOL[catKey].filter((k,i)=>auto.indexOf(k)>=0||sv.unlocked.indexOf(k)>=0); }
+/* いま えらべる枚数の合計（図鑑の「あと何枚で開く」表示に使う） */
+function openTotal(sv){ return CATS.reduce((a,c)=>a+unlockedOf(c.key,sv).length,0); }
 /* クエストの結果を記録し、ふえたごほうびを返す */
 function applyResult(res){
   const sv=normSave(loadSave());
@@ -926,13 +982,103 @@ function applyResult(res){
   const newStamps=[];
   res.stampTitles.forEach(t=>{ if(!sv.dex[t]){ sv.dex[t]=1; newStamps.push(t); } });
   const after=levelOf(sv.pts);
+  /* レベルが上がると、各なかまで えらべる方略が1枚ずつ ふえる */
   const gained=[];
-  for(let L=before+1;L<=after;L++){ const k=UNLOCK[L]; if(k && sv.unlocked.indexOf(k)<0){ sv.unlocked.push(k); gained.push(k); } }
+  if(after>before){ CATS.forEach(c=>{
+    const b=autoOpen(c.key,before), a=autoOpen(c.key,after);
+    a.forEach(k=>{ if(b.indexOf(k)<0) gained.push(k); }); }); }
+  /* ふりかえりで「つぎに つかって みたい」に えらんだ方略は、その場で開く */
+  let picked=null;
+  if(res.pickKey){
+    const pc=CARD[res.pickKey].cat;
+    if(autoOpen(pc,after).indexOf(res.pickKey)<0 && sv.unlocked.indexOf(res.pickKey)<0){
+      sv.unlocked.push(res.pickKey); picked=res.pickKey; }
+  }
   const newTitles=TITLES.filter(t=>sv.titles.indexOf(t.id)<0 && t.need(sv));
   newTitles.forEach(t=>sv.titles.push(t.id));
   putSave(sv);
-  return {sv, before, after, levelUp:after>before, gained, newTitles, newStamps};
+  return {sv, before, after, levelUp:after>before, gained, picked, newTitles, newStamps};
 }
+
+/* ============================================================
+   きろくのコピー（v7）
+   ------------------------------------------------------------
+   ・ゲームは端末内（localStorage）だけに記録し、外部へは一切送信しない。
+   ・「感想を書く」のではなく「貼るだけ」で伝わるようにする。
+   ・SNS用（ハッシュタグ＋URL）と、おうちの人・先生用（短い報告）の2種類。
+   ・公開後、公開・運用チャットが下の2つの定数を埋める。空のあいだはリンク行を出さない。
+   ============================================================ */
+const SHARE_URL='https://akimura27-ak-learning.github.io/learning-planner/strategy-puzzle-b4x8t5.html';
+const PARENT_FORM_URL='https://forms.gle/4qT8SeYrHftPUYgt9';  /* ご意見フォーム（4問・任意・無記名）。CEO作成 2026-08-25 */
+const SHARE_TAG='#方略パズル';
+
+function recordText(kind){
+  const R=G.result, A=G.applied, sv=A.sv, L=LEVELS[A.after];
+  const goal=CARD[G.leaderKey], next=CARD[G.pickKey];
+  const use=CATS.map(c=>`${c.easy}${R.useCount[c.key]||0}`).join('／');
+  const nG=G.rec.guesses.length, out=[];
+  if(kind==='sns'){
+    out.push('🧩 方略パズル で あそんだよ');
+    out.push(`きょうの めあて：${goal.title}`);
+    out.push(`みたてが あたった：${R.hits}／${nG}`);
+    out.push(`つかった わざ：${use}`);
+    out.push(`とくてん：${R.points}（Lv.${A.after+1} ${L.name}）`);
+    out.push(SHARE_TAG);
+  }else{
+    out.push('方略パズルを 1かい やりました。');
+    out.push(`・きょうの めあて（リーダー）：${goal.title}〔${goal.cat}〕`);
+    out.push(`・つまずきの みたて：${nG}回中 ${R.hits}回 あたり`);
+    out.push(`・つかった 方略：${use}`);
+    out.push(`・3つ以上を同時に使えた：${R.mixes}回／いちばん長いコンボ：${R.maxCombo}`);
+    out.push(`・とくてん：${R.points}（ごうけい ${sv.pts}／Lv.${A.after+1} ${L.name}）`);
+    out.push(`・つぎに つかって みたい：${next.title}`);
+    out.push(`・ずかん：${Object.keys(sv.dex).length}／46`);
+  }
+  if(SHARE_URL) out.push(`▶ ${SHARE_URL}`);
+  return out.join('\n');
+}
+async function copyText(t){
+  try{ if(navigator.clipboard&&navigator.clipboard.writeText){ await navigator.clipboard.writeText(t); return true; } }catch(e){}
+  try{
+    const ta=document.createElement('textarea'); ta.value=t;
+    ta.style.cssText='position:fixed;left:-9999px;top:0'; document.body.appendChild(ta);
+    ta.focus(); ta.select(); const ok=document.execCommand('copy'); ta.remove(); return ok;
+  }catch(e){ return false; }
+}
+async function doCopy(kind){
+  const t=recordText(kind), msg=document.getElementById('shareMsg'), area=document.getElementById('shareArea');
+  const ok=await copyText(t);
+  if(ok){ SFX.confirm(); area.style.display='none';
+    msg.textContent=E('コピーしたよ。はりつけて つたえてね。','コピーしました。貼りつけて伝えてください。'); }
+  else{ area.value=t; area.style.display='block'; area.select();
+    msg.textContent=E('じどうで コピーできなかったよ。下の 文を えらんで コピーしてね。','自動コピーができませんでした。下の文を選んでコピーしてください。'); }
+}
+document.getElementById('btnCopySns').addEventListener('click',()=>doCopy('sns'));
+document.getElementById('btnCopyHome').addEventListener('click',()=>doCopy('home'));
+
+/* ---------- 先生・保護者の方へ（子どもの動線には外部リンクを出さない） ---------- */
+let adultOpen=false;
+function paintAdult(){
+  document.getElementById('btnAdult').textContent=(adultOpen?'▾ ':'▸ ')+'先生・保護者・おとなの方へ';
+  const b=document.getElementById('adultBody');
+  b.style.display=adultOpen?'block':'none';
+  if(!adultOpen) return;
+  b.innerHTML=
+    '<b>「方略パズル」について</b><br>'
+    +'自己調整学習の方略（全46枚）を、パズルの中で <b>組み合わせて使う</b> 体験にした学習ゲームのプロトタイプです。<br><br>'
+    +'・対象：小学校中学年〜中学生ごろ　・1回およそ5〜8分<br>'
+    +'・遊ぶ<b>前</b>に「どの方略が効きそうか」を見立て、遊んだ<b>後</b>に「どの組み合わせが効いたか」を振り返る構成です。<br>'
+    +'・得点は指の速さではなく、<b>考えたこと</b>（見立ての的中・方略の組み合わせ）に多く配分しています。<br>'
+    +'・失敗を子どものせいにする表現は使っていません。<br>'
+    +'・記録は<b>この端末の中だけ</b>に保存され、外部には送信されません。<br>'
+    +'・画面右上の「くわしいことば」に切りかえると、正式な方略名と説明文が表示されます。<br>'
+    +'・時間制限が負担な場合は、タイトルで「🐢 じっくり」を選んでください。'
+    +(PARENT_FORM_URL?('<br><br><b>ご意見をお聞かせください（無記名・2分ほど）</b><br>'
+       +'遊んでくださった方なら、どなたでもお答えいただけます。<br>'
+       +'<a href="'+PARENT_FORM_URL+'" target="_blank" rel="noopener">アンケートに答える</a>')
+                     :('<br><br><span style="color:#8d95bd">※ 公開後、この欄にご意見フォーム（無記名・2分ほど）を置く予定です。</span>'));
+}
+document.getElementById('btnAdult').addEventListener('click',()=>{ adultOpen=!adultOpen; paintAdult(); });
 
 /* ---------- ことば ---------- */
 function E(easy,full){ return G.easy?easy:full; }
@@ -940,7 +1086,7 @@ function catName(k){ const c=CATS[CI[k]]; return G.easy?c.easy:c.key; }
 function chip(k){ const c=CATS[CI[k]]; return `<span class="cchip" style="background:${c.color}">${catName(k)}</span>`; }
 /* 専門語の言いかえ */
 const WORD={
-  leader:()=>E('きょうの いちばん','リーダー'),
+  leader:()=>'リーダー',   /* なかまが目に見えてリーダーになるので、やさしい版もこの語で通す */
   deck:()=>E('もちもの','デッキ'),
   guess:()=>E('どれが きくかな？','みたて'),
   cat:()=>E('なかま','カテゴリー'),
@@ -970,7 +1116,9 @@ function clearGrabName(elId){
 }
 
 /* ---------- 画面 ---------- */
-function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id)); const el=document.getElementById(id); if(el) el.scrollTop=0; BGM.play(bgmFor(id)); }
+function show(id){
+  /* 指でたまを動かす画面だけ、ふちを守る帯を出す */
+  if(window.setEdgeGuard) setEdgeGuard(id==='scBattle'||id==='scTuto'); document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id)); const el=document.getElementById(id); if(el) el.scrollTop=0; BGM.play(bgmFor(id)); }
 function current(){ const s=document.querySelector('.screen.on'); return s?s.id:''; }
 
 /* ---------- ことば切替 ---------- */
@@ -1000,7 +1148,9 @@ function rerender(){
 function paintTitle(){
   document.getElementById('titleSub').innerHTML =
     E('〜 わざは、あわせると つよい 〜','〜 方略は、組み合わせると強い 〜')
-    + '<br><span style="font-size:10px;color:#8d95bd">プロトタイプ v5／教材課 D氏</span>';
+    + E('<br><span style="font-size:11px;color:#c3c9e8">学び方の コツ（方略）を、<b>あわせて つかう</b> ゲーム。1回 5〜8分。</span>',
+        '<br><span style="font-size:11px;color:#c3c9e8">自己調整学習の方略を、<b>組み合わせて使う</b>ゲームです。1回およそ5〜8分。</span>')
+    + '<br><span style="font-size:10px;color:#8d95bd">プロトタイプ v7.5／教材課 D氏</span>';
   const lg=document.getElementById('catLegend'); lg.innerHTML='';
   CATS.forEach((cat,i)=>{
     const d=document.createElement('div'); d.className='clg';
@@ -1017,7 +1167,7 @@ function paintTitle(){
   document.getElementById('titleRule').innerHTML =
     E('たまの 色は、5つの わざの なかま。<br>そろえて 消す＝わざを つかう。<br>いろんな なかまを いっしょに つかうほど つよい。',
       'ドロップの色は、5つの方略カテゴリー。<br>そろえて消す＝方略を使う。<br>いろいろな方略を同時に使うほど強くなります。');
-  paintRecord();
+  paintRecord(); paintAdult();
   document.getElementById('btnDex').textContent=E('📖 ずかんを 見る','📖 図鑑を見る');
   const seen=G.seenTuto;
   document.getElementById('btnQuick').textContent = seen
@@ -1065,8 +1215,8 @@ const TUTO=[
     ttlE:'まず、1つ うごかしてみよう', ttlF:'まず、1つ動かしてみよう',
     leadE:'ひかっている たまを ゆびで つかんで、<b>↑ 上</b>に うごかしてみよう。<br>おなじ 色が 3つ ならぶと 消えるよ。',
     leadF:'光っているドロップをつかんで、<b>↑上</b>へ動かしてみましょう。<br>同じ色が3つ並ぶと消えます。',
-    doneE:'そろった！<br>いま きみは <b>「じゅんび」の わざ</b>を つかったよ。<br>たまを そろえて 消す＝<b>わざを つかう</b>、ということ。',
-    doneF:'そろいました。<br>いま使ったのは <b>「リソース管理（じゅんび）」の方略</b>です。<br>ドロップをそろえて消す＝<b>方略を使う</b>、ということ。' },
+    doneE:'そろった！<br>いま きみは <b>「どうぐ」の わざ</b>を つかったよ。<br>たまを そろえて 消す＝<b>わざを つかう</b>、ということ。',
+    doneF:'そろいました。<br>いま使ったのは <b>「リソース管理（どうぐ）」の方略</b>です。<br>ドロップをそろえて消す＝<b>方略を使う</b>、ということ。' },
   { rows:3, cols:5,
     grid:[[0,0,1,3,4],[1,1,0,2,3],[4,2,1,0,2]],
     from:{r:1,c:2}, to:{r:0,c:2},
@@ -1110,7 +1260,7 @@ function paintTuto(){
 function buildTuto(){
   const t=TUTO[G.tutoStep];
   const stage=document.getElementById('stage');
-  TCELL=Math.floor((Math.min(stage.clientWidth,460)-40)/t.cols);
+  TCELL=Math.floor((Math.min(stage.clientWidth,460)-(window.innerWidth<=520?56:40))/t.cols);
   tutoBoard.style.width=(TCELL*t.cols)+'px'; tutoBoard.style.height=(TCELL*t.rows)+'px';
   tutoBoard.innerHTML=''; tutoBoard.dataset.built='1';
   G.tGrid=t.grid.map(r=>r.slice()); G.tEls=[]; G.tBusy=false; G.tHeld=null;
@@ -1159,7 +1309,7 @@ tutoBoard.addEventListener('pointermove',e=>{
   G.tEls[p.r][p.c].style.zIndex=20;
   G.tHeld=p; SFX.swap(); e.preventDefault();
 });
-['pointerup','pointercancel','pointerleave'].forEach(ev=>tutoBoard.addEventListener(ev,()=>{
+['pointerup','pointercancel'].forEach(ev=>tutoBoard.addEventListener(ev,()=>{
   if(!G.tHeld) return;
   const el=G.tEls[G.tHeld.r][G.tHeld.c]; if(el){ el.classList.remove('held'); el.style.zIndex=''; }
   G.tHeld=null; checkTuto();
@@ -1187,14 +1337,19 @@ function paintGoal(){
   document.getElementById('goalPhase').textContent=E('見とおす','見通す');
   document.getElementById('goalTtl').textContent=E('きょうは、どんな 学びに したい？','きょうは、どんな学びにしたい？');
   document.getElementById('goalLead').innerHTML=
-    E(`えらんだ わざが <b>${WORD.leader()}</b>に なるよ。<br>おなじ なかまの たまが <b>1.5ばい つよく</b>なる。`,
-      `選んだ方略が <b>${WORD.leader()}</b>になります。<br>同じカテゴリーのドロップの ${WORD.power()} が <b>1.5倍</b> になります。`);
+    E(`めあてを えらぶと、その わざの <b>なかまが リーダー</b>に なって、たたかいの あいだ ずっと そばに いるよ。<br>リーダーの なかまの たまは <b>1.5ばい つよく</b>なる。`,
+      `めあてを選ぶと、その方略の<b>なかまがリーダー</b>になり、バトルのあいだ画面に表示されます。<br>リーダーのなかまのドロップは <b>1.5倍</b> になります。`);
   const box=document.getElementById('goalList'); box.innerHTML='';
   GOALS.forEach(g=>{
+    const ci=CI[CARD[g.card].cat];
     const b=document.createElement('button'); b.className='cardbtn';
-    b.innerHTML=`<span class="goalq">「${E(g.easy,g.full)}」</span>`+cardInner(g.card);
+    b.innerHTML=`<span style="display:flex;align-items:flex-start;gap:9px">
+      <span style="width:46px;flex:0 0 auto;text-align:center" data-sp="1">
+        <span style="display:block;font-size:9px;color:${CATS[ci].color};margin-top:1px">${CATS[ci].chara}</span></span>
+      <span style="flex:1;min-width:0"><span class="goalq">「${E(g.easy,g.full)}」</span>${cardInner(g.card)}</span></span>`;
     b.addEventListener('click',()=>{ SFX.confirm(); G.leaderKey=g.card; G.leaderCat=CARD[g.card].cat; startDeck(); });
     box.appendChild(b);
+    b.querySelector('[data-sp]').prepend(charaSprite(ci,44));
   });
 }
 
@@ -1207,7 +1362,9 @@ function startDeck(){
 function paintDeck(){
   document.getElementById('deckPhase').textContent=E('見とおす','見通す');
   document.getElementById('deckTtl').textContent=E(`きょう もっていく 5つの わざ`,'きょう持っていく5つの方略');
-  document.getElementById('deckLead').textContent=E('それぞれの 色の たまが、この わざに なるよ。','それぞれの色のドロップが、この方略にあたります。');
+  document.getElementById('deckLead').innerHTML=E(
+    'ばんめんの <b>たまを けす</b> と、その色の <b>なかま</b>が、もっている <b>わざを つかう</b>。<br>きょう もっていく わざは この5つ。',
+    '盤面の<b>ドロップを消す</b>と、その色の<b>なかま</b>が、持っている<b>方略を使います</b>。<br>きょう持っていく方略はこの5つ。');
   document.getElementById('btnDeckGo').textContent=E('▶ クエストへ','▶ クエストへ');
   const box=document.getElementById('deckList'); box.innerHTML='';
   CATS.forEach(cat=>{
@@ -1215,36 +1372,67 @@ function paintDeck(){
     const choices=unlockedOf(cat.key);
     const canSwap=!isLeader && choices.length>1;
     const d=document.createElement(canSwap?'button':'div'); d.className='cardbtn'+(isLeader?' sel':'');
-    d.innerHTML=`<span style="display:flex;align-items:flex-start;gap:9px">
+    d.innerHTML=`<span style="display:flex;align-items:center;gap:5px">
+        <span style="flex:0 0 auto;text-align:center" data-drop="1">
+          <span style="display:block;font-size:8px;color:#8d95bd;margin-top:1px">${E('たま','ドロップ')}</span></span>
+        <span style="flex:0 0 auto;color:#7d85ad;font-size:13px">▶</span>
         <span style="width:46px;flex:0 0 auto;text-align:center" data-icon="1">
           <span style="display:block;font-size:9px;color:${cat.color};margin-top:1px">${cat.chara}</span></span>
-        <span style="flex:1;min-width:0">${cardInner(G.deck[cat.key])}
+        <span style="flex:1;min-width:0;padding-left:3px">${cardInner(G.deck[cat.key])}
         <span class="cofficial" style="color:#c3c9e8">${cat.hint}${isLeader?`　<b style="color:#ffd54a">◆${WORD.leader()}</b>`
           :(canSwap?`　<b style="color:#7DD3E8">${E('タップで 入れかえ','タップで入れかえ')}（${choices.length}）</b>`:'')}</span></span></span>`;
     if(canSwap) d.addEventListener('click',()=>{ SFX.confirm();
       const cur=choices.indexOf(G.deck[cat.key]); G.deck[cat.key]=choices[(cur+1)%choices.length]; paintDeck(); });
     box.appendChild(d);
     d.querySelector('[data-icon]').prepend(charaSprite(CI[cat.key],44));
+    const dc=dropCanvas(CI[cat.key],32); dc.style.borderRadius='7px';
+    d.querySelector('[data-drop]').prepend(dc);
   });
 }
-document.getElementById('btnDeckGo').addEventListener('click',()=>{ SFX.confirm(); G.eIndex=0; G.pHp=G.pMax; startGuess(); });
+/* きょう出会う3体を選び、その3体が合体したボスをさいごに置く */
+function buildFoes(){
+  const idx=FOES.map((f,i)=>i);
+  for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [idx[i],idx[j]]=[idx[j],idx[i]]; }
+  const three=idx.slice(0,3).map(i=>FOES[i]);
+  G.bossWeaks=three.map(f=>f.weak);
+  G.foes=three.concat([BOSS]);
+}
+document.getElementById('btnDeckGo').addEventListener('click',()=>{ SFX.confirm(); buildFoes(); G.eIndex=0; G.pHp=G.pMax; startGuess(); });
 
 /* ============================================================ ③どれがきくかな？ ============================================================ */
-function startGuess(){
-  const e=ENEMIES[G.eIndex]; G.enemy=e; G.eHp=e.hp; G.guessCat=null; G.guessHit=false; G.turn=0;
+function startGuess(shift){
+  const base=G.foes[G.eIndex];
+  if(!shift){ G.eHp=base.hp; G.bossPhase=0; }
+  if(base.boss){
+    const w=G.bossWeaks[Math.min(G.bossPhase,G.bossWeaks.length-1)];
+    G.enemy=Object.assign({},base,{weak:w, whyE:CATWHY[w].e, whyF:CATWHY[w].f});
+    /* つぎに段階が変わるHP。3段階で分ける。 */
+    const step=base.hp/G.bossWeaks.length;
+    G.bossNext = (G.bossPhase+1<G.bossWeaks.length) ? base.hp-step*(G.bossPhase+1) : -1;
+  }else{ G.enemy=base; G.bossNext=-1; }
+  G.guessCat=null; G.guessHit=false; G.turn=0;
   paintGuess(false); SFX.appear(); show('scGuess');
 }
 function paintGuess(keep){
   const e=G.enemy;
   document.getElementById('guessPhase').textContent=E('見とおす','見通す');
-  document.getElementById('guessTtl').textContent=E(`${G.eIndex+1}つめの つまずきが あらわれた！`,`${G.eIndex+1}つめのつまずきがあらわれた！`);
+  const isBoss=!!e.boss, ph=G.bossPhase+1, phN=G.bossWeaks.length;
+  document.getElementById('guessTtl').textContent = isBoss
+    ? (G.bossPhase>0 ? E(`ようすが かわった！（${ph}／${phN}）`,`ようすが変わった！（${ph}／${phN}）`)
+                     : E('さいごの つまずきが あらわれた！','さいごのつまずきがあらわれた！'))
+    : E(`${G.eIndex+1}つめの つまずきが あらわれた！`,`${G.eIndex+1}つめのつまずきがあらわれた！`);
   const sp=document.getElementById('guessSprite'); sp.innerHTML='';
   sp.appendChild(monSprite(e.spr,e.spr,72));
   document.getElementById('guessWho').textContent=e.name;
-  document.getElementById('guessSerif').textContent=`「${e.serif}」`;
-  document.getElementById('guessLead').innerHTML=
-    E(`この つまずきに、どの なかまの わざが きくかな？<br>あたると、その なかまが <b>1.5ばい つよく</b>なるよ。まちがえても へらないよ。`,
-      `このつまずきには、どの${WORD.cat()}の方略が効きそう？<br>あてはまると、その${WORD.cat()}の ${WORD.power()} が <b>1.5倍</b> になります。外れても減点はありません。`);
+  document.getElementById('guessSerif').textContent =
+    (isBoss && G.bossPhase>0)
+      ? E('「まだ おわらないぞ。こんどは ちがう ところが よわいぞ。」','「まだ終わらないぞ。こんどは、ちがうところが弱いぞ。」')
+      : `「${e.serif}」`;
+  document.getElementById('guessLead').innerHTML = isBoss
+    ? E(`いろんな つまずきが まざった すがた。<br><b>とちゅうで よわい ところが ${phN}かい かわる</b>。そのたびに 見なおそう。<br>あたると、その なかまが <b>1.5ばい つよく</b>なるよ。`,
+        `いろいろなつまずきが混ざった姿です。<br><b>途中で弱点が${phN}回変わります。</b>そのたびに見立て直しましょう。<br>あてはまると、その${WORD.cat()}の ${WORD.power()} が <b>1.5倍</b> になります。`)
+    : E(`この つまずきに、どの なかまの わざが きくかな？<br>あたると、その なかまが <b>1.5ばい つよく</b>なるよ。まちがえても へらないよ。`,
+        `このつまずきには、どの${WORD.cat()}の方略が効きそう？<br>あてはまると、その${WORD.cat()}の ${WORD.power()} が <b>1.5倍</b> になります。外れても減点はありません。`);
   document.getElementById('btnGuessGo').textContent=E('▶ パズルへ','▶ パズルへ');
   const grid=document.getElementById('guessGrid'); grid.innerHTML='';
   CATS.forEach(cat=>{
@@ -1285,9 +1473,15 @@ document.getElementById('btnGuessGo').addEventListener('click',()=>{ SFX.confirm
 /* ============================================================ ④バトル ============================================================ */
 const boardWrap=document.getElementById('boardWrap');
 let CELL=56;
+/* 盤面の左右に、指1本ぶんの余白を必ず残す。
+   iOSの「スワイプで戻る」は画面のふち約20pxから始まるので、
+   いちばん左（右）のたまが そこに重ならないようにする。 */
+const EDGE_SAFE=26;
 function layoutBoard(){
   const stage=document.getElementById('stage');
-  CELL=Math.floor((Math.min(stage.clientWidth,460)-12)/COLS);
+  const w=Math.min(stage.clientWidth,460);
+  const pad = (window.innerWidth<=520) ? EDGE_SAFE*2 : 12;   /* スマホのときだけ余白を大きく */
+  CELL=Math.floor((w-Math.max(12,pad))/COLS);
   boardWrap.style.width=(CELL*COLS)+'px'; boardWrap.style.height=(CELL*ROWS)+'px';
 }
 function startBattle(){
@@ -1307,6 +1501,13 @@ function paintBattle(){
     : E('たまを つかむと 7びょうの タイマーが はじまるよ','ドロップをつかむと7秒のタイマーがはじまります');
   if(G.els.length) refreshDropArt();
   if(!G.held) clearGrabName();
+  /* リーダーのなかまを常駐表示 */
+  const lb=document.getElementById('leaderBadge'); lb.innerHTML='';
+  const lc=CI[G.leaderCat];
+  lb.appendChild(charaSprite(lc,34));
+  const t=document.createElement('span'); t.className='lb';
+  t.innerHTML='◆リーダー<br><b style="color:'+CATS[lc].color+';font-size:11px">'+CATS[lc].chara+'</b>';
+  lb.appendChild(t);
 }
 function buildDeckBar(){
   const bar=document.getElementById('deckBar'); bar.innerHTML='';
@@ -1328,6 +1529,34 @@ function cheerChip(ci){
   const d=document.querySelector('#deckBar .dchip[data-ci="'+ci+'"]'); if(!d) return;
   d.classList.remove('hop'); void d.offsetWidth; d.classList.add('hop');
 }
+/* あわせわざ！ 関わったなかまの顔をならべて倍率を見せる（コンボとキャラの関係を直接つなぐ） */
+function showMixBanner(cis,mul){
+  const el=document.getElementById('mixBanner'); el.innerHTML='';
+  cis.forEach((ci,k)=>{
+    if(k){ const pl=document.createElement('span'); pl.textContent='＋'; pl.style.cssText='color:#fff;font-size:15px'; el.appendChild(pl); }
+    const w=document.createElement('span'); w.style.cssText='display:inline-flex;flex-direction:column;align-items:center';
+    w.appendChild(charaSprite(ci,38));
+    const n=document.createElement('span'); n.style.cssText='font-size:8.5px;color:'+CATS[ci].color; n.textContent=CATS[ci].chara; w.appendChild(n);
+    el.appendChild(w);
+    cheerChip(ci);
+  });
+  const mx=document.createElement('span'); mx.className='mx';
+  mx.innerHTML=E('あわせわざ！','組み合わせ！')+'<br><b style="font-size:24px">×'+mul+'</b>';
+  el.appendChild(mx);
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),1500);
+  const em=document.getElementById('eMid'); em.classList.remove('flash'); void em.offsetWidth; em.classList.add('flash');
+  SFX.mix(cis.length);
+}
+/* たくさん消えたとき、大きな文字でよろこぶ */
+function showBigClear(n){
+  const mb=document.getElementById('mixBanner'); mb.classList.remove('show'); clearTimeout(mb._t);
+  const el=document.getElementById('bigClear');
+  el.textContent=E(n+'こ 同時に けした！',n+'個 同時に消した！');
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  SFX.bigclear();
+}
+
 /* その手で いちばん はたらいた なかまが 出てきて ひとこと言う */
 function charaCutIn(ci){
   const cat=CATS[ci], el=document.getElementById('charaCut');
@@ -1391,7 +1620,11 @@ boardWrap.addEventListener('pointermove',e=>{
   if(Math.abs(p.r-G.held.r)>1||Math.abs(p.c-G.held.c)>1) return;
   swapCells(G.held,p); G.held=p; SFX.swap(); e.preventDefault();
 });
-['pointerup','pointercancel','pointerleave'].forEach(ev=>boardWrap.addEventListener(ev,()=>{ if(G.held) release(); }));
+/* pointerleave は、指が盤面の外へ少しはみ出しただけで発火してしまい、
+   iPhoneでは「動かしている途中で手が離れた」ことになる。捕捉しているので外さない。 */
+['pointerup','pointercancel'].forEach(ev=>boardWrap.addEventListener(ev,()=>{ if(G.held) release(); }));
+/* 指が画面の外へ出たときだけ、確実に離す */
+window.addEventListener('blur',()=>{ if(G.held) release(); });
 function cellAt(e){
   const b=boardWrap.getBoundingClientRect();
   const c=Math.floor((e.clientX-b.left)/CELL), r=Math.floor((e.clientY-b.top)/CELL);
@@ -1442,13 +1675,14 @@ function findMatches(){ return matchesOf(G.grid,ROWS,COLS); }
 
 async function resolveBoard(){
   G.busy=true;
-  let combo=0, moveDmg=0, moveCats={};
+  let combo=0, moveDmg=0, moveCats={}, moveCleared=0;
   const comboEl=document.getElementById('comboTxt'), dmgEl=document.getElementById('dmgTxt');
   while(true){
     const groups=findMatches(); if(!groups.length) break;
     const distinct=new Set(groups.map(g=>g.ci)).size;
     const mixMul = distinct>=4?2.0 : distinct>=3?1.5 : 1.0;
-    if(distinct>=3) G.rec.mixCount++;
+    if(distinct>=3){ G.rec.mixCount++; showMixBanner([...new Set(groups.map(g=>g.ci))],mixMul); }
+    moveCleared+=groups.reduce((a,g)=>a+g.cells.length,0);
     for(const g of groups){
       combo++;
       const cat=CATS[g.ci].key, n=g.cells.length;
@@ -1463,9 +1697,11 @@ async function resolveBoard(){
       G.rec.catUse[cat]=(G.rec.catUse[cat]||0)+1;
       cheerChip(g.ci);
       SFX.combo(combo);
-      comboEl.textContent=`${combo} コンボ`+(mixMul>1?E(`　いろいろ ×${mixMul}`,`　組み合わせ ×${mixMul}`):'');
+      comboEl.textContent=`${combo} コンボ`;
+      comboEl.style.fontSize=Math.min(44,22+combo*2.5)+'px';
+      comboEl.style.color = combo>=5 ? '#ffd54a' : '#fff';
       comboEl.style.transition='none'; comboEl.style.opacity='1';
-      setTimeout(()=>{ comboEl.style.transition='opacity .5s'; comboEl.style.opacity='0'; },260);
+      setTimeout(()=>{ comboEl.style.transition='opacity .5s'; comboEl.style.opacity='0'; },300);
       g.cells.forEach(([r,c])=>{ const el=G.els[r][c]; if(el){ el.classList.add('pop'); setTimeout(()=>el.remove(),240);} G.els[r][c]=null; G.grid[r][c]=-1; });
       await sleep(150);
     }
@@ -1476,10 +1712,12 @@ async function resolveBoard(){
     G.rec.moves++; G.rec.total+=moveDmg;
     const cats=Object.keys(moveCats).sort((a,b)=>moveCats[b]-moveCats[a]);
     if(cats.length>=2&&moveDmg>G.rec.bestMixDmg){ G.rec.bestMixDmg=moveDmg; G.rec.bestMix=[cats[0],cats[1]]; }
+    if(moveCleared>=8) showBigClear(moveCleared);
     charaCutIn(CI[cats[0]]);
     dmgEl.textContent=E(`${moveDmg} ダメージ`,`${moveDmg} ダメージ`);
+    dmgEl.style.fontSize=Math.min(34,17+Math.round(moveDmg/60))+'px';
     dmgEl.style.transition='none'; dmgEl.style.opacity='1';
-    setTimeout(()=>{ dmgEl.style.transition='opacity .8s'; dmgEl.style.opacity='0'; },700);
+    setTimeout(()=>{ dmgEl.style.transition='opacity .8s'; dmgEl.style.opacity='0'; },900);
     SFX.hit();
     const em=document.getElementById('eMid'); em.classList.add('shake'); setTimeout(()=>em.classList.remove('shake'),320);
     G.eHp-=moveDmg; updateHp();
@@ -1488,9 +1726,21 @@ async function resolveBoard(){
   }
   await sleep(400);
   if(G.eHp<=0){ onEnemyDown(); return; }
+  if(G.enemy.boss && G.bossNext>=0 && G.eHp<=G.bossNext){ await bossShift(); return; }
   G.turn++;
   if(moveDmg>0&&G.turn%2===0) await enemyTurn();
   G.busy=false;
+}
+/* ボスの段階が変わる：みたてをやり直す（HPは減ったまま引きつぐ） */
+async function bossShift(){
+  stopTimer(); G.busy=true;
+  const el=document.getElementById('bigClear');
+  el.textContent=E(G.enemy.shiftE,G.enemy.shiftF);
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  SFX.appear();
+  document.getElementById('eSerif').textContent=`${G.enemy.name}「${E('まだ おわらないぞ','まだ終わらないぞ')}」`;
+  await sleep(1400);
+  G.bossPhase++; startGuess(true); G.busy=false;
 }
 function applyGravity(){
   for(let c=0;c<COLS;c++){
@@ -1526,20 +1776,20 @@ function onEnemyDown(){
   document.getElementById('eSerif').textContent=E(`${G.enemy.name}は しずかに 消えていった`,`${G.enemy.name}はしずかに消えていった`);
   setTimeout(()=>{
     G.eIndex++;
-    if(G.eIndex<ENEMIES.length){ startGuess(); G.busy=false; } else { startLook(); }
+    if(G.eIndex<G.foes.length){ startGuess(); G.busy=false; } else { startLook(); }
   },1200);
 }
 
 /* ============================================================ ⑤振り返り ============================================================ */
 function startLook(){
   const r=G.rec, hits=r.guesses.filter(g=>g.hit).length;
-  const pts = hits*30 + r.mixCount*15 + r.maxCombo*4 + ENEMIES.length*10 + G.pHp*5;
+  const pts = hits*30 + r.mixCount*15 + r.maxCombo*4 + G.foes.length*10 + G.pHp*5;
   G.result={ points:pts, hits, mixes:r.mixCount, maxCombo:r.maxCombo,
     parts:[
       {k:E('みたてが あたった','みたてが的中'), n:hits, per:30},
       {k:E('3つ いじょう いっしょに','3種類以上を同時に'), n:r.mixCount, per:15},
       {k:E('いちばん ながい コンボ','最大コンボ'), n:r.maxCombo, per:4},
-      {k:E('たおした つまずき','たおしたつまずき'), n:ENEMIES.length, per:10},
+      {k:E('たおした つまずき','たおしたつまずき'), n:G.foes.length, per:10},
       {k:E('のこった げんき','のこったげんき'), n:G.pHp, per:5},
     ],
     stampTitles:[], useCount:Object.assign({},r.catUse) };
@@ -1553,7 +1803,7 @@ function paintLook(){
   document.getElementById('lookBarsTtl').textContent=E('なかま べつの はたらき','カテゴリー別のはたらき');
   document.getElementById('lookPickTtl').textContent=E('つぎに つかって みたい わざを 1つ','つぎに使ってみたい方略を1つ');
   document.getElementById('lookStats').innerHTML=`
-    <div class="stat"><span>${E('たおした つまずき','たおしたつまずき')}</span><b>${ENEMIES.length} / ${ENEMIES.length}</b></div>
+    <div class="stat"><span>${E('たおした つまずき','たおしたつまずき')}</span><b>${G.foes.length} / ${G.foes.length}</b></div>
     <div class="stat"><span>${E('いちばん ながい コンボ','いちばん長いコンボ')}</span><b>${rec.maxCombo} コンボ</b></div>
     <div class="stat"><span>${E('3つ いじょうを いっしょに つかえた かず','3つ以上を同時につかえた回数')}</span><b>${rec.mixCount} ${E('かい','回')}</b></div>
     <div class="stat"><span>${E('よそうが あたった かず','みたてがあたった回数')}</span><b>${hits} / ${rec.guesses.length}</b></div>
@@ -1578,8 +1828,26 @@ function paintLook(){
     + E(`1つの わざだけを くりかえすより、いくつかの わざを あわせた ときのほうが 大きく はたらいたね（3つ いじょう いっしょ：${rec.mixCount}かい）。<br>ほんとうの 学びでも、わざは あわせて つかうと 力が 出るよ。`,
         `1つの方略だけをくり返すより、いくつかの方略を組み合わせたときのほうが大きくはたらきました（3つ以上を同時に：${rec.mixCount}回）。<br>ほんとうの学びでも、方略は組み合わせて使うと力を発揮します。`)
     + `</span>`;
+  /* きょう あまり つかわなかった なかま／まだスタンプのない方略を優先して4枚すすめる。
+     えらんだ1枚は その場で「もちもの」に開くので、46枚すべてに手が届く。 */
+  const sv0=normSave(loadSave());
+  const inDeck={}; CATS.forEach(c=>{ inDeck[G.deck[c.key]]=1; });
+  const lowUse=CATS.map(c=>({k:c.key,v:rec.catUse[c.key]||0})).sort((a,b)=>a.v-b.v).slice(0,2).map(o=>o.k);
+  const cand=Object.keys(CARD).filter(k=>!inDeck[k]).map((k,i)=>{
+    const c=CARD[k]; let sc=0;
+    if(sv0.dex[c.title]) sc+=100;                       /* もう持っている札は後回し */
+    if(lowUse.indexOf(c.cat)<0) sc+=20;                 /* きょう出番の少なかったなかまを優先 */
+    if(c.phase!=='振り返る') sc+=6;                     /* ふりかえりの場面に合う札を少し優先 */
+    return {k,sc:sc+Math.random()*5};
+  }).sort((a,b)=>a.sc-b.sc);
+  const seenCat={}, four=[];
+  cand.forEach(o=>{ const c=CARD[o.k].cat;
+    if(four.length<4 && (seenCat[c]||0)<2){ four.push(o.k); seenCat[c]=(seenCat[c]||0)+1; } });
+  document.getElementById('lookPickNote').innerHTML=E(
+    'きょう あまり 出番の なかった なかまを 中心に すすめているよ。えらんだ わざは、つぎの クエストの「もちもの」で つかえるよ。',
+    'きょう出番の少なかったカテゴリーを中心にすすめています。えらんだ方略は、次のクエストの「もちもの」で使えます。');
   const pick=document.getElementById('lookPick'); pick.innerHTML='';
-  ['次に活かす','学び方見直し','やり方成果','満足'].forEach(k=>{
+  four.forEach(k=>{
     const b=document.createElement('button'); b.className='cardbtn'; b.innerHTML=cardInner(k);
     b.addEventListener('click',()=>{ SFX.confirm(); G.pickKey=k; startEnd(); });
     pick.appendChild(b);
@@ -1593,6 +1861,7 @@ function startEnd(){
   CATS.forEach(c=>t.add(CARD[G.deck[c.key]].title));
   t.add(CARD[G.leaderKey].title); t.add(CARD[G.pickKey].title);
   G.result.stampTitles=[...t];
+  G.result.pickKey=G.pickKey;
   G.applied=applyResult(G.result);
   if(G.applied.levelUp) SFX.victory(); else SFX.confirm();
   paintEnd(); show('scEnd');
@@ -1604,6 +1873,13 @@ function paintEnd(){
     ? E('レベルアップ！','レベルアップ！') : E('きょうの わざ、<br>手に 入れた！','きょうの方略、<br>手に入れた！');
   document.getElementById('btnAgain').textContent=E('↻ もういちど','↻ もういちど');
   document.getElementById('btnEndDex').textContent=E('📖 ずかんを 見る','📖 図鑑を見る');
+  document.getElementById('shareLead').innerHTML=E(
+    'きょうの きろくを コピーして、つたえて みよう。',
+    'きょうの記録をコピーして、伝えてみましょう。');
+  document.getElementById('btnCopySns').textContent=E('📋 SNSに のせる','📋 SNSにのせる');
+  document.getElementById('btnCopyHome').textContent=E('📋 おうちの人・先生に おくる','📋 おうちの人・先生におくる');
+  document.getElementById('shareMsg').textContent='';
+  document.getElementById('shareArea').style.display='none';
 
   const spWrap=document.getElementById('endSprite'); spWrap.innerHTML='';
   spWrap.appendChild(monSprite(L.sp,'sp',A.levelUp?104:84));
@@ -1637,6 +1913,12 @@ function paintEnd(){
       html+=`<div style="margin-top:6px">${chip(g.cat)}${G.easy?g.easy:g.title}<br><span style="font-size:9.5px;color:#98a0c8">${g.title}</span></div>`; });
     html+=`<div class="rsub" style="margin-top:6px">${E('つぎの クエストの「もちもの」で えらべるよ。','次のクエストの「もちもの」で選べます。')}</div></div>`;
   }
+  if(A.picked){
+    const g=CARD[A.picked];
+    html+=`<div class="reward"><b>🗝 ${E('えらんだ わざが つかえるように なった！','えらんだ方略が使えるようになりました！')}</b>
+      <div style="margin-top:6px">${chip(g.cat)}${G.easy?g.easy:g.title}<br><span style="font-size:9.5px;color:#98a0c8">${g.title}</span></div>
+      <div class="rsub" style="margin-top:6px">${E('つぎの クエストの「もちもの」で えらべるよ。','次のクエストの「もちもの」で選べます。')}</div></div>`;
+  }
   if(A.newTitles.length){
     html+=`<div class="reward"><b>🏅 ${E('しょうごうを もらった！','称号をもらった！')}</b>`;
     A.newTitles.forEach(t=>{ html+=`<div style="margin-top:6px"><span class="rttl">${t.name}</span><br><span class="rsub">${E(t.noteE,t.noteF)}</span></div>`; });
@@ -1662,10 +1944,10 @@ function paintEnd(){
 function paintDex(){
   const sv=normSave(loadSave()), got=Object.keys(sv.dex).length;
   document.getElementById('dexTtl').textContent=E('ほうりゃく ずかん','方略ずかん');
-  const OBTAINABLE=Object.keys(CARD).length;
+  const OBTAINABLE=Object.keys(CARD).length, OPENED=openTotal(sv);
   document.getElementById('dexLead').innerHTML=E(
-    'クエストで つかった わざに スタンプが つくよ。ぜんぶで 46まい。<br><span style="font-size:10px">いまの版で 手に入るのは '+OBTAINABLE+'まい。のこりは これから ふえていくよ。</span>',
-    'クエストで使った方略にスタンプがつきます。全部で46枚。<br><span style="font-size:10px">この版で入手できるのは '+OBTAINABLE+'枚。残りは今後の版で追加します。</span>');
+    'クエストで つかった わざに スタンプが つくよ。ぜんぶで '+OBTAINABLE+'まい、<b>ぜんぶ 手に入るよ</b>。<br><span style="font-size:10px">いま えらべるのは '+OPENED+'まい。レベルが 上がると ふえる。ふりかえりで えらんだ わざも すぐ ふえるよ。</span>',
+    'クエストで使った方略にスタンプがつきます。全'+OBTAINABLE+'枚、<b>すべて入手できます</b>。<br><span style="font-size:10px">いま選べるのは '+OPENED+'枚。レベルが上がると増えます。振り返りで選んだ方略もその場で増えます。</span>');
   document.getElementById('dexGridTtl').textContent=E('46まいの わざ','46枚の方略');
   document.getElementById('dexPalTtl').textContent=E('5つの なかま','5つのなかま');
   document.getElementById('dexTitleTtl').textContent=E('しょうごう','称号');
@@ -1734,8 +2016,63 @@ paintToggle(); paintBgmBtn(); paintTitle();
 document.addEventListener('pointerdown',function once(){ ac(); BGM.play(bgmFor(current()));
   document.removeEventListener('pointerdown',once); },{once:false});
 
+/* ============================================================
+   iPhone（iOS Safari）対策
+   ------------------------------------------------------------
+   CEO報告：パズル中に画面ごと動いてしまい、別の画面に変わってゲームが止まる。
+   原因は3つ考えられるので、3つとも塞ぐ。
+     ①指で盤面をなぞると、ページそのものがスクロールしてしまう
+        → たまをつかんでいるあいだ、touchmove を全部止める（passive:false でないと効かない）
+     ②画面の左右のふちから指を滑らせると、Safariが「前のページへ戻る」を実行する
+        → ふちに透明な帯を置き、そこから始まった指の動きを受け止める
+        → あわせて、盤面自体をふちから26px離す（layoutBoard）
+     ③2本指や2回たたきで拡大してしまう
+        → gesturestart と、素早い2回たたきを止める
+   ============================================================ */
+(function(){
+  const held=()=>!!(G.held||G.tHeld);
+
+  /* ① つかんでいるあいだは、ページを1ミリも動かさない */
+  document.addEventListener('touchmove',function(e){
+    if(held()) e.preventDefault();
+  },{passive:false});
+
+  /* 盤面の上では、つかんでいなくてもスクロールさせない。
+     touchstart は止めない（止めると指の捕捉と噛み合わなくなることがある）。 */
+  [boardWrap,tutoBoard].forEach(function(el){
+    if(!el) return;
+    el.addEventListener('touchmove',function(e){ e.preventDefault(); },{passive:false});
+  });
+
+  /* ② 画面のふち：ここから始まった指の動きは、ぜんぶ受け止めて捨てる */
+  ['edgeL','edgeR'].forEach(function(id){
+    const g=document.getElementById(id); if(!g) return;
+    ['touchstart','touchmove','touchend'].forEach(function(ev){
+      g.addEventListener(ev,function(e){ e.preventDefault(); e.stopPropagation(); },{passive:false});
+    });
+  });
+  /* 帯を出すのは、指でたまを動かす画面のときだけ（ボタンの邪魔をしないため） */
+  window.setEdgeGuard=function(on){
+    ['edgeL','edgeR'].forEach(function(id){
+      const g=document.getElementById(id); if(g) g.classList.toggle('on',!!on);
+    });
+  };
+
+  /* ③ 拡大させない */
+  ['gesturestart','gesturechange','gestureend'].forEach(function(ev){
+    document.addEventListener(ev,function(e){ e.preventDefault(); },{passive:false});
+  });
+  /* 2回たたきの拡大は、html/body の touch-action:manipulation が止める。
+     touchend を preventDefault すると、続けてボタンを押したときに反応しなくなるので しない。 */
+
+  /* 画面が切り替わったら、つかみっぱなしを解除する（保険） */
+  document.addEventListener('visibilitychange',function(){
+    if(document.hidden && G.held) release();
+  });
+})();
+
 /* ---------- テスト用フック（Playwright検証で使用） ---------- */
-window.__PZ={G,CATS,CARD,TUTO,LEVELS,TITLES,DEX,BGM,TRACKS,findMatches,matchesOf,resolveBoard,loadSave,putSave,normSave,levelOf,forgetTuto,markTutoSeen,
+window.__PZ={G,CATS,CARD,TUTO,LEVELS,TITLES,DEX,BGM,TRACKS,FOES,BOSS,POOL,CATWHY,recordText,unlockedOf,autoOpen,openTotal,findMatches,matchesOf,resolveBoard,loadSave,putSave,normSave,levelOf,forgetTuto,markTutoSeen,
   setGrid(rows){ rows.forEach((row,r)=>row.forEach((v,c)=>{ G.grid[r][c]=v; const old=G.els[r][c]; if(old) old.remove(); G.els[r][c]=makeDropEl(v); })); renderAll(); },
   forceResolve(){ return resolveBoard(); },
   solveTuto(){ const t=TUTO[G.tutoStep], a=t.from, b=t.to;
