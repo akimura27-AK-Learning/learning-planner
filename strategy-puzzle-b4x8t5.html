@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="description" content="学びのつまずきに、自己調整学習の方略を組み合わせてぶつけるパズルゲーム。遊ぶ前に見立て、遊んだ後にふり返ります。">
+<!-- ホーム画面に追加して起動したときだけ全画面になる（Safariで普通に開くときは何も変わらない） -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="方略パズル">
 <title>方略パズル ｜ AK-Learning</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Zen+Maru+Gothic:wght@700;900&display=swap" rel="stylesheet">
@@ -210,7 +215,7 @@ button.skip{background:transparent;border:2px solid #4b5484;box-shadow:none;font
 <body>
 <div id="stage">
   <button id="bgmToggle" title="おんがく">♪</button>
-  <button id="wordToggle" class="easy">あa やさしいことば</button>
+  <button id="wordToggle">漢 くわしいことば</button>
 
   <!-- タイトル -->
   <div class="edgeguard" id="edgeL"></div>
@@ -918,7 +923,7 @@ function roundRect(g,x,y,w,h,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x
 /* ============================================================ 状態 ============================================================ */
 const ROWS=5, COLS=6, TIME_LIMIT=7000;
 const G={
-  easy:true, mode:'normal',
+  easy:false, mode:'normal',   /* はじめは「くわしいことば」。右上のボタンで「やさしいことば」に変わる（CEO指示 2026-08-25） */
   leaderKey:null, leaderCat:null, deck:{},
   eIndex:0, enemy:null, eHp:0, pHp:5, pMax:5,
   foes:[], bossWeaks:[], bossPhase:0, bossNext:-1,
@@ -2012,9 +2017,46 @@ bgmBtn.addEventListener('click',()=>{ ac(); SFX.confirm(); BGM.setOn(!BGM.on); p
   BGM.on = (sv.bgm===undefined) ? true : !!sv.bgm;   // はじめは鳴る。消したら覚える
 }
 paintToggle(); paintBgmBtn(); paintTitle();
-/* ブラウザの決まりで、最初に画面をさわるまで音は鳴らせない。1回だけ待ち受ける */
-document.addEventListener('pointerdown',function once(){ ac(); BGM.play(bgmFor(current()));
-  document.removeEventListener('pointerdown',once); },{once:false});
+/* ============================================================
+   音を鳴らしはじめる仕掛け（iPhone対策）
+   ------------------------------------------------------------
+   CEO報告（2026-08-25）：iPhoneで音が鳴らない。
+     ①ブラウザの決まりで、最初に画面をさわるまで音は鳴らせない
+        → さわられたら AudioContext を resume する。
+          iPhoneはさわり方で届くできごとが変わるので、3種類とも待ち受け、
+          一度きりにせず残しておく（1回目で鳴らなくても次のタップで試す）
+     ②本体側面の消音スイッチ（マナーモード）が入っているときは、
+        **すべての音が鳴らない**のが正しい動き（CEO決定 2026-08-25）。
+        乗り物の中などで使うことを考えて、消音スイッチを尊重する。
+        ＝WebAudioの音は「環境音」の扱いのままにしておく。
+          消音でも鳴らす小細工（無音の音声を流し続ける方法）は
+          いったん入れたが、この決定により取り外した。
+     ③ホーム画面に戻ってからまた開くと、音が止まったままになることがある
+        → 画面が戻ったときにもう一度かけ直す
+   ============================================================ */
+(function(){
+  function restart(){
+    if(!BGM.on) return;
+    const n=bgmFor(current());
+    BGM.name=null;            // 止まったままの状態から確実にかけ直す
+    BGM.play(n);
+  }
+  function wake(){
+    /* ① 眠っていたら起こす */
+    const a=ac(); if(!a) return;
+    if(a.state!=='running'){
+      const r=a.resume();
+      if(r&&r.then) r.then(restart,function(){});
+      else restart();
+    }else if(!BGM.timer){ restart(); }
+  }
+  /* さわり方で届くできごとが変わるので、3種類とも待ち受ける */
+  ['pointerdown','touchend','click'].forEach(function(ev){
+    document.addEventListener(ev,wake,{passive:true});
+  });
+  /* ③ 別のアプリから戻ってきたとき */
+  document.addEventListener('visibilitychange',function(){ if(!document.hidden) wake(); });
+})();
 
 /* ============================================================
    iPhone（iOS Safari）対策
