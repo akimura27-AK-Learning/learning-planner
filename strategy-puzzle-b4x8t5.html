@@ -114,10 +114,24 @@ button.skip{background:transparent;border:2px solid #4b5484;box-shadow:none;font
 .cardbtn{display:block;width:100%;text-align:left;padding:11px 12px;margin-bottom:9px;font-size:12.5px;line-height:1.7;background:#171531;border:3px solid #4b5484;box-shadow:0 4px 0 #0b0a1c}
 .cardbtn.sel{border-color:var(--gold);background:#2a2140}
 .cchip{display:inline-block;font-size:9.5px;padding:2px 7px;border-radius:5px;margin-right:6px;vertical-align:1px}
+/* つよく けす コツ（もちもの画面） */
+.tips{margin-top:9px;padding:9px 11px;background:#141229;border:2px solid #3b4370;border-radius:9px;
+  font-size:10.5px;line-height:1.85;color:#c3c9e8;text-align:left}
+.tips>b{display:block;font-size:11px;color:#ffd54a;margin-bottom:4px}
+.tips b{color:#ffd54a}
+.tips .tipspt{margin-top:6px;padding-top:6px;border-top:1px dashed #3b4370;font-size:9.5px;color:#98a0c8}
+.tips .tipspt b{color:#98a0c8}
 .cname{font-size:13.5px;color:#fff;display:block;line-height:1.65}
 .cofficial{display:block;font-size:9.5px;color:#98a0c8;margin-top:6px;line-height:1.6}
 .cfull{display:block;font-size:10px;color:#a9b0d6;margin-top:5px;line-height:1.7}
-.goalq{display:block;font-size:11px;color:#ffd08a;margin-bottom:6px}
+/* めあて選びのカード（v8.6）
+   ことばを左、なかまの絵を右。えらぶ手がかりの「めあて」を一番大きく出す。 */
+.goalrow{display:flex;align-items:flex-start;gap:10px}
+.goalmain{flex:1;min-width:0}
+.goalchara{width:52px;flex:0 0 auto;text-align:center;padding-top:2px}
+.goalq{display:block;font-size:14.5px;color:#ffd08a;line-height:1.6;margin-bottom:7px;font-weight:bold}
+#goalList .cname{font-size:15px;line-height:1.6}
+#goalList .cfull,#goalList .cofficial{font-size:10.5px;line-height:1.75}
 
 /* れんしゅう */
 #scTuto .pad{padding:14px}
@@ -432,7 +446,7 @@ button.skip{background:transparent;border:2px solid #4b5484;box-shadow:none;font
 
 <script>
 /* ============================================================
-   方略パズル　v8.5（制作：木村明憲）
+   方略パズル　v8.6（制作：木村明憲）
    v2の主眼＝入口をやさしくする
      ①はじめに「1手だけ動かす」れんしゅうを置き、説明を後ろに回す
      ②カテゴリー名を子どものことばに（しらべる／たしかめる／やる気／じゅんび／きもち）
@@ -1301,7 +1315,7 @@ function paintTitle(){
     E('〜 わざは、あわせると つよい 〜','〜 方略は、組み合わせると強い 〜')
     + E('<br><span style="font-size:11px;color:#c3c9e8">学び方の コツ（方略）を、<b>あわせて つかう</b> ゲーム。1回 5〜8分。</span>',
         '<br><span style="font-size:11px;color:#c3c9e8">自己調整学習の方略を、<b>組み合わせて使う</b>ゲームです。1回およそ5〜8分。</span>')
-    + '<br><span style="font-size:10px;color:#8d95bd">制作：木村明憲　／　v8.5</span>';
+    + '<br><span style="font-size:10px;color:#8d95bd">制作：木村明憲　／　v8.6</span>';
   const lg=document.getElementById('catLegend'); lg.innerHTML='';
   CATS.forEach((cat,i)=>{
     const d=document.createElement('div'); d.className='clg';
@@ -1503,13 +1517,16 @@ function paintGoal(){
   GOALS.forEach(g=>{
     const ci=CI[CARD[g.card].cat];
     const b=document.createElement('button'); b.className='cardbtn';
-    b.innerHTML=`<span style="display:flex;align-items:flex-start;gap:9px">
-      <span style="width:46px;flex:0 0 auto;text-align:center" data-sp="1">
-        <span style="display:block;font-size:9px;color:${CATS[ci].color};margin-top:1px">${CATS[ci].chara}</span></span>
-      <span style="flex:1;min-width:0"><span class="goalq">「${E(g.easy,g.full)}」</span>${cardInner(g.card)}</span></span>`;
+    /* CEOご指摘（2026-08-27）：この画面が分かりにくい。
+       えらぶ手がかりは「めあての ことば」なので、それを一番大きくし、
+       なかまの絵は 右へ寄せて、ことばの幅を広くとる。 */
+    b.innerHTML=`<span class="goalrow">
+      <span class="goalmain"><span class="goalq">「${E(g.easy,g.full)}」</span>${cardInner(g.card)}</span>
+      <span class="goalchara" data-sp="1">
+        <span style="display:block;font-size:9px;color:${CATS[ci].color};margin-top:2px">${CATS[ci].chara}</span></span></span>`;
     b.addEventListener('click',()=>{ SFX.confirm(); G.leaderKey=g.card; G.leaderCat=CARD[g.card].cat; startDeck(); });
     box.appendChild(b);
-    b.querySelector('[data-sp]').prepend(charaSprite(ci,44));
+    b.querySelector('[data-sp]').prepend(charaSprite(ci,48));
   });
 }
 
@@ -1521,10 +1538,27 @@ function startDeck(){
 }
 function paintDeck(){
   document.getElementById('deckPhase').textContent=E('見とおす','見通す');
-  document.getElementById('deckTtl').textContent=E(`きょう もっていく 5つの わざ`,'きょう持っていく5つの方略');
+  /* CEOご指摘（2026-08-27）：「きょう持っていく5つの方略」はおかしい。
+     なかまは5つで固定で、増えたり減ったりしない。
+     この画面が説明しているのは「たまの色 → なかま → つかう方略」の
+     つながりなので、それを そのまま見出しにする。
+     あわせて、つよく消すコツを ここで伝える。数字は §4 の計算どおり。 */
+  document.getElementById('deckTtl').textContent=E('たまの 色と、つかう わざ','ドロップの色と、使う方略');
   document.getElementById('deckLead').innerHTML=E(
-    'ばんめんの <b>たまを けす</b> と、その色の <b>なかま</b>が、もっている <b>わざを つかう</b>。<br>きょう もっていく わざは この5つ。',
-    '盤面の<b>ドロップを消す</b>と、その色の<b>なかま</b>が、持っている<b>方略を使います</b>。<br>きょう持っていく方略はこの5つ。');
+    'ばんめんの <b>たまを けす</b> と、その色の <b>なかま</b>が、もっている <b>わざを つかう</b>。'
+   +'<br><span style="color:#7DD3E8">◆リーダー いがいは、<b>タップで わざを 入れかえられる</b>よ。レベルが 上がると えらべる わざが ふえる。</span>'
+   +'<div class="tips"><b>つよく けす コツ</b>'
+   +'<div>◆<b>リーダーの色</b>の たまを けすと、ダメージ <b>1.5ばい</b></div>'
+   +'<div>★<b>みたてが あたった</b> わざも <b>1.5ばい</b>。つまずきの <b>にがて</b>なら <b>2ばい</b></div>'
+   +'<div>🌈<b>3しゅるい いじょう</b>を いっしょに けすと <b>1.5ばい</b>、<b>4しゅるい</b>なら <b>2ばい</b></div>'
+   +'<div class="tipspt">とくてんは、みたてが あたる（＋30）・3しゅるい いじょう いっしょに（＋15）・コンボ（＋4）で ふえるよ。</div></div>',
+    '盤面の<b>ドロップを消す</b>と、その色の<b>なかま</b>が、持っている<b>方略を使います</b>。'
+   +'<br><span style="color:#7DD3E8">◆リーダー以外は、<b>タップで方略を入れかえられます</b>。レベルが上がると選べる方略が増えます。</span>'
+   +'<div class="tips"><b>強く消すコツ</b>'
+   +'<div>◆<b>リーダーの色</b>のドロップを消すと、ダメージ <b>1.5倍</b></div>'
+   +'<div>★<b>みたてが的中</b>した方略も <b>1.5倍</b>。つまずきの<b>弱点</b>なら <b>2倍</b></div>'
+   +'<div>🌈<b>3種類以上</b>を同時に消すと <b>1.5倍</b>、<b>4種類</b>なら <b>2倍</b></div>'
+   +'<div class="tipspt">得点は、みたて的中（＋30）・3種類以上を同時に（＋15）・コンボ（＋4）で増えます。</div></div>');
   document.getElementById('btnDeckGo').textContent=E('▶ クエストへ','▶ クエストへ');
   const box=document.getElementById('deckList'); box.innerHTML='';
   CATS.forEach(cat=>{
