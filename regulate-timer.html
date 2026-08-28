@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<!-- レギュレイトタイマー 公開版 v1.0（開発版v1.3ベース／2026-08-28／AK-Learning Lab） -->
+<!-- 決めた時間で、決めたことが、できるようになるタイマー。単一HTML・通信なし・記録は端末内（localStorage）保存。音はWebAudio合成のみ（消音スイッチを尊重） -->
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>レギュレイトタイマー | AK-Learning Lab</title>
+<style>
+  :root{
+    --main:#2b7a78; --main-dark:#17252a; --accent:#f6a821; --bg:#f4f9f9;
+    --ok:#2a9d8f; --mid:#e9a13b; --not:#457b9d;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{font-family:"Hiragino Maru Gothic ProN","Yu Gothic",sans-serif; background:var(--bg); color:var(--main-dark); line-height:1.7;}
+  header{background:var(--main); color:#fff; text-align:center; padding:18px 16px 14px; position:relative;}
+  header .eyebrow{font-size:12px; letter-spacing:2px; opacity:.85;}
+  header h1{font-size:24px; margin-top:2px;}
+  header p{font-size:12.5px; margin-top:2px; opacity:.9;}
+  main{max-width:760px; margin:0 auto; padding:14px 14px 70px;}
+  .card{background:#fff; border-radius:14px; padding:16px 18px; margin:12px 0; box-shadow:0 2px 8px rgba(0,0,0,.06);}
+  .card h2{font-size:16px; color:var(--main); margin-bottom:8px; border-left:6px solid var(--accent); padding-left:10px;}
+  /* 上部の切替列 */
+  .toprow{display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:10px; flex-wrap:wrap;}
+  .seg{display:inline-flex; gap:4px; background:#fff; border-radius:999px; padding:4px; box-shadow:0 1px 4px rgba(0,0,0,.08);}
+  .seg button{border:none; background:transparent; border-radius:999px; padding:6px 14px; font-size:13px; font-weight:bold; cursor:pointer; font-family:inherit; color:#678;}
+  .seg button.on{background:var(--accent); color:#fff;}
+  .icnbtn{border:none; background:#fff; border-radius:999px; padding:6px 12px; font-size:15px; cursor:pointer; box-shadow:0 1px 4px rgba(0,0,0,.08); font-family:inherit;}
+  /* タブ */
+  .tabs{display:flex; gap:6px; margin-top:12px;}
+  .tabs button{flex:1; border:2px solid #d5e5e5; background:#fbfefe; border-radius:12px 12px 0 0; padding:9px 6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:inherit; color:#678; border-bottom:none;}
+  .tabs button.on{background:#fff; color:var(--main); border-color:var(--accent);}
+  .tabbody{background:#fff; border-radius:0 0 14px 14px; box-shadow:0 2px 8px rgba(0,0,0,.06); padding:16px 18px;}
+  /* 設定 */
+  label.fld{display:block; font-size:14px; font-weight:bold; margin:12px 0 4px;}
+  input[type=text]{font-size:16px; padding:10px 12px; border:2px solid #d5e5e5; border-radius:10px; width:100%; font-family:inherit;}
+  input[type=number]{font-size:16px; padding:10px 8px; border:2px solid #d5e5e5; border-radius:10px; width:76px; text-align:center; font-family:inherit;}
+  .chips{display:flex; gap:6px; flex-wrap:wrap; margin-top:6px;}
+  .chips button{border:2px solid #d5e5e5; background:#fbfefe; border-radius:999px; padding:6px 14px; font-size:14px; font-weight:bold; cursor:pointer; font-family:inherit;}
+  .chips button.on{border-color:var(--accent); background:#fff6e5; color:#b06f00;}
+  .chips button.recent{font-weight:normal; font-size:13px;}
+  .timerow{display:flex; align-items:center; gap:6px; margin-top:8px; font-size:14px; flex-wrap:wrap;}
+  .btn{display:inline-block; background:var(--accent); color:#fff; font-size:16px; font-weight:bold; border:none; border-radius:999px; padding:12px 26px; cursor:pointer; margin:4px 4px; box-shadow:0 2px 6px rgba(0,0,0,.15); font-family:inherit;}
+  .btn:hover{filter:brightness(1.06);}
+  .btn.big{font-size:19px; padding:14px 38px;}
+  .btn.gray{background:#8aa9a7;}
+  .btn.teal{background:var(--main);}
+  .btn-row{text-align:center; margin-top:14px;}
+  .note{font-size:12.5px; color:#678; margin-top:6px;}
+  /* 実行中 */
+  #runview{text-align:center; padding:6px 0 4px;}
+  #runtask{font-size:18px; font-weight:bold; background:#fff6e5; border-radius:10px; padding:6px 14px; display:inline-block; max-width:100%; overflow-wrap:anywhere;}
+  #clock{font-size:clamp(88px, 28vw, 170px); line-height:1.15; font-weight:bold; letter-spacing:1px; margin:6px 0 0; font-variant-numeric:tabular-nums; color:var(--main);}
+  #clock.over{color:#b06f00; font-size:clamp(72px, 22vw, 140px);}
+  #runsub{font-size:13px; color:#678; min-height:20px;}
+  .bar{height:14px; background:#eef4f4; border-radius:999px; overflow:hidden; margin:10px auto 4px; max-width:420px;}
+  .bar .fill{height:100%; width:0%; background:var(--main); border-radius:999px; transition:width .25s linear;}
+  .bar .fill.over{background:var(--accent);}
+  /* 時間になった帯 */
+  #timeupband{display:none; background:#fff6e5; border:2px solid var(--accent); border-radius:12px; padding:10px 12px; margin:10px auto 0; max-width:460px; font-size:15px; font-weight:bold; color:#b06f00;}
+  /* 記録入力 */
+  .sumline{background:#f4f9f9; border-radius:10px; padding:10px 14px; font-size:14.5px; margin:8px 0;}
+  .sumline b{font-size:16px;}
+  .diffmsg{font-size:14.5px; font-weight:bold; color:var(--main); margin:4px 0 2px;}
+  .choice3{display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;}
+  .choice3 button{flex:1 1 110px; border:2.5px solid #d5e5e5; background:#fbfefe; border-radius:12px; padding:14px 6px; font-size:15.5px; font-weight:bold; cursor:pointer; font-family:inherit;}
+  .choice3 button[data-r=full].on{border-color:var(--ok); background:#e7f5f3; color:#187268;}
+  .choice3 button[data-r=partial].on{border-color:var(--mid); background:#fdf3e2; color:#a86a10;}
+  .choice3 button[data-r=not].on{border-color:var(--not); background:#e9f0f7; color:#2f5d84;}
+  /* 一覧 */
+  .tablewrap{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+  table{border-collapse:collapse; width:100%; font-size:13px; margin-top:8px; min-width:560px;}
+  th,td{border:1px solid #cfe0e0; padding:6px 8px; text-align:center; white-space:nowrap;}
+  td.task,td.notecell{white-space:normal; min-width:90px; text-align:left; overflow-wrap:anywhere;}
+  th{background:#eaf4f4;}
+  .r-full{color:#187268; font-weight:bold;}
+  .r-partial{color:#a86a10; font-weight:bold;}
+  .r-not{color:#2f5d84; font-weight:bold;}
+  .delx{border:none; background:transparent; color:#8aa9a7; font-size:15px; cursor:pointer; font-family:inherit;}
+  .delconfirm button{border:none; border-radius:8px; padding:3px 8px; font-size:12px; cursor:pointer; font-family:inherit; font-weight:bold;}
+  .msg{background:#fff6e5; border-radius:10px; padding:10px 14px; font-size:14px; margin-top:10px; display:none;}
+  footer{text-align:center; font-size:11.5px; color:#8aa9a7; padding:18px 10px 26px;}
+  @media (max-width:480px){
+    header h1{font-size:21px;}
+    .card,.tabbody{padding:14px 12px;}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">AK-Learning Lab</div>
+  <h1>⏱ レギュレイトタイマー</h1>
+  <p id="tagline">きめた時間で、きめたことが、できるようになるタイマー</p>
+</header>
+<main>
+  <div class="toprow">
+    <div class="seg" id="modeseg">
+      <button data-m="kid">こども</button>
+      <button data-m="adult">おとな</button>
+    </div>
+    <button class="icnbtn" id="soundbtn" title="おとのON/OFF">🔊 おと</button>
+  </div>
+
+  <div class="tabs">
+    <button id="tab-timer" class="on">⏱ <span data-t="tabTimer">タイマー</span></button>
+    <button id="tab-rec">📒 <span data-t="tabRec">きろく</span><span id="reccount"></span></button>
+  </div>
+
+  <div class="tabbody">
+    <!-- ===== 設定 ===== -->
+    <section id="view-setup">
+      <label class="fld" data-t="fldTask">やること</label>
+      <input type="text" id="taskinput" maxlength="60">
+      <div class="chips" id="recentchips"></div>
+
+      <label class="fld" data-t="fldTime">時間</label>
+      <div class="chips" id="presetchips"></div>
+      <div class="timerow">
+        <input type="number" id="mininput" min="0" max="180" value="3"><span data-t="min">分</span>
+        <input type="number" id="secinput" min="0" max="59" value="0"><span data-t="sec">秒</span>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn big" id="startbtn" data-t="start">スタート！</button>
+      </div>
+      <p class="note" id="setupnote"></p>
+    </section>
+
+    <!-- ===== 実行中 ===== -->
+    <section id="view-run" style="display:none;">
+      <div id="runview">
+        <div id="runtask"></div>
+        <div id="clock">3:00</div>
+        <div id="runsub"></div>
+        <div class="bar"><div class="fill" id="barfill"></div></div>
+        <div id="timeupband"></div>
+        <div class="btn-row">
+          <button class="btn big teal" id="donebtn" data-t="doneBtn">おわった！</button><br>
+          <button class="btn gray" id="pausebtn" data-t="pause">ひとやすみ</button>
+          <button class="btn gray" id="quitbtn" data-t="quit">やめる</button>
+        </div>
+        <p class="note" id="quitnote" style="display:none;"></p>
+      </div>
+    </section>
+
+    <!-- ===== 記録入力 ===== -->
+    <section id="view-record" style="display:none;">
+      <h2 style="font-size:16px; color:var(--main); border-left:6px solid var(--accent); padding-left:10px;" data-t="recTitle">きろくを かこう</h2>
+      <div class="sumline" id="recsummary"></div>
+      <div class="diffmsg" id="diffmsg"></div>
+      <p class="note" id="diffnote"></p>
+
+      <label class="fld" data-t="q3">やってみて どうだった？</label>
+      <div class="choice3" id="choice3">
+        <button data-r="full"></button>
+        <button data-r="partial"></button>
+        <button data-r="not"></button>
+      </div>
+
+      <label class="fld" data-t="noteLabel">ひとこと（なぜ そうなった？）</label>
+      <input type="text" id="noteinput" maxlength="80">
+
+      <div class="btn-row">
+        <button class="btn big" id="savebtn" data-t="save">きろくする</button>
+      </div>
+      <p class="note" id="reqnote" style="display:none;"></p>
+    </section>
+
+    <!-- ===== 一覧 ===== -->
+    <section id="view-rec" style="display:none;">
+      <h2 style="font-size:16px; color:var(--main); border-left:6px solid var(--accent); padding-left:10px;" data-t="listTitle">これまでの きろく</h2>
+      <p class="note" id="listnote"></p>
+      <div class="tablewrap">
+        <table id="rectable">
+          <thead><tr>
+            <th data-t="thDate">日づけ</th><th data-t="thTask">やること</th>
+            <th data-t="thPlan">よてい</th><th data-t="thActual">じっさい</th>
+            <th data-t="thDiff">ズレ</th><th data-t="thResult">どうだった</th>
+            <th data-t="thNote">ひとこと</th><th></th>
+          </tr></thead>
+          <tbody id="recbody"></tbody>
+        </table>
+      </div>
+      <div class="btn-row">
+        <button class="btn teal" id="tsvbtn" data-t="tsv">表をコピー</button>
+        <button class="btn teal" id="csvbtn" data-t="csv">CSVほぞん</button>
+        <button class="btn gray" id="clearbtn" data-t="clearAll">ぜんぶ消す</button>
+      </div>
+      <div class="msg" id="copymsg"></div>
+    </section>
+  </div>
+</main>
+<footer>
+  レギュレイトタイマー v1.0<br>
+  記録はこの端末の中にだけ保存されます（通信はしません）。端末をかえる前に、コピーやCSVで書き出しておきましょう。<br>
+  作成：木村明憲（AK-Learning Lab）
+</footer>
+
+<script>
+/* ================= ことば（こども／おとな） ================= */
+const L = {
+  kid: {
+    tagline:"きめた時間で、きめたことが、できるようになるタイマー",
+    tabTimer:"タイマー", tabRec:"きろく",
+    fldTask:"やること", taskPh:"れい：かん字れんしゅう、スクワット",
+    fldTime:"なんぷん やる？", min:"分", sec:"秒",
+    start:"スタート！",
+    setupnote:"はじめる前に「これくらいで できそう」と 時間を きめてみよう。",
+    running:"いま やっていること", overrun:"つづけてがんばり中",
+    pause:"ひとやすみ", resume:"つづける", quit:"やめる",
+    doneBtn:"おわった！",
+    timeup:"⏰ きめた時間に なったよ！ おわるなら「おわった！」、つづけるなら そのままでOK。",
+    quitnote:"もういちど「やめる」を おすと、きろくせずに もどるよ。",
+    recTitle:"きろくを かこう",
+    q3:"やってみて どうだった？",
+    full:"できた", partial:"とちゅうまで", not:"できなかった",
+    noteLabel:"ひとこと（なぜ そうなった？）",
+    notePh:"れい：とちゅうで けしゴムを さがしていた",
+    save:"きろくする",
+    reqnote:"「できた／とちゅうまで／できなかった」から えらんでね。",
+    saved:"きろくしたよ！ つぎも やってみよう。",
+    listTitle:"これまでの きろく",
+    listnote:"「ズレ」は よていと じっさいの ちがい。ズレが 小さくなってきたら、時間を よむ力が ついてきた しるし！",
+    listempty:"まだ きろくは ないよ。タイマーを つかうと ここに たまっていくよ。",
+    thDate:"日づけ", thTask:"やること", thPlan:"よてい", thActual:"じっさい",
+    thDiff:"ズレ", thResult:"どうだった", thNote:"ひとこと",
+    tsv:"表をコピー", csv:"CSVほぞん", clearAll:"ぜんぶ消す",
+    clearConfirm:"ほんとうに ぜんぶ消す？（もどせないよ）", yes:"消す", no:"やめる",
+    copied:"コピーしたよ！ スプレッドシートに そのまま はりつけられるよ。",
+    csvdone:"CSVを ほぞんしたよ！",
+    delq:"けす？",
+    sumWords:["やること","よてい","じっさい"],
+    diffJust:"ほぼ ぴったり！ すごい！",
+    diffFast:(t)=>`よていより ${t} はやく おわったよ。`,
+    diffSlow:(t)=>`よていより ${t} ながく かかったよ。`,
+    diffnote:"よていと じっさいの ちがいに 気づくことが、つぎの けいかくに 生きるよ。",
+    minu:"分", secu:"秒"
+  },
+  adult: {
+    tagline:"決めた時間で、決めたことが、できるようになるタイマー",
+    tabTimer:"タイマー", tabRec:"記録",
+    fldTask:"やること", taskPh:"例：スクワット、漢字練習、資料の下読み",
+    fldTime:"時間", min:"分", sec:"秒",
+    start:"スタート",
+    setupnote:"始める前に「これくらいでできそう」という見積もりで時間を決めましょう。",
+    running:"取り組んでいること", overrun:"継続中",
+    pause:"一時停止", resume:"再開", quit:"やめる",
+    doneBtn:"終わった！",
+    timeup:"⏰ 予定の時間になりました。終わるなら「終わった！」、続けるならそのままでOKです。",
+    quitnote:"もう一度「やめる」を押すと、記録せずに戻ります。",
+    recTitle:"記録を書く",
+    q3:"取り組んでみて、どうでしたか？",
+    full:"できた", partial:"途中まで", not:"できなかった",
+    noteLabel:"ひとこと（なぜそうなったか）",
+    notePh:"例：途中で通知に気を取られた",
+    save:"記録する",
+    reqnote:"「できた／途中まで／できなかった」から選んでください。",
+    saved:"記録しました。",
+    listTitle:"これまでの記録",
+    listnote:"「ズレ」は見積もりと実際の差です。ズレが小さくなっていくのは、時間を見積もる力が育っているしるしです。",
+    listempty:"まだ記録はありません。タイマーを使うとここに貯まっていきます。",
+    thDate:"日付", thTask:"やること", thPlan:"予定", thActual:"実際",
+    thDiff:"ズレ", thResult:"どうだった", thNote:"ひとこと",
+    tsv:"表をコピー（TSV）", csv:"CSVダウンロード", clearAll:"すべて削除",
+    clearConfirm:"本当にすべて削除しますか？（元に戻せません）", yes:"削除する", no:"やめる",
+    copied:"コピーしました。スプレッドシートにそのまま貼り付けられます。",
+    csvdone:"CSVを保存しました。",
+    delq:"削除？",
+    sumWords:["やること","予定","実際"],
+    diffJust:"ほぼ予定どおりでした。",
+    diffFast:(t)=>`予定より ${t} 早く終わりました。`,
+    diffSlow:(t)=>`予定より ${t} 長くかかりました。`,
+    diffnote:"見積もりと実際の差に気づくことが、次の計画の精度を高めます。",
+    minu:"分", secu:"秒"
+  }
+};
+
+/* ================= 状態・保存 ================= */
+const store = {
+  load(key, fallback){ try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; } },
+  save(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
+};
+let settings = store.load("rt_settings", {mode:"kid", sound:true, lastMin:3, lastSec:0, recentTasks:[]});
+let records  = store.load("rt_records", []);
+
+let mode = settings.mode || "kid";
+const $ = id => document.getElementById(id);
+const t = key => L[mode][key];
+
+/* ================= ことばの反映 ================= */
+function applyLang(){
+  document.querySelectorAll("[data-t]").forEach(el=>{
+    const k = el.getAttribute("data-t");
+    if (typeof L[mode][k] === "string") el.textContent = L[mode][k];
+  });
+  $("tagline").textContent = t("tagline");
+  $("taskinput").placeholder = t("taskPh");
+  $("noteinput").placeholder = t("notePh");
+  $("setupnote").textContent = t("setupnote");
+  $("quitnote").textContent = t("quitnote");
+  $("reqnote").textContent = t("reqnote");
+  $("listnote").textContent = t("listnote");
+  $("diffnote").textContent = t("diffnote");
+  const c3 = $("choice3").querySelectorAll("button");
+  c3[0].textContent = t("full"); c3[1].textContent = t("partial"); c3[2].textContent = t("not");
+  document.querySelectorAll("#modeseg button").forEach(b=>b.classList.toggle("on", b.dataset.m===mode));
+  $("soundbtn").textContent = settings.sound ? (mode==="kid"?"🔊 おと":"🔊 音あり") : (mode==="kid"?"🔇 おとなし":"🔇 音なし");
+  renderRecords();
+  renderRecent();
+  updateRecCount();
+}
+
+/* ================= 設定画面 ================= */
+const PRESets = [1,2,3,5,10,15,20];
+function renderPresets(){
+  const box = $("presetchips"); box.innerHTML = "";
+  PRESets.forEach(m=>{
+    const b = document.createElement("button");
+    b.textContent = m + t("minu");
+    b.onclick = ()=>{ $("mininput").value = m; $("secinput").value = 0; markPreset(); };
+    box.appendChild(b);
+  });
+  markPreset();
+}
+function markPreset(){
+  const m = +$("mininput").value, s = +$("secinput").value;
+  $("presetchips").querySelectorAll("button").forEach(b=>{
+    b.classList.toggle("on", s===0 && b.textContent === m + t("minu"));
+  });
+}
+function renderRecent(){
+  const box = $("recentchips"); box.innerHTML = "";
+  (settings.recentTasks||[]).slice(0,6).forEach(task=>{
+    const b = document.createElement("button");
+    b.className = "recent"; b.textContent = task;
+    b.onclick = ()=>{ $("taskinput").value = task; };
+    box.appendChild(b);
+  });
+}
+$("mininput").addEventListener("input", markPreset);
+$("secinput").addEventListener("input", markPreset);
+
+/* ================= タイマー本体 ================= */
+let run = null;   // {task, planSec, startTs, accum, paused, over, notified}
+let tickId = null;
+let wakeLock = null;
+
+function fmt(sec){
+  sec = Math.max(0, Math.round(sec));
+  const m = Math.floor(sec/60), s = sec%60;
+  return m + ":" + String(s).padStart(2,"0");
+}
+function fmtJa(sec){
+  sec = Math.round(sec);
+  const m = Math.floor(sec/60), s = sec%60;
+  if (m && s) return `${m}${t("minu")}${s}${t("secu")}`;
+  if (m) return `${m}${t("minu")}`;
+  return `${s}${t("secu")}`;
+}
+function elapsedSec(){
+  if (!run) return 0;
+  const live = run.paused ? 0 : (Date.now() - run.startTs)/1000;
+  return run.accum + live;
+}
+function startTimer(){
+  const task = $("taskinput").value.trim();
+  if (!task){ $("taskinput").focus(); return; }
+  let m = Math.max(0, +$("mininput").value||0), s = Math.max(0, +$("secinput").value||0);
+  let planSec = m*60 + s;
+  if (planSec <= 0){ $("mininput").focus(); return; }
+  ensureAudio();
+  run = {task, planSec, startTs: Date.now(), accum: 0, paused: false, over: false, quitArmed:false};
+  settings.lastMin = m; settings.lastSec = s;
+  settings.recentTasks = [task, ...(settings.recentTasks||[]).filter(x=>x!==task)].slice(0,6);
+  store.save("rt_settings", settings);
+  $("runtask").textContent = task;
+  $("timeupband").style.display = "none";
+  $("quitnote").style.display = "none";
+  $("pausebtn").textContent = t("pause");
+  showView("run");
+  requestWake();
+  tickId = setInterval(tick, 250);
+  tick();
+}
+function tick(){
+  if (!run) return;
+  const el = elapsedSec();
+  const remain = run.planSec - el;
+  const clock = $("clock"), fill = $("barfill");
+  if (remain > 0){
+    clock.textContent = fmt(remain);
+    clock.classList.remove("over");
+    fill.classList.remove("over");
+    fill.style.width = Math.min(100, el/run.planSec*100) + "%";
+    $("runsub").textContent = t("running");
+  } else {
+    if (!run.over){
+      run.over = true;
+      playChime();
+      $("timeupband").textContent = t("timeup");
+      $("timeupband").style.display = "block";
+    }
+    clock.textContent = "+" + fmt(-remain);
+    clock.classList.add("over");
+    fill.classList.add("over");
+    fill.style.width = "100%";
+    $("runsub").textContent = t("overrun");
+  }
+}
+function pauseResume(){
+  if (!run) return;
+  if (!run.paused){
+    run.accum += (Date.now() - run.startTs)/1000;
+    run.paused = true;
+    $("pausebtn").textContent = t("resume");
+  } else {
+    run.startTs = Date.now();
+    run.paused = false;
+    $("pausebtn").textContent = t("pause");
+  }
+}
+function quitTimer(){
+  if (!run) return;
+  if (!run.quitArmed){
+    run.quitArmed = true;
+    $("quitnote").style.display = "block";
+    setTimeout(()=>{ if(run) run.quitArmed = false; $("quitnote").style.display="none"; }, 4000);
+    return;
+  }
+  stopTick(); run = null;
+  showView("setup");
+}
+function finishTimer(){
+  if (!run) return;
+  const actual = elapsedSec();
+  stopTick();
+  pending = {task: run.task, planSec: run.planSec, actualSec: Math.round(actual)};
+  run = null;
+  openRecord();
+}
+function stopTick(){
+  clearInterval(tickId); tickId = null;
+  releaseWake();
+}
+async function requestWake(){
+  try{ if (navigator.wakeLock) wakeLock = await navigator.wakeLock.request("screen"); }catch(e){}
+}
+function releaseWake(){ try{ if (wakeLock){ wakeLock.release(); wakeLock = null; } }catch(e){} }
+
+/* ================= 終了音（WebAudio合成・控えめ） ================= */
+let actx = null;
+function ensureAudio(){
+  try{
+    if (!actx) actx = new (window.AudioContext||window.webkitAudioContext)();
+    if (actx.state === "suspended") actx.resume();
+  }catch(e){}
+}
+function playChime(){
+  if (!settings.sound || !actx) return;
+  try{
+    const now = actx.currentTime;
+    [[660, 0], [880, 0.28], [660, 1.0], [880, 1.28]].forEach(([f, dt])=>{
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = "sine"; o.frequency.value = f;
+      g.gain.setValueAtTime(0, now+dt);
+      g.gain.linearRampToValueAtTime(0.09, now+dt+0.03);
+      g.gain.exponentialRampToValueAtTime(0.0001, now+dt+0.55);
+      o.connect(g); g.connect(actx.destination);
+      o.start(now+dt); o.stop(now+dt+0.6);
+    });
+  }catch(e){}
+}
+
+/* ================= 記録入力 ================= */
+let pending = null;   // {task, planSec, actualSec}
+let chosen = null;
+function openRecord(){
+  chosen = null;
+  $("noteinput").value = "";
+  $("reqnote").style.display = "none";
+  $("choice3").querySelectorAll("button").forEach(b=>b.classList.remove("on"));
+  const w = t("sumWords");
+  $("recsummary").innerHTML =
+    `${w[0]}：<b>${esc(pending.task)}</b>　${w[1]}：<b>${fmtJa(pending.planSec)}</b>　${w[2]}：<b>${fmtJa(pending.actualSec)}</b>`;
+  const d = pending.actualSec - pending.planSec;
+  let msg;
+  if (Math.abs(d) <= 5) msg = t("diffJust");
+  else if (d < 0) msg = L[mode].diffFast(fmtJa(-d));
+  else msg = L[mode].diffSlow(fmtJa(d));
+  $("diffmsg").textContent = msg;
+  showView("record");
+}
+$("choice3").querySelectorAll("button").forEach(b=>{
+  b.onclick = ()=>{
+    chosen = b.dataset.r;
+    $("choice3").querySelectorAll("button").forEach(x=>x.classList.toggle("on", x===b));
+    $("reqnote").style.display = "none";
+  };
+});
+function saveRecord(){
+  if (!chosen){ $("reqnote").style.display = "block"; return; }
+  const now = new Date();
+  records.push({
+    id: Date.now(),
+    date: now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0")+"-"+String(now.getDate()).padStart(2,"0"),
+    time: String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0"),
+    task: pending.task,
+    planSec: pending.planSec,
+    actualSec: pending.actualSec,
+    result: chosen,
+    note: $("noteinput").value.trim()
+  });
+  store.save("rt_records", records);
+  pending = null;
+  showView("setup");
+  renderRecords(); renderRecent(); updateRecCount();
+}
+
+/* ================= 一覧 ================= */
+function resultWord(r){ return r==="full" ? t("full") : r==="partial" ? t("partial") : t("not"); }
+function diffLabel(rec){
+  const d = rec.actualSec - rec.planSec;
+  if (Math.abs(d) <= 5) return "±0";
+  return (d<0 ? "−" : "＋") + fmt(Math.abs(d));
+}
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function renderRecords(){
+  const body = $("recbody"); body.innerHTML = "";
+  const list = [...records].reverse();
+  if (!list.length){
+    body.innerHTML = `<tr><td colspan="8" style="white-space:normal; color:#678;">${t("listempty")}</td></tr>`;
+    return;
+  }
+  list.forEach(rec=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML =
+      `<td>${rec.date.slice(5).replace("-","/")} ${rec.time}</td>`+
+      `<td class="task">${esc(rec.task)}</td>`+
+      `<td>${fmt(rec.planSec)}</td><td>${fmt(rec.actualSec)}</td>`+
+      `<td>${diffLabel(rec)}</td>`+
+      `<td class="r-${rec.result}">${resultWord(rec.result)}</td>`+
+      `<td class="notecell">${esc(rec.note||"")}</td>`;
+    const td = document.createElement("td");
+    const x = document.createElement("button");
+    x.className = "delx"; x.textContent = "✕"; x.title = t("delq");
+    x.onclick = ()=>{
+      td.innerHTML = "";
+      const span = document.createElement("span"); span.className="delconfirm";
+      const yes = document.createElement("button"); yes.textContent = t("yes"); yes.style.background="#8aa9a7"; yes.style.color="#fff";
+      const no  = document.createElement("button"); no.textContent = t("no"); no.style.background="#eee";
+      yes.onclick = ()=>{ records = records.filter(r=>r.id!==rec.id); store.save("rt_records", records); renderRecords(); updateRecCount(); };
+      no.onclick  = ()=>{ renderRecords(); };
+      span.appendChild(yes); span.appendChild(no); td.appendChild(span);
+    };
+    td.appendChild(x); tr.appendChild(td);
+    body.appendChild(tr);
+  });
+}
+function updateRecCount(){
+  $("reccount").textContent = records.length ? `（${records.length}）` : "";
+}
+
+/* ================= 書き出し ================= */
+const HEAD = ["日付","時刻","やること","予定(分:秒)","実際(分:秒)","予定(秒)","実際(秒)","ズレ(秒)","どうだった","ひとこと"];
+function rows(){
+  return records.map(r=>[
+    r.date, r.time, r.task, fmt(r.planSec), fmt(r.actualSec),
+    r.planSec, r.actualSec, r.actualSec - r.planSec,
+    resultWord(r.result), r.note||""
+  ]);
+}
+function showCopyMsg(txt){
+  const m = $("copymsg"); m.textContent = txt; m.style.display = "block";
+  setTimeout(()=>{ m.style.display = "none"; }, 3500);
+}
+function copyTSV(){
+  const clean = v => String(v).replace(/[\t\r\n]/g, " ");
+  const text = [HEAD, ...rows()].map(r=>r.map(clean).join("\t")).join("\n");
+  const done = ()=>showCopyMsg(t("copied"));
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(()=>fallbackCopy(text, done));
+  } else fallbackCopy(text, done);
+}
+function fallbackCopy(text, done){
+  const ta = document.createElement("textarea");
+  ta.value = text; ta.style.position="fixed"; ta.style.opacity="0";
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand("copy"); done(); }catch(e){}
+  document.body.removeChild(ta);
+}
+function downloadCSV(){
+  const q = v => `"${String(v).replace(/"/g,'""')}"`;
+  const text = "﻿" + [HEAD, ...rows()].map(r=>r.map(q).join(",")).join("\r\n");
+  const blob = new Blob([text], {type:"text/csv;charset=utf-8;"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  const d = new Date();
+  a.download = `regulate-timer_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
+  showCopyMsg(t("csvdone"));
+}
+let clearArmed = false;
+function clearAll(){
+  const m = $("copymsg");
+  if (!clearArmed){
+    clearArmed = true;
+    m.innerHTML = "";
+    m.appendChild(document.createTextNode(t("clearConfirm") + " "));
+    const yes = document.createElement("button"); yes.className="btn gray"; yes.style.fontSize="13px"; yes.style.padding="5px 14px"; yes.textContent = t("yes");
+    const no  = document.createElement("button"); no.className="btn teal"; no.style.fontSize="13px"; no.style.padding="5px 14px"; no.textContent = t("no");
+    yes.onclick = ()=>{ records = []; store.save("rt_records", records); renderRecords(); updateRecCount(); m.style.display="none"; clearArmed=false; };
+    no.onclick  = ()=>{ m.style.display="none"; clearArmed=false; };
+    m.appendChild(yes); m.appendChild(no);
+    m.style.display = "block";
+  }
+}
+
+/* ================= 画面切替 ================= */
+function showView(name){
+  ["setup","run","record","rec"].forEach(v=>{
+    $("view-"+v).style.display = (v===name) ? "block" : "none";
+  });
+  $("tab-timer").classList.toggle("on", name!=="rec");
+  $("tab-rec").classList.toggle("on", name==="rec");
+}
+$("tab-timer").onclick = ()=>{ if (run){ showView("run"); } else if (pending){ showView("record"); } else showView("setup"); };
+$("tab-rec").onclick = ()=>{ renderRecords(); showView("rec"); };
+
+/* ================= イベント ================= */
+$("startbtn").onclick = startTimer;
+$("donebtn").onclick = finishTimer;
+$("pausebtn").onclick = pauseResume;
+$("quitbtn").onclick = quitTimer;
+$("savebtn").onclick = saveRecord;
+$("tsvbtn").onclick = copyTSV;
+$("csvbtn").onclick = downloadCSV;
+$("clearbtn").onclick = clearAll;
+$("soundbtn").onclick = ()=>{
+  settings.sound = !settings.sound;
+  store.save("rt_settings", settings);
+  applyLang();
+  if (settings.sound){ ensureAudio(); }
+};
+document.querySelectorAll("#modeseg button").forEach(b=>{
+  b.onclick = ()=>{
+    mode = b.dataset.m; settings.mode = mode;
+    store.save("rt_settings", settings);
+    applyLang(); renderPresets();
+  };
+});
+
+/* ================= 初期化 ================= */
+$("mininput").value = settings.lastMin ?? 3;
+$("secinput").value = settings.lastSec ?? 0;
+applyLang();
+renderPresets();
+showView("setup");
+</script>
+</body>
+</html>
