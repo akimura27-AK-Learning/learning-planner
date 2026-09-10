@@ -47,7 +47,10 @@ h2.ttl{font-size:17px;line-height:1.7;margin:10px 0 4px}
 .lead b{color:#ffd54a}
 
 /* タイトル */
-#scTitle{align-items:center;justify-content:center;text-align:center;padding:24px}
+/* v9.7 CEOご指摘：はじめの画面の上部が かぶる。
+   justify-content:center は、中身が画面より高いと 上が画面の外へ はみ出して スクロールでも届かない
+   （ロゴ「方略パズル」が見えなくなっていた）。上から並べ、右上のボタン（ことば・音）ぶんの余白をとる。 */
+#scTitle{align-items:center;justify-content:flex-start;text-align:center;padding:54px 24px 24px}
 #scTitle .logo{font-size:30px;letter-spacing:.1em;color:var(--gold);text-shadow:0 4px 0 #6b3d00;line-height:1.5}
 #scTitle .sub{font-size:12px;color:#c3c9e8;margin:10px 0 4px;line-height:2}
 .record{width:100%;max-width:290px;padding:9px 11px;margin:6px 0 2px;font-size:10.5px;line-height:1.7;text-align:left}
@@ -121,6 +124,9 @@ button.skip{background:transparent;border:2px solid #4b5484;box-shadow:none;font
 .tips b{color:#ffd54a}
 .tips .tipspt{margin-top:6px;padding-top:6px;border-top:1px dashed #3b4370;font-size:9.5px;color:#98a0c8}
 .tips .tipspt b{color:#98a0c8}
+.rolerow{margin-top:5px;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+/* ボスの中から聞こえる声（みたての手がかり） */
+.serif .voice{display:block;margin-top:7px;padding-top:6px;border-top:1px dashed #4b5484;color:#ffd08a;font-size:11.5px;line-height:1.7}
 .cname{font-size:13.5px;color:#fff;display:block;line-height:1.65}
 .cofficial{display:block;font-size:9.5px;color:#98a0c8;margin-top:6px;line-height:1.6}
 .cfull{display:block;font-size:10px;color:#a9b0d6;margin-top:5px;line-height:1.7}
@@ -166,11 +172,28 @@ button.skip{background:transparent;border:2px solid #4b5484;box-shadow:none;font
 .emid{flex:1 1 auto;position:relative;display:flex;align-items:center;justify-content:center;min-height:96px;
   background:linear-gradient(180deg,#0d0a18 0%,#171130 42%,#241a48 68%,#33265e 88%,#3d2f6b 100%);
   border-bottom:3px solid #2b2350;box-shadow:inset 0 -14px 26px -12px rgba(0,0,0,.9)}
+/* v9.1：つまずきの場所を2列に。左＝リーダーバッジ＋つまずきの絵、右＝はなし欄。
+   ことばが絵を隠さないようにし、絵は左の列いっぱいに大きく出す。 */
+/* v9.3 CEOご要望：モンスターは まん中。ことばは 四すみに出て、多いときは モンスターに かぶってよい */
 #enemyCv{display:block}
 .emid.shake{animation:shk .3s}
 @keyframes shk{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
-.hearts{font-size:14px;letter-spacing:2px;color:#ff8fa8}
+.hearts{font-size:12px;letter-spacing:0;color:#ffd0da;display:inline-flex;align-items:center;gap:6px;position:relative;white-space:nowrap}
+.hearts .hpbar{display:inline-block;width:64px;height:8px;background:#241f3d;border:1px solid #6b7399;border-radius:4px;overflow:hidden;vertical-align:middle}
+.hearts .hpfill{display:block;height:100%;transition:width .35s}
+.hurtpop{position:absolute;right:-40px;top:-2px;font-size:16px;font-weight:bold;color:#ff5f5f;text-shadow:0 0 8px #ff5f5f;animation:hurtpop 1.1s ease-out forwards;pointer-events:none}
+@keyframes hurtpop{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-16px)}}
+.hurtpop.heal{color:#86efac;text-shadow:0 0 8px #86efac}
 .floatmsg{position:absolute;left:0;right:0;top:6px;text-align:center;font-size:12.5px;color:#ffe9b8;pointer-events:none;padding:0 8px}
+/* v9.0：なかまの ことばが長くなったので、左上のリーダーバッジを避けて 右側に置く。読みやすいよう うすい下地 */
+/* v9.1：ことばは 右上の「はなし」欄に 上から たまる。タイマーでは消えない（つぎの操作で消える） */
+.talk{display:contents}
+/* 右上：つまずきの声・こうげきの なりゆき */
+#eSerif{position:absolute;left:122px;right:8px;top:8px;z-index:7;max-height:56%;overflow:hidden;pointer-events:none}
+@media (max-height:720px){ #eSerif{font-size:10.5px;line-height:1.5} .leadersay{font-size:10px} .characut .cutxt{font-size:10px} .grabname{height:22px} .timerhint{margin-top:2px} }
+#eSerif{text-align:left;font-size:11.5px;line-height:1.55;padding:6px 9px;
+  background:rgba(10,14,35,.82);border-radius:8px;border:1px solid #3b4370}
+#eSerif:empty{display:none}
 .combotxt{position:absolute;left:0;right:0;top:32%;text-align:center;font-size:24px;color:#fff;text-shadow:0 0 14px #F59E0B,0 3px 0 #8a5a06;opacity:0;pointer-events:none}
 .dmgtxt{position:absolute;right:12px;top:14%;text-align:right;font-size:20px;color:#ffd54a;text-shadow:0 2px 0 #6b3d00,0 0 8px #000;opacity:0;pointer-events:none}
 .timerwrap{flex:0 0 auto;padding:0 10px 5px}
@@ -208,16 +231,34 @@ button.skip{background:transparent;border:2px solid #4b5484;box-shadow:none;font
   background:rgba(10,14,35,.72);border:2px solid #F59E0B;border-radius:9px;padding:3px 9px 3px 4px;pointer-events:none}
 .leaderbadge .lb{font-size:9px;color:#ffd54a;line-height:1.5;text-align:left}
 /* リーダーのひとこと（バッジのすぐ下に出る吹き出し） */
-.leadersay{position:absolute;left:8px;top:62px;z-index:7;max-width:calc(100% - 20px);
-  padding:6px 9px;font-size:10.5px;line-height:1.65;color:#dfe3f7;text-align:left;
-  opacity:0;transform:translateY(-6px);transition:opacity .22s,transform .22s;pointer-events:none}
-.leadersay.show{opacity:1;transform:translateY(0)}
+/* 右下：リーダーのひとこと */
+.leadersay{display:none;position:absolute;right:8px;bottom:6px;max-width:calc(50% - 12px);z-index:8;padding:6px 9px;font-size:10.5px;line-height:1.65;color:#dfe3f7;text-align:left;
+  pointer-events:none;border-width:2px;box-shadow:none}
+.leadersay.show{display:block;animation:talkin .22s ease-out}
+@keyframes talkin{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 .leadersay b{color:#ffd54a}
+#charaCut.shine{box-shadow:0 0 0 3px #14101f,0 0 24px rgba(255,213,74,.7);background:#1a1533}
 .winpanel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.72);
   width:calc(100% - 24px);max-width:330px;padding:12px 13px;opacity:0;z-index:12;
   transition:opacity .2s,transform .28s cubic-bezier(.2,1.5,.4,1);text-align:center;
   border-color:#F5C842;box-shadow:0 0 0 3px #14101f,0 0 26px rgba(245,200,66,.35)}
 .winpanel.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+/* つまずきの こうげきの帯（v9.0） */
+.atkbanner{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%) scale(.9);width:calc(100% - 28px);max-width:320px;
+  padding:7px 10px;font-size:11.5px;line-height:1.6;color:#fff;text-align:center;opacity:0;z-index:11;
+  border-color:#ef4444;box-shadow:0 0 0 3px #14101f,0 0 18px rgba(239,68,68,.45);transition:opacity .18s,transform .18s;pointer-events:none}
+.atkbanner.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+/* なかまの札が ふせいだ／うけた／たてなおした */
+.dchip.fl-guard{box-shadow:0 0 0 2px #7DD3E8,0 0 14px #7DD3E8}
+.dchip.fl-hurt{box-shadow:0 0 0 2px #ef4444,0 0 14px #ef4444}
+.dchip.fl-heal{box-shadow:0 0 0 2px #86efac,0 0 14px #86efac}
+.rolebadge.spent{opacity:.35;filter:grayscale(1)}
+/* 役わりの札 */
+.rolebadge{display:inline-block;font-size:9.5px;line-height:1.5;padding:1px 6px;border-radius:5px;margin-right:5px;vertical-align:middle;letter-spacing:.02em;font-weight:bold}
+.rolebadge.sm{font-size:7.5px;padding:0 4px;margin:0 0 1px}
+.rb-guard{background:#0e3a4a;color:#7DD3E8;border:1px solid #2b7f99}
+.rb-attack{background:#4a1a1a;color:#fca5a5;border:1px solid #b34343}
+.rb-heal{background:#0f3d24;color:#86efac;border:1px solid #2f8a53}
 .winpanel .wttl{display:block;font-size:26px;color:#ffd54a;letter-spacing:.08em;
   text-shadow:0 0 16px #F59E0B,0 3px 0 #8a5a06;margin-bottom:2px}
 .winpanel .wname{display:block;font-size:11px;color:#c3c9e8;margin-bottom:7px}
@@ -248,9 +289,10 @@ button.skip{background:transparent;border:2px solid #4b5484;box-shadow:none;font
 .mixbanner .mx{font-size:19px;color:#ffd54a;text-shadow:0 2px 0 #6b3d00;line-height:1.35;text-align:center}
 .emid.flash{animation:eflash .5s}
 @keyframes eflash{0%{filter:brightness(1)}25%{filter:brightness(1.9)}100%{filter:brightness(1)}}
-.characut{position:absolute;left:8px;bottom:6px;display:flex;align-items:center;gap:8px;padding:6px 10px 6px 6px;
-  max-width:calc(100% - 16px);opacity:0;transform:translateX(-14px);transition:opacity .22s,transform .22s;pointer-events:none;z-index:8}
-.characut.show{opacity:1;transform:translateX(0)}
+/* 左下：なかまのカットイン（かがやくなかま も ここ） */
+.characut{display:none;position:absolute;left:8px;bottom:6px;max-width:calc(50% - 12px);z-index:8;align-items:center;gap:8px;padding:6px 10px 6px 6px;
+  pointer-events:none;border-width:2px;box-shadow:none}
+.characut.show{display:flex;animation:talkin .22s ease-out}
 .characut .cutxt{font-size:10.5px;line-height:1.6;text-align:left}
 
 /* 振り返り */
@@ -383,15 +425,18 @@ y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window, documen
     </div>
     <div class="emid" id="eMid">
       <div id="enemyCv"></div>
-      <div class="floatmsg" id="eSerif"></div>
+      <div class="talk" id="talk">
+        <div class="floatmsg" id="eSerif"></div>
+        <div class="leadersay dqwin" id="leaderSay"></div>
+        <div class="characut dqwin" id="charaCut"></div>
+      </div>
       <div class="combotxt" id="comboTxt"></div>
       <div class="dmgtxt" id="dmgTxt"></div>
-      <div class="characut dqwin" id="charaCut"></div>
       <div class="leaderbadge" id="leaderBadge"></div>
-      <div class="leadersay dqwin" id="leaderSay"></div>
       <div class="bigclear" id="bigClear"></div>
       <div class="mixbanner dqwin" id="mixBanner"></div>
       <div class="winpanel dqwin" id="winPanel"></div>
+      <div class="atkbanner dqwin" id="atkBanner"></div>
     </div>
     <div class="timerwrap">
       <div class="timerbar"><div class="timerfill" id="timerFill"></div></div>
@@ -452,7 +497,7 @@ y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window, documen
 
 <script>
 /* ============================================================
-   方略パズル　v8.6（制作：木村明憲）
+   方略パズル　v9.8（制作：木村明憲）
    v2の主眼＝入口をやさしくする
      ①はじめに「1手だけ動かす」れんしゅうを置き、説明を後ろに回す
      ②カテゴリー名を子どものことばに（しらべる／たしかめる／やる気／じゅんび／きもち）
@@ -567,37 +612,69 @@ const BASE_DECK = {'認知':'関連づける','メタ認知':'やり方確認','
    さいごに、その3体が ひとつに なった ボスと たたかう。
    ボスは「1つの方略では たりない」ことを、しくみとして体験させるための相手。 */
 const FOES = [
-  {name:'ゆうわくインプ', spr:'imp', hp:1400, weak:'リソース管理', resist:'認知',
+  {name:'ゆうわくインプ', spr:'imp', hp:1750, atk:14, weak:'リソース管理', resist:'認知',
    serif:'ちょっとだけ、動画を見てからでいいんじゃない？',
    hintE:'あそびたい 気もちが 先に 出てきたみたい。', hintF:'あそびたい気持ちが先に出てきたようだ。',
    lines:['あとで やればいいよ〜','ほら、そっちのほうが たのしいよ'],
    whyE:'ゆうわくには、時間や 場所を 味方にする わざ（どうぐ）が よく きくよ。',
    whyF:'ゆうわくには、時間や場所のじゅんびをととのえる方略（リソース管理）が よく効きます。'},
-  {name:'フアンゴースト', spr:'ghost', hp:1800, weak:'メタ認知', resist:'情動調整',
+  {name:'フアンゴースト', spr:'ghost', hp:2250, atk:16, weak:'メタ認知', resist:'情動調整',
    serif:'このやり方で合ってるのかな…わからなくなってきた。',
    hintE:'すすんでは いるけれど、たしかめる ものさしが 見えていないみたい。', hintF:'進んでいるのに、たしかめるものさしが見えていないようだ。',
    lines:['ほんとうに これでいいの…？','だれかに 聞いたほうが…'],
    whyE:'ふあんには、いまの やり方を ふりかえる わざ（ふりかえる）が よく きくよ。',
    whyF:'ふあんには、いまのやり方やめあてをたしかめる方略（メタ認知）が よく効きます。'},
-  {name:'アキアキバット', spr:'bat', hp:2400, weak:'動機づけ調整', resist:'リソース管理',
+  {name:'アキアキバット', spr:'bat', hp:3000, atk:18, weak:'動機づけ調整', resist:'リソース管理',
    serif:'もう あきた。おなじことの くりかえしだし。',
    hintE:'やることは わかっている。つづける りゆうが しぼんできたみたい。', hintF:'やることはわかっている。つづける理由がしぼんできたようだ。',
    lines:['まだ やるの〜？','べつに いまじゃなくても…'],
    whyE:'あきには、この先に できるように なることを 思いうかべる わざ（やる気）が よく きくよ。',
    whyF:'あきには、この学びの先にあるものを見つけ直す方略（動機づけ調整）が よく効きます。'},
-  {name:'モヤモヤクラゲ', spr:'jelly', hp:1600, weak:'認知', resist:'メタ認知',
+  {name:'モヤモヤクラゲ', spr:'jelly', hp:2000, atk:15, weak:'認知', resist:'メタ認知',
    serif:'なにが わからないのか、それが わからない…',
    hintE:'もやが かかって、なにを しらべれば いいか 見えていないみたい。', hintF:'もやがかかって、何を調べればよいかが見えていないようだ。',
    lines:['ぼんやり……','どこから 手を つけよう…'],
    whyE:'もやもやには、あつめて つなげて 組み立てる わざ（わかる）が よく きくよ。',
    whyF:'もやもやには、情報を集め、関連づけ、構造化する方略（認知）が よく効きます。'},
-  {name:'プンプンボム', spr:'bomb', hp:2000, weak:'情動調整', resist:'動機づけ調整',
+  {name:'プンプンボム', spr:'bomb', hp:2500, atk:20, weak:'情動調整', resist:'動機づけ調整',
    serif:'うまく いかない！　もう やめる！',
    hintE:'いやな 気もちが 大きくなって、手が 止まって しまったみたい。', hintF:'不快な気持ちが大きくなって、手が止まってしまったようだ。',
    lines:['ムカムカする〜！','もう しらない！'],
    whyE:'イライラには、気もちの わけを 考えて 切りかえる わざ（きもち）が よく きくよ。',
    whyF:'イライラには、気持ちの原因を考え、切りかえる方略（情動調整）が よく効きます。'},
 ];
+/* ============================================================
+   カードの役わり（v9.0）
+   ------------------------------------------------------------
+   CEOご指摘（2026-08-28）：持っていく方略を選んでも、たたかいで何がよいのか分からない。
+   答え：カードがもともと持っているフェーズを、そのまま役わりにする。
+     見通す   → 🛡 ふせぐ    ：そのなかまの つまずきの こうげきを ふせぐ
+     実行する → ⚔ こうげき   ：そのなかまの たまを消すと ダメージ 1.5倍
+     振り返る → 💚 たてなおす ：げんきが減ったあと、そのなかまの たまを消すと げんき＋1
+   準備していれば つまずきに動じない／学びを前に進める／うまくいかなかったあとに立てなおす。
+   自己調整学習の3つのフェーズそのままで、新しい概念は足していない。
+   ============================================================ */
+const ROLE={
+  guard: {icon:'🛡', e:'ふせぐ',     f:'ふせぐ',
+          dE:'この なかまの つまずきが こうげきしてきても、ふせぐ（ふせいだら たまを 消して し直す）',
+          dF:'このなかまのつまずきが攻撃してきても、ふせぐ（ふせいだら、ドロップを消して準備し直す）',
+          whyE:'見とおして じゅんびして いたから、つまずきに ゆれない',
+          whyF:'見通して準備していたから、つまずきに動じない'},
+  attack:{icon:'⚔', e:'こうげき',   f:'こうげき',
+          dE:'この なかまの たまを 消すと、ダメージ <b>1.5ばい</b>',
+          dF:'このなかまのドロップを消すと、ダメージ <b>1.5倍</b>',
+          whyE:'学びを 前に すすめる わざ',
+          whyF:'学びを前に進める方略'},
+  heal:  {icon:'💚', e:'たてなおす', f:'たてなおす',
+          dE:'げんきが へった あと、この なかまの たまを 消すと げんき <b>＋20</b>',
+          dF:'げんきが減ったあと、このなかまのドロップを消すと げんき <b>＋20</b>',
+          whyE:'うまく いかなかった あとに、ふりかえって たてなおす',
+          whyF:'うまくいかなかったあとに、振り返って立てなおす'},
+};
+const PHASE_ROLE={'見通す':'guard','実行する':'attack','振り返る':'heal'};
+function roleOf(cardKey){ const c=CARD[cardKey]; return c ? (PHASE_ROLE[c.phase]||'attack') : 'attack'; }
+function roleBadge(r,small){ const R=ROLE[r]; return `<span class="rolebadge rb-${r}${small?' sm':''}">${R.icon}${E(R.e,R.f)}</span>`; }
+
 /* なかまごとの「なぜ効くのか」。ボスは段階で弱点が変わるので、ここから文をつくる。 */
 const CATWHY={
   '認知':        {e:'この つまずきには、あつめて・つなげて・組み立てる わざ（わかる）が きくよ。',   f:'このつまずきには、情報を集め、関連づけ、構造化する方略（認知）が効きます。'},
@@ -608,7 +685,7 @@ const CATWHY={
 };
 /* ボス：3段階。段階ごとに弱点が変わり、そのたびに「みたて」をやり直す。
    ＝ 1つの方略を速く回すだけでは勝てない、という設計。 */
-const BOSS={name:'ゴチャマゼドラゴン', spr:'dragon', boss:true, hp:5400, resist:null,
+const BOSS={name:'ゴチャマゼドラゴン', spr:'dragon', boss:true, hp:6750, atk:22, resist:null,
   serif:'ぜんぶ いっしょに おそいかかるぞ。ひとつの わざでは たりないぞ。',
   hintE:'いろんな つまずきが まざっている。ようすを 見ながら 合わせて いこう。',
   hintF:'いろいろなつまずきが混ざっている。ようすを見ながら合わせていこう。',
@@ -635,11 +712,17 @@ const SFX={
   hit(){ tone(880,.12,'square',.08,0,220); },
   damage(){ tone(140,.22,'sawtooth',.09,0,60); },
   rescue(){ tone(523,.1,'triangle',.07); tone(659,.12,'triangle',.07,.1); },
+  guard(){ tone(392,.06,'square',.08); tone(392,.16,'triangle',.09,.07,520); },
+  shine(){ [784,988,1175,1568,1976].forEach((f,i)=>tone(f,.12,'triangle',.08,i*.06)); tone(2093,.35,'triangle',.06,.32); },
   victory(){ [523,659,784,1046].forEach((f,i)=>tone(f,.14,'square',.07,i*.11)); },
   appear(){ tone(220,.1,'square',.07); tone(165,.14,'square',.07,.09); },
   timeup(){ tone(330,.18,'square',.06,0,180); },
   mix(n){ [523,659,784,988,1175].slice(0,2+n).forEach((f,i)=>tone(f,.11,'square',.08,i*.06)); },
   bigclear(){ [784,988,1319].forEach((f,i)=>tone(f,.13,'triangle',.09,i*.07)); tone(1568,.3,'triangle',.07,.24); },
+  /* v9.8：大きなダメージを与えた（連鎖）→ よろこぶファンファーレ */
+  bigdmg(){ [523,659,784].forEach((f,i)=>tone(f,.12,'square',.08,i*.07)); [1046,1318,1568].forEach((f,i)=>tone(f,.22,'triangle',.09,.24+i*.05)); tone(2093,.5,'triangle',.06,.42); },
+  /* v9.8：大きなダメージを受けた → きびしい音（下がる不協和音） */
+  bighurt(){ tone(220,.28,'sawtooth',.10,0,110); tone(233,.28,'sawtooth',.08,.02,116); tone(110,.45,'square',.09,.18,55); },
 };
 
 
@@ -759,6 +842,8 @@ const MON_PAL={
   bomb: {o:'#3B0A0A',b:'#EF4444',B:'#A31515',h:'#FF8A7A',w:'#FFFFFF',W:'#FFFFFF',e:'#2A0606',a:'#F5C842',A:'#B8860B',g:'#FFD54A'},
   dragon:{o:'#05060D',b:'#3A3560',B:'#1E1B38',h:'#6E68A8',w:'#FFFFFF',W:'#FFFFFF',e:'#05060D',a:'#F5C842',A:'#B8860B',g:'#FFD54A'},
   sp:   {o:'#5A3A00',b:'#FFE9B8',B:'#E8B94A',h:'#FFFBF0',w:'#FFFFFF',W:'#FFFFFF',e:'#3A2500',a:'#F59E0B',A:'#B8720B',g:'#FFD54A'},
+  /* v9.0 金色（レアつまずき／かがやくなかま）。どの絵にも同じ文字が使われているので1つで足りる */
+  shiny:{o:'#4A3000',b:'#FFE566',B:'#E0A800',h:'#FFF8CC',w:'#FFFFFF',W:'#FFFFFF',e:'#3A2500',a:'#FFD54A',A:'#B8860B',g:'#FFFFFF'},
   /* 5つのなかま（攻撃タイプのキャラクター） */
   pal0: {o:'#0B1D46',b:'#2563EB',B:'#19439F',h:'#358FFF',w:'#FFFFFF',W:'#FFFFFF',e:'#081533',a:'#F5C842',A:'#B8860B',g:'#EAF4FF'},
   pal1: {o:'#063016',b:'#16A34A',B:'#0E6E32',h:'#1FEC6B',w:'#FFFFFF',W:'#FFFFFF',e:'#042310',a:'#F5C842',A:'#B8860B',g:'#EAF4FF'},
@@ -767,13 +852,51 @@ const MON_PAL={
   pal4: {o:'#410B23',b:'#DB2777',B:'#941A50',h:'#FF38AC',w:'#FFFFFF',W:'#FFFFFF',e:'#30081A',a:'#F5C842',A:'#B8860B',g:'#EAF4FF'},
 };
 /* 48×48スプライトを、画素密度ぶんの大きさで、1ドット＝整数画素で描く */
+/* ============================================================
+   モンスターの絵を なめらかに（v9.2）
+   ------------------------------------------------------------
+   CEOご指摘（2026-09-03）：絵を大きくしたら、解像度の粗さが目立つ。
+   絵は 48×48 の文字ドット絵のまま（描き直さない）。表示するときに Scale3x
+   （AdvMAME3x）で 144×144 に広げる。ななめの階段が ならされ、目や輪郭の
+   細かいところは保たれる。大きく出すときだけ使い、小さい札などは元のまま。
+   画像ファイルは増えない。
+   ============================================================ */
+const _SC3={};
+function scale3x(a){
+  const H=a.length, W=a[0].length, out=[];
+  const P=(y,x)=>(y>=0&&y<H&&x>=0&&x<W)?a[y][x]:'.';
+  for(let y=0;y<H;y++){ const r0=[],r1=[],r2=[];
+    for(let x=0;x<W;x++){
+      const A=P(y-1,x-1),B=P(y-1,x),C=P(y-1,x+1),D=P(y,x-1),E=P(y,x),F=P(y,x+1),G=P(y+1,x-1),Hh=P(y+1,x),I=P(y+1,x+1);
+      let e00=E,e01=E,e02=E,e10=E,e12=E,e20=E,e21=E,e22=E;
+      if(D===B&&D!==Hh&&B!==F) e00=D;
+      if((D===B&&D!==Hh&&B!==F&&E!==C)||(B===F&&B!==D&&F!==Hh&&E!==A)) e01=B;
+      if(B===F&&B!==D&&F!==Hh) e02=F;
+      if((Hh===D&&Hh!==F&&D!==B&&E!==A)||(D===B&&D!==Hh&&B!==F&&E!==G)) e10=D;
+      if((B===F&&B!==D&&F!==Hh&&E!==I)||(F===Hh&&F!==B&&Hh!==D&&E!==C)) e12=F;
+      if(Hh===D&&Hh!==F&&D!==B) e20=D;
+      if((F===Hh&&F!==B&&Hh!==D&&E!==G)||(Hh===D&&Hh!==F&&D!==B&&E!==I)) e21=Hh;
+      if(F===Hh&&F!==B&&Hh!==D) e22=F;
+      r0.push(e00,e01,e02); r1.push(e10,E,e12); r2.push(e20,e21,e22);
+    }
+    out.push(r0.join(''),r1.join(''),r2.join(''));
+  }
+  return out;
+}
 function monSprite(key,pal,cssSize){
-  const W=Math.round(cssSize*DPR), px=Math.max(1,Math.floor(W/MON_N)), a=MON_ART[key], P=MON_PAL[pal];
-  const c=document.createElement('canvas'); c.width=MON_N*px; c.height=MON_N*px;
+  const W=Math.round(cssSize*DPR), P=MON_PAL[pal];
+  let a=MON_ART[key], N=MON_N;
+  /* 1マスが 1デバイスピクセル以上とれる大きさなら、なめらかにした絵を使う */
+  if(W>=MON_N*3){ a=_SC3[key]||(_SC3[key]=scale3x(MON_ART[key])); N=MON_N*3; }
+  /* 1マス＝1ピクセルで描いてから、ぼかさずに拡大する（マスの境目に線が出ないように） */
+  const src=document.createElement('canvas'); src.width=N; src.height=N;
+  const sg=src.getContext('2d');
+  for(let y=0;y<N;y++){ const row=a[y];
+    for(let x=0;x<N;x++){ const col=P[row[x]]; if(col){ sg.fillStyle=col; sg.fillRect(x,y,1,1); } } }
+  const c=document.createElement('canvas'); c.width=W; c.height=W;
   c.style.width=cssSize+'px'; c.style.height=cssSize+'px';
-  const g=c.getContext('2d');
-  for(let y=0;y<MON_N;y++){ const row=a[y];
-    for(let x=0;x<MON_N;x++){ const col=P[row[x]]; if(col){ g.fillStyle=col; g.fillRect(x*px,y*px,px,px); } } }
+  const g=c.getContext('2d'); g.imageSmoothingEnabled=false;
+  g.drawImage(src,0,0,N,N,0,0,W,W);
   return c;
 }
 
@@ -975,13 +1098,13 @@ function dropCanvas(ci,size,withLabel){
 /* なかま名は描画のたびに入れる（ことば切替で変わるため） */
 function drawCatLabel(g,ci,W){
   const name=catName(CATS[ci].key);
-  let fs=Math.max(7*DPR,Math.round(W*0.165));
+  let fs=Math.max(6.5*DPR,Math.round(W*0.15));
   g.textAlign='center'; g.textBaseline='middle';
   for(let i=0;i<14;i++){ g.font=`${fs}px "DotGothic16","Zen Maru Gothic",sans-serif`;
-    if(g.measureText(name).width<=W*0.88 || fs<=7*DPR) break; fs--; }
-  const bh=fs+Math.round(W*0.06), by=W-bh-Math.round(W*0.055);
+    if(g.measureText(name).width<=W*0.92 || fs<=6.5*DPR) break; fs--; }
+  const bh=fs+Math.round(W*0.04), by=W-bh-Math.round(W*0.04);
   g.fillStyle='rgba(0,0,0,.46)';
-  roundRect(g,W*0.06,by,W*0.88,bh,bh/2); g.fill();
+  roundRect(g,W*0.03,by,W*0.94,bh,bh/2); g.fill();
   g.fillStyle='#fff'; g.fillText(name,W/2,by+bh/2+0.5);
 }
 function buildDrop(ci,W,withLabel){
@@ -993,12 +1116,20 @@ function buildDrop(ci,W,withLabel){
   g.fillStyle=grad; roundRect(g,1,1,W-2,W-2,r); g.fill();
   g.strokeStyle='rgba(255,255,255,.85)'; g.lineWidth=Math.max(2,W*0.055); roundRect(g,1.5,1.5,W-3,W-3,r); g.stroke();
   /* 1ドットは必ず整数ピクセルの正方形にする（にじみ防止） */
-  const artFrac = withLabel ? 0.64 : 0.78;
-  const px=Math.max(1,Math.floor(W*artFrac/ART_N)), aw=ART_N*px;
-  const ox=Math.round((W-aw)/2), oy=Math.round((withLabel? W*0.305 : W*0.5) - aw/2);
+  /* v9.3／v9.4 CEOご要望：たまの絵（ハート・時計など）を大きく。
+     これまで「1ドット＝整数ピクセル」に丸めていたため、実際の絵は たまの 58〜64% にしか
+     なっていなかった（0.72 を指定しても 3ドット/マスに切り下がる）。
+     1ドット＝1ピクセルで描いてから ぼかさずに拡大する方式（モンスターと同じ）に変え、
+     指定した大きさどおりに出す。名前の帯には少しだけ重なるが、帯は半透明なので読める。 */
+  const artFrac = withLabel ? 0.80 : 0.84;
+  const aw=Math.round(W*artFrac);
+  const ox=Math.round((W-aw)/2), oy=Math.round((withLabel? W*0.43 : W*0.5) - aw/2);
   const art=DROP_ART[ci];
+  const src=document.createElement('canvas'); src.width=ART_N; src.height=ART_N;
+  const sg=src.getContext('2d');
   for(let y=0;y<ART_N;y++){ const row=art[y];
-    for(let x=0;x<ART_N;x++){ const col=ART_COL[row[x]]; if(col){ g.fillStyle=col; g.fillRect(ox+x*px,oy+y*px,px,px); } } }
+    for(let x=0;x<ART_N;x++){ const col=ART_COL[row[x]]; if(col){ sg.fillStyle=col; sg.fillRect(x,y,1,1); } } }
+  g.imageSmoothingEnabled=false; g.drawImage(src,0,0,ART_N,ART_N,ox,oy,aw,aw);
   return c;
 }
 function roundRect(g,x,y,w,h,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); }
@@ -1008,13 +1139,15 @@ const ROWS=5, COLS=6, TIME_LIMIT=7000;
 const G={
   easy:false, mode:'normal',   /* はじめは「くわしいことば」。右上のボタンで「やさしいことば」に変わる（CEO指示 2026-08-25） */
   leaderKey:null, leaderCat:null, deck:{},
-  eIndex:0, enemy:null, eHp:0, pHp:5, pMax:5,
+  eIndex:0, enemy:null, eHp:0, pHp:100, pMax:100, eUse:{}, lastMoveCats:{},
   foes:[], bossWeaks:[], bossPhase:0, bossNext:-1, sayCount:0,
   eDmg:{}, eHits:0,        /* いま戦っている つまずき1体ぶんの記録（勝ったときに見せる） */
   guessCat:null, guessHit:false,
   grid:[], els:[], busy:false, held:null, timer:null, tStart:0, turn:0,
   tutoStep:0, tGrid:[], tEls:[], tHeld:null, tBusy:false, seenTuto:false,
-  rec:{catDmg:{}, catUse:{}, maxCombo:0, mixCount:0, moves:0, total:0, bestMix:null, bestMixDmg:0, guesses:[]},
+  rec:{catDmg:{}, catUse:{}, maxCombo:0, mixCount:0, moves:0, total:0, bestMix:null, bestMixDmg:0, guesses:[],
+       blocks:0, heals:0, shines:0, rares:0, rescues:0, retreats:0, leaderHeals:0, roleLog:[]},
+  healArm:null, bossFoes:[], guardSpent:{}, rescueUsed:false, retreating:false,
 };
 
 /* ============================================================
@@ -1050,6 +1183,7 @@ const TITLES=[
   {id:'combo',name:'コンボの達人',     need:s=>(s.best||0)>=8,   noteE:'8コンボ いじょうを 出した',                    noteF:'8コンボ以上を出した'},
   {id:'keep', name:'ねばりづよい人',   need:s=>(s.quests||0)>=5, noteE:'クエストを 5回 クリアした',                    noteF:'クエストを5回クリアした'},
   {id:'dex',  name:'ずかん10枚',       need:s=>Object.keys(s.dex||{}).length>=10, noteE:'ずかんに 10枚 スタンプが ついた', noteF:'図鑑に10枚スタンプがついた'},
+  {id:'shine',name:'かがやきの友',     need:s=>(s.shines||0)>=5, noteE:'4しゅるい いじょうを あわせて、かがやく なかまを 5回 よんだ', noteF:'4種類以上を組み合わせて、かがやくなかまを5回よんだ'},
 ];
 
 /* ---------- れんしゅうを済ませたかどうかの記録（端末内） ----------
@@ -1061,7 +1195,8 @@ function putSave(o){ try{ localStorage.setItem(SAVE_KEY,JSON.stringify(o)); }cat
 function markTutoSeen(){ const o=loadSave(); o.tuto=1; putSave(o); G.seenTuto=true; }
 function forgetTuto(){ const o=loadSave(); delete o.tuto; putSave(o); G.seenTuto=false; }
 function normSave(o){ o.pts=o.pts||0; o.quests=o.quests||0; o.hits=o.hits||0; o.mixes=o.mixes||0; o.best=o.best||0;
-  o.dex=o.dex||{}; o.titles=o.titles||[]; o.unlocked=o.unlocked||[]; o.use=o.use||{}; return o; }
+  o.dex=o.dex||{}; o.titles=o.titles||[]; o.unlocked=o.unlocked||[]; o.use=o.use||{};
+  o.blocks=o.blocks||0; o.heals=o.heals||0; o.shines=o.shines||0; o.rares=o.rares||0; return o; }
 function unlockedOf(catKey,sv){ sv=sv||normSave(loadSave());
   const auto=autoOpen(catKey,levelOf(sv.pts));
   return POOL[catKey].filter((k,i)=>auto.indexOf(k)>=0||sv.unlocked.indexOf(k)>=0); }
@@ -1073,6 +1208,7 @@ function applyResult(res){
   const before=levelOf(sv.pts);
   sv.pts+=res.points; sv.quests++; sv.hits+=res.hits; sv.mixes+=res.mixes;
   sv.best=Math.max(sv.best,res.maxCombo);
+  sv.blocks+=(res.blocks||0); sv.heals+=(res.heals||0); sv.shines+=(res.shines||0); sv.rares+=(res.rares||0);
   Object.keys(res.useCount||{}).forEach(k=>{ sv.use[k]=(sv.use[k]||0)+res.useCount[k]; });
   const newStamps=[];
   res.stampTitles.forEach(t=>{ if(!sv.dex[t]){ sv.dex[t]=1; newStamps.push(t); } });
@@ -1212,11 +1348,18 @@ function leaderSayLines(){
              '3種類以上を同時に使うと <b>1.5倍</b>、4種類以上なら <b>2倍</b> です'));
   out.push(E('コンボが つづくほど つよくなるよ（1つごとに +0.25）',
              'コンボが続くほど強くなります（1つごとに +0.25）'));
+  /* v9.0：つまずきの こうげきに そなえる なかまの 役わり */
+  { const w=e.weak, r=roleOf(G.deck[w]), c=CATS[CI[w]], card=CARD[G.deck[w]];
+    if(r==='guard') out.push(E(`${c.chara}の『${card.easy}』は 🛡ふせぐ わざ。この つまずきの こうげきは へいきだよ`,`${c.chara}の『${card.title}』は🛡ふせぐ方略。このつまずきの攻撃は通りません`));
+    else if(r==='heal') out.push(E(`${c.chara}の『${card.easy}』は 💚たてなおす わざ。げんきが へったら〈${catLabel(w)}〉を 消そう`,`${c.chara}の『${card.title}』は💚たてなおす方略。げんきが減ったら〈${w}〉を消しましょう`));
+    else out.push(E(`この つまずきは〈${catLabel(w)}〉に こうげきしてくる。${c.chara}の わざは ⚔なので、ふせげないよ`,`このつまずきは〈${w}〉に攻撃してきます。${c.chara}の方略は⚔なので、ふせげません`));
+    out.push(E(`〈${catLabel(w)}〉の たまを 消しつづけると、うける ダメージが <b>半分</b>に なるよ`,`〈${w}〉のドロップを消し続けると、受けるダメージが <b>半分</b>になります`)); }
   /* リーダーの口ぐせ（ずかんに出ているものと同じ） */
   out.push(charaLine(CI[L],true));
   return out;
 }
 let LEADER_SAY_I=0;
+function scrollTalk(){}   /* v9.3：ことばは四すみに置くので、送りは不要 */
 function showLeaderSay(txt){
   const el=document.getElementById('leaderSay'); if(!el) return;
   /* 勝った直後や、たたかい以外の画面では出さない
@@ -1227,13 +1370,16 @@ function showLeaderSay(txt){
   const lc=CI[G.leaderCat];
   el.innerHTML='<b style="color:'+CATS[lc].color+'">'+CATS[lc].chara+'</b>「'+txt+'」';
   el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
-  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),4200);
+  clearTimeout(el._t);   /* v9.1：時間では消さない。つぎの操作まで出しておく */
+  scrollTalk();
 }
 function hideLeaderSay(){
   const el=document.getElementById('leaderSay');
   if(el){ clearTimeout(el._t); el.classList.remove('show'); }
 }
-window.hideLeaderSay=hideLeaderSay; window.hideCutIn=hideCutIn;
+/* つまずき・なかまの ことばを消す（つぎの操作／画面がかわるとき だけ呼ぶ） */
+function clearTalk(){ const es=document.getElementById('eSerif'); if(es) es.textContent=''; }
+window.hideLeaderSay=hideLeaderSay; window.hideCutIn=hideCutIn; window.clearTalk=clearTalk;
 
 /* つまずきが、苦手な方略をもらす。
    みたては すでに済んでいる場面なので、ここで明かしても みたての意味は損なわれない。
@@ -1286,7 +1432,7 @@ function clearGrabName(elId){
 
 /* ---------- 画面 ---------- */
 function show(id){
-  if(id!=='scBattle'){ if(window.hideLeaderSay) hideLeaderSay(); if(window.hideCutIn) hideCutIn();
+  if(id!=='scBattle'){ if(window.hideLeaderSay) hideLeaderSay(); if(window.hideCutIn) hideCutIn(); if(window.clearTalk) clearTalk();
     const wp=document.getElementById('winPanel'); if(wp){ clearTimeout(wp._t); wp.classList.remove('show'); wp.onclick=null; } }
   /* 指でたまを動かす画面だけ、ふちを守る帯を出す */
   if(window.setEdgeGuard) setEdgeGuard(id==='scBattle'||id==='scTuto'); document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id)); const el=document.getElementById(id); if(el) el.scrollTop=0; BGM.play(bgmFor(id)); }
@@ -1321,7 +1467,7 @@ function paintTitle(){
     E('〜 わざは、あわせると つよい 〜','〜 方略は、組み合わせると強い 〜')
     + E('<br><span style="font-size:11px;color:#c3c9e8">学び方の コツ（方略）を、<b>あわせて つかう</b> ゲーム。1回 5〜8分。</span>',
         '<br><span style="font-size:11px;color:#c3c9e8">自己調整学習の方略を、<b>組み合わせて使う</b>ゲームです。1回およそ5〜8分。</span>')
-    + '<br><span style="font-size:10px;color:#8d95bd">制作：木村明憲　／　v8.6</span>';
+    + '<br><span style="font-size:10px;color:#8d95bd">制作：木村明憲　／　v9.8</span>';
   const lg=document.getElementById('catLegend'); lg.innerHTML='';
   CATS.forEach((cat,i)=>{
     const d=document.createElement('div'); d.className='clg';
@@ -1553,17 +1699,29 @@ function paintDeck(){
   document.getElementById('deckLead').innerHTML=E(
     'ばんめんの <b>たまを けす</b> と、その色の <b>なかま</b>が、もっている <b>わざを つかう</b>。'
    +'<br><span style="color:#7DD3E8">◆リーダー いがいは、<b>タップで わざを 入れかえられる</b>よ。レベルが 上がると えらべる わざが ふえる。</span>'
+   +'<div class="tips"><b>わざの 3つの 役わり（カードの フェーズで きまる）</b>'
+   +'<div>'+roleBadge('guard')+'<b>見とおす</b> わざ：この なかまの つまずきが こうげきしても ふせぐ（ふせいだら、その たまを 消して じゅんびを し直す）</div>'
+   +'<div>'+roleBadge('attack')+'<b>じっこうする</b> わざ：この なかまの たまを 消すと ダメージ <b>1.5ばい</b></div>'
+   +'<div>'+roleBadge('heal')+'<b>ふりかえる</b> わざ：げんきが へった あと、この なかまの たまを 消すと げんき <b>＋20</b></div>'
+   +'<div class="tipspt">つまずきは、じぶんの なかまに こうげき してくる（ゆうわくインプ → リソース管理 など）。ふせぐ わざを 持っていれば へいき。<br>受ける ダメージは、その なかまの たまを <b>いま 消していたら 半分</b>、<b>まだ 一度も 使っていないと 1.5ばい</b>。</div></div>'
    +'<div class="tips"><b>つよく けす コツ</b>'
-   +'<div>◆<b>リーダーの色</b>の たまを けすと、ダメージ <b>1.5ばい</b></div>'
+   +'<div>◆<b>リーダーの色</b>の たまを けすと、ダメージ <b>1.5ばい</b>（⚔の わざなら さらに 1.5ばい）</div>'
    +'<div>★<b>みたてが あたった</b> わざも <b>1.5ばい</b>。つまずきの <b>にがて</b>なら <b>2ばい</b></div>'
    +'<div>🌈<b>3しゅるい いじょう</b>を いっしょに けすと <b>1.5ばい</b>、<b>4しゅるい</b>なら <b>2ばい</b></div>'
+   +'<div>💚<b>リーダーの色</b>を 3しゅるい いじょうと いっしょに けすと、げんき <b>＋10</b>。つぎの つまずきへ すすむと <b>＋20</b></div>'
    +'<div class="tipspt">とくてんは、みたてが あたる（＋30）・3しゅるい いじょう いっしょに（＋15）・コンボ（＋4）で ふえるよ。</div></div>',
     '盤面の<b>ドロップを消す</b>と、その色の<b>なかま</b>が、持っている<b>方略を使います</b>。'
    +'<br><span style="color:#7DD3E8">◆リーダー以外は、<b>タップで方略を入れかえられます</b>。レベルが上がると選べる方略が増えます。</span>'
+   +'<div class="tips"><b>方略の3つの役わり（カードのフェーズで決まります）</b>'
+   +'<div>'+roleBadge('guard')+'<b>見通す</b>方略：このなかまのつまずきが攻撃してきても、ふせぐ（ふせいだら、そのドロップを消して準備をし直す）</div>'
+   +'<div>'+roleBadge('attack')+'<b>実行する</b>方略：このなかまのドロップを消すと、ダメージ <b>1.5倍</b></div>'
+   +'<div>'+roleBadge('heal')+'<b>振り返る</b>方略：げんきが減ったあと、このなかまのドロップを消すと げんき <b>＋20</b></div>'
+   +'<div class="tipspt">つまずきは、自分のなかまに攻撃してきます（ゆうわくインプ → リソース管理 など）。ふせぐ方略を持っていれば、その攻撃は通りません。<br>受けるダメージは、そのなかまのドロップを<b>直前に消していたら半分</b>、<b>まだ一度も使っていないと1.5倍</b>。つまずきには、その方略を使い続けるほど有利です。</div></div>'
    +'<div class="tips"><b>強く消すコツ</b>'
-   +'<div>◆<b>リーダーの色</b>のドロップを消すと、ダメージ <b>1.5倍</b></div>'
+   +'<div>◆<b>リーダーの色</b>のドロップを消すと、ダメージ <b>1.5倍</b>（⚔の方略なら、さらに 1.5倍）</div>'
    +'<div>★<b>みたてが的中</b>した方略も <b>1.5倍</b>。つまずきの<b>弱点</b>なら <b>2倍</b></div>'
    +'<div>🌈<b>3種類以上</b>を同時に消すと <b>1.5倍</b>、<b>4種類</b>なら <b>2倍</b></div>'
+   +'<div>💚<b>リーダーの色</b>を3種類以上と同時に消すと、げんき <b>＋10</b>。次のつまずきへ進むと <b>＋20</b></div>'
    +'<div class="tipspt">得点は、みたて的中（＋30）・3種類以上を同時に（＋15）・コンボ（＋4）で増えます。</div></div>');
   document.getElementById('btnDeckGo').textContent=E('▶ クエストへ','▶ クエストへ');
   const box=document.getElementById('deckList'); box.innerHTML='';
@@ -1579,8 +1737,9 @@ function paintDeck(){
         <span style="width:46px;flex:0 0 auto;text-align:center" data-icon="1">
           <span style="display:block;font-size:9px;color:${cat.color};margin-top:1px">${cat.chara}</span></span>
         <span style="flex:1;min-width:0;padding-left:3px">${cardInner(G.deck[cat.key])}
-        <span class="cofficial" style="color:#c3c9e8">${cat.hint}${isLeader?`　<b style="color:#ffd54a">◆${WORD.leader()}</b>`
-          :(canSwap?`　<b style="color:#7DD3E8">${E('タップで 入れかえ','タップで入れかえ')}（${choices.length}）</b>`:'')}</span></span></span>`;
+        <span class="cofficial rolerow">${roleBadge(roleOf(G.deck[cat.key]))}<span style="color:#c3c9e8">${E(ROLE[roleOf(G.deck[cat.key])].dE,ROLE[roleOf(G.deck[cat.key])].dF)}</span></span>
+        <span class="cofficial" style="color:#8d95bd">${isLeader?`<b style="color:#ffd54a">◆${WORD.leader()}</b>`
+          :(canSwap?`<b style="color:#7DD3E8">${E('タップで 入れかえ','タップで入れかえ')}（${choices.length}）</b>`:E('この なかまは この1まい','このなかまはこの1枚'))}</span></span></span>`;
     if(canSwap) d.addEventListener('click',()=>{ SFX.confirm();
       const cur=choices.indexOf(G.deck[cat.key]); G.deck[cat.key]=choices[(cur+1)%choices.length]; paintDeck(); });
     box.appendChild(d);
@@ -1593,24 +1752,38 @@ function paintDeck(){
 function buildFoes(){
   const idx=FOES.map((f,i)=>i);
   for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [idx[i],idx[j]]=[idx[j],idx[i]]; }
-  const three=idx.slice(0,3).map(i=>FOES[i]);
+  let three=idx.slice(0,3).map(i=>FOES[i]);
+  /* v9.0 レアつまずき：15%で金色。HP1.3倍。点にはしない（運なので）。会った回数だけ記録する */
+  three=three.map(f=> Math.random()<0.15
+    ? Object.assign({},f,{rare:true, name:'✨'+f.name, hp:Math.round(f.hp*1.3)}) : f);
   G.bossWeaks=three.map(f=>f.weak);
+  G.bossFoes=three;                 /* ボスは「きょう会った3つ」がまざったもの。段階ごとに この声で しゃべる */
   G.foes=three.concat([BOSS]);
+  G.healArm=null;
 }
-document.getElementById('btnDeckGo').addEventListener('click',()=>{ SFX.confirm(); buildFoes(); G.eIndex=0; G.pHp=G.pMax; startGuess(); });
+document.getElementById('btnDeckGo').addEventListener('click',()=>{ SFX.confirm(); buildFoes(); G.eIndex=0; G.pHp=G.pMax; G.rescueUsed=false; G.retreating=false; startGuess(); });
 
 /* ============================================================ ③どれがきくかな？ ============================================================ */
 function startGuess(shift){
   const base=G.foes[G.eIndex];
   if(!shift){ G.eHp=base.hp; G.bossPhase=0; G.eDmg={}; G.eHits=0; }
+  G.eUse={}; G.lastMoveCats={};                              /* v9.6：新しい つまずき／段階で、使用の記録をやり直す */
   if(base.boss){
-    const w=G.bossWeaks[Math.min(G.bossPhase,G.bossWeaks.length-1)];
-    G.enemy=Object.assign({},base,{weak:w, whyE:CATWHY[w].e, whyF:CATWHY[w].f});
+    const pi=Math.min(G.bossPhase,G.bossWeaks.length-1), w=G.bossWeaks[pi];
+    /* CEOご指摘（2026-08-28）：段階が変わるときのことばがいつも同じで、どの方略を選べばよいか分からない。
+       ボスは「きょう会った3つのつまずき」がまざったものなので、段階ごとに そのつまずきの
+       声（serif）・手がかり（hint）・つぶやき（lines）を使う。声そのものが みたての手がかりになる。 */
+    const src=(G.bossFoes&&G.bossFoes[pi])||{};
+    G.enemy=Object.assign({},base,{weak:w, whyE:CATWHY[w].e, whyF:CATWHY[w].f,
+      voice:src.name?src.name.replace('✨',''):'', voiceSerif:src.serif||'',
+      hintE:src.hintE||base.hintE, hintF:src.hintF||base.hintF,
+      lines:(src.lines&&src.lines.length)?src.lines:base.lines});
     /* つぎに段階が変わるHP。3段階で分ける。 */
     const step=base.hp/G.bossWeaks.length;
     G.bossNext = (G.bossPhase+1<G.bossWeaks.length) ? base.hp-step*(G.bossPhase+1) : -1;
   }else{ G.enemy=base; G.bossNext=-1; }
   G.guessCat=null; G.guessHit=false; G.turn=0;
+  G.guardSpent={}; G.healArm=null;     /* あたらしい つまずき（段階）では、じゅんびは やり直せている */
   paintGuess(false); SFX.appear(); show('scGuess');
 }
 function paintGuess(keep){
@@ -1619,18 +1792,22 @@ function paintGuess(keep){
   const isBoss=!!e.boss, ph=G.bossPhase+1, phN=G.bossWeaks.length;
   document.getElementById('guessTtl').textContent = isBoss
     ? (G.bossPhase>0 ? E(`ようすが かわった！（${ph}／${phN}）`,`ようすが変わった！（${ph}／${phN}）`)
-                     : E('さいごの つまずきが あらわれた！','さいごのつまずきがあらわれた！'))
-    : E(`${G.eIndex+1}つめの つまずきが あらわれた！`,`${G.eIndex+1}つめのつまずきがあらわれた！`);
+                     : E('きょう 会った 3つが、まざった！','きょう会った3つのつまずきが、まざった！'))
+    : (e.rare ? E(`✨ レアな つまずきが あらわれた！`,`✨ レアなつまずきがあらわれた！`)
+              : E(`${G.eIndex+1}つめの つまずきが あらわれた！`,`${G.eIndex+1}つめのつまずきがあらわれた！`));
   const sp=document.getElementById('guessSprite'); sp.innerHTML='';
-  sp.appendChild(monSprite(e.spr,e.spr,72));
+  sp.appendChild(monSprite(e.spr, e.rare?'shiny':e.spr, 72));
   document.getElementById('guessWho').textContent=e.name;
-  document.getElementById('guessSerif').textContent =
-    (isBoss && G.bossPhase>0)
-      ? E('「まだ おわらないぞ。こんどは ちがう ところが よわいぞ。」','「まだ終わらないぞ。こんどは、ちがうところが弱いぞ。」')
-      : `「${e.serif}」`;
+  /* ボスは、その段階の つまずきの声で しゃべる（声が みたての手がかり） */
+  document.getElementById('guessSerif').innerHTML = isBoss
+    ? ((G.bossPhase>0
+         ? E('「まだ おわらないぞ。こんどは ちがう ところが よわいぞ。」','「まだ終わらないぞ。こんどは、ちがうところが弱いぞ。」')
+         : `「${e.serif}」`)
+       + `<span class="voice">${E('…ドラゴンの 中から、声が する。','…ドラゴンの中から、声がする。')}<br>『${e.voiceSerif}』</span>`)
+    : `「${e.serif}」`;
   document.getElementById('guessLead').innerHTML = isBoss
-    ? E(`いろんな つまずきが まざった すがた。<br><b>とちゅうで よわい ところが ${phN}かい かわる</b>。そのたびに 見なおそう。<br>あたると、その なかまが <b>1.5ばい つよく</b>なるよ。`,
-        `いろいろなつまずきが混ざった姿です。<br><b>途中で弱点が${phN}回変わります。</b>そのたびに見立て直しましょう。<br>あてはまると、その${WORD.cat()}の ${WORD.power()} が <b>1.5倍</b> になります。`)
+    ? E(`きょう たおした 3つの つまずきが、まざって 大きく なった。<br><b>よわい ところが ${phN}だんかいで かわる</b>。<b>中から 聞こえる 声</b>が、どの つまずきか の 手がかりだよ。<br>あたると、その なかまが <b>1.5ばい つよく</b>なるよ。`,
+        `きょう倒した3つのつまずきが、混ざって大きくなりました。<br><b>弱点が${phN}段階で変わります。</b><b>中から聞こえる声</b>が、どのつまずきかの手がかりです。<br>あてはまると、その${WORD.cat()}の ${WORD.power()} が <b>1.5倍</b> になります。`)
     : E(`この つまずきに、どの なかまの わざが きくかな？<br>あたると、その なかまが <b>1.5ばい つよく</b>なるよ。まちがえても へらないよ。`,
         `このつまずきには、どの${WORD.cat()}の方略が効きそう？<br>あてはまると、その${WORD.cat()}の ${WORD.power()} が <b>1.5倍</b> になります。外れても減点はありません。`);
   document.getElementById('btnGuessGo').textContent=E('▶ パズルへ','▶ パズルへ');
@@ -1682,13 +1859,32 @@ function layoutBoard(){
   const stage=document.getElementById('stage');
   const w=Math.min(stage.clientWidth,460);
   const pad = (window.innerWidth<=520) ? EDGE_SAFE*2 : 12;   /* スマホのときだけ余白を大きく */
-  CELL=Math.floor((w-Math.max(12,pad))/COLS);
+  let cell=Math.floor((w-Math.max(12,pad))/COLS);
+  /* v9.1 CEOご要望：つまずきの画面を大きく。
+     背の低い画面では たまを少し小さくして（指で押せる 44px は守る）、
+     つまずきの場所を 画面の高さの 1/3 以上 確保する。 */
+  const byH=Math.floor((window.innerHeight*0.33)/ROWS);
+  cell=Math.max(48, Math.min(cell, byH));      /* 48px より小さくすると なかま名が入らない */
+  CELL=cell;
   boardWrap.style.width=(CELL*COLS)+'px'; boardWrap.style.height=(CELL*ROWS)+'px';
+  fitEnemySprite();
+}
+/* つまずきの絵の大きさを、使える高さから決める（104〜150px） */
+let ENEMY_SP=104;
+function fitEnemySprite(){
+  const em=document.getElementById('eMid'); if(!em) return;
+  const h=em.clientHeight||0;
+  const size=Math.max(96, Math.min(150, Math.floor(h*0.62)));
+  if(size!==ENEMY_SP && G.enemy){
+    ENEMY_SP=size;
+    const holder=document.getElementById('enemyCv');
+    if(holder && holder.firstChild){ holder.innerHTML=''; holder.appendChild(monSprite(G.enemy.spr, G.enemy.rare?'shiny':G.enemy.spr, ENEMY_SP)); }
+  }else ENEMY_SP=size;
 }
 function startBattle(){
   layoutBoard(); G.sayCount=0; hideLeaderSay(); hideCutIn();
   const holder=document.getElementById('enemyCv');
-  holder.innerHTML=''; holder.appendChild(monSprite(G.enemy.spr,G.enemy.spr,104));
+  holder.innerHTML=''; holder.appendChild(monSprite(G.enemy.spr, G.enemy.rare?'shiny':G.enemy.spr, ENEMY_SP));
   document.getElementById('eSerif').textContent='';
   newGrid(); paintBattle(); show('scBattle');
   setTimeout(()=>{ layoutBoard(); renderAll(); },30); setTimerBar(1);
@@ -1726,7 +1922,8 @@ function buildDeckBar(){
     const sp=document.createElement('div'); sp.className='dsp'; sp.appendChild(charaSprite(i,34));
     d.appendChild(sp);
     const t=document.createElement('div');
-    t.innerHTML=`<span style="color:${cat.color};font-size:8.5px">${cat.chara}${mark}</span><br>${G.easy?c.easy:c.title}`;
+    const r=roleOf(G.deck[cat.key]);
+    t.innerHTML=`<span style="color:${cat.color};font-size:8.5px">${cat.chara}${mark}</span> <span class="rolebadge rb-${r} sm">${ROLE[r].icon}</span><br>${G.easy?c.easy:c.title}`;
     d.appendChild(t);
     bar.appendChild(d);
   });
@@ -1767,24 +1964,29 @@ function showBigClear(n){
 /* その手で いちばん はたらいた なかまが 出てきて ひとこと言う */
 function charaCutIn(ci){
   const cat=CATS[ci], el=document.getElementById('charaCut');
+  if(el.classList.contains('shine')) return;          /* かがやいている間は 上書きしない */
   el.innerHTML=''; el.style.borderColor=cat.color;
   el.appendChild(charaSprite(ci,54));
   const t=document.createElement('span'); t.className='cutxt';
-  t.innerHTML='<b style="color:'+cat.color+'">'+cat.chara+'</b><br>'+charaLine(ci,true);
+  /* v9.0：⚔の わざなら、はたらいた ことを ひとこと添える */
+  const r=roleOf(G.deck[cat.key]);
+  t.innerHTML='<b style="color:'+cat.color+'">'+cat.chara+'</b>'+(r==='attack'?' <span style="color:#fca5a5;font-size:9px">⚔1.5</span>':'')+'<br>'+charaLine(ci,true);
   el.appendChild(t);
   el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
-  /* CEOご要望（2026-08-27）：出ている時間が短いので、つぎに たまをつかむまで出しておく。
-     ずっと残らないよう、念のため8秒で自然に消える。 */
-  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),8000);
+  /* CEOご要望（2026-08-27／09-03）：つぎに たまをつかむまで出しておく。時間では消さない。 */
+  clearTimeout(el._t); scrollTalk();
 }
 function hideCutIn(){
   const el=document.getElementById('charaCut');
-  if(el){ clearTimeout(el._t); el.classList.remove('show'); }
+  if(el){ clearTimeout(el._t); el.classList.remove('show'); el.classList.remove('shine'); }
 }
 function updateHp(){
   document.getElementById('eHpTxt').textContent=`${Math.max(0,Math.ceil(G.eHp))} / ${G.enemy.hp}`;
   document.getElementById('eHpFill').style.width=Math.max(0,G.eHp/G.enemy.hp*100)+'%';
-  document.getElementById('pHearts').innerHTML=E('げんき ','げんき ')+'♥'.repeat(G.pHp)+'<span style="opacity:.25">'+'♥'.repeat(Math.max(0,G.pMax-G.pHp))+'</span>';
+  /* v9.6：げんきは 100 の数字。色は のこりで変わる */
+  const hp=Math.max(0,Math.round(G.pHp)), r=hp/G.pMax, col= r>0.5?'#ff8fa8': r>0.25?'#ffb347':'#ff5f5f';
+  document.getElementById('pHearts').innerHTML=E('げんき ','げんき ')+`<b style="color:${col};font-size:17px">${hp}</b><span style="opacity:.55;font-size:10px">／${G.pMax}</span>`
+    +`<span class="hpbar"><span class="hpfill" style="width:${Math.max(0,Math.min(100,r*100))}%;background:${col}"></span></span>`;
 }
 function newGrid(){
   do{ G.grid=[]; for(let r=0;r<ROWS;r++){ const row=[]; for(let c=0;c<COLS;c++) row.push(Math.floor(Math.random()*5)); G.grid.push(row); } }
@@ -1820,7 +2022,7 @@ function renderAll(){
 }
 boardWrap.addEventListener('pointerdown',e=>{
   if(G.busy) return; const p=cellAt(e); if(!p) return;
-  hideCutIn(); hideLeaderSay();          /* つぎの操作を始めたら、出ていたものを消す */
+  hideCutIn(); hideLeaderSay(); clearTalk();   /* つぎの操作を始めたら、出ていたものを消す */
   G.held=p; const el=G.els[p.r][p.c]; el.classList.add('held'); el.style.zIndex=20;
   boardWrap.setPointerCapture(e.pointerId); SFX.grab();
   showGrabName(+el.dataset.ci);
@@ -1889,18 +2091,20 @@ function findMatches(){ return matchesOf(G.grid,ROWS,COLS); }
 
 async function resolveBoard(){
   G.busy=true;
-  let combo=0, moveDmg=0, moveCats={}, moveCleared=0;
+  let combo=0, moveDmg=0, moveCats={}, moveCleared=0, shineDue=null, leaderMixNote=false;
   const comboEl=document.getElementById('comboTxt'), dmgEl=document.getElementById('dmgTxt');
   while(true){
     const groups=findMatches(); if(!groups.length) break;
     const distinct=new Set(groups.map(g=>g.ci)).size;
     const mixMul = distinct>=4?2.0 : distinct>=3?1.5 : 1.0;
     if(distinct>=3){ G.rec.mixCount++; showMixBanner([...new Set(groups.map(g=>g.ci))],mixMul); }
+    if(distinct>=4) shineDue=[...new Set(groups.map(g=>g.ci))];   /* ✨ かがやくなかま（あとで出す）*/
     moveCleared+=groups.reduce((a,g)=>a+g.cells.length,0);
     for(const g of groups){
       combo++;
       const cat=CATS[g.ci].key, n=g.cells.length;
       let att=100*(1+(n-3)*0.25);
+      if(roleOf(G.deck[cat])==='attack') att*=1.5;      /* ⚔ こうげきの わざ（実行する）*/
       if(cat===G.leaderCat) att*=1.5;
       if(G.guessHit&&cat===G.guessCat) att*=1.5;
       if(cat===G.enemy.weak) att*=2.0;
@@ -1910,6 +2114,7 @@ async function resolveBoard(){
       G.rec.catDmg[cat]=(G.rec.catDmg[cat]||0)+dmg;
       G.eDmg[cat]=(G.eDmg[cat]||0)+dmg;
       G.rec.catUse[cat]=(G.rec.catUse[cat]||0)+1;
+      G.eUse[cat]=(G.eUse[cat]||0)+1;                      /* この つまずきで、この なかまを使った回数（v9.6）*/
       cheerChip(g.ci);
       SFX.combo(combo);
       comboEl.textContent=`${combo} コンボ`;
@@ -1924,10 +2129,19 @@ async function resolveBoard(){
     await sleep(120); applyGravity(); await sleep(180);
   }
   if(moveDmg>0){
+    G.lastMoveCats=Object.assign({},moveCats);              /* 直前の手で消した なかま（v9.6：受けるダメージの判定に使う）*/
     G.rec.moves++; G.rec.total+=moveDmg;
     const cats=Object.keys(moveCats).sort((a,b)=>moveCats[b]-moveCats[a]);
     if(cats.length>=2&&moveDmg>G.rec.bestMixDmg){ G.rec.bestMixDmg=moveDmg; G.rec.bestMix=[cats[0],cats[1]]; }
     if(moveCleared>=8) showBigClear(moveCleared);
+    /* v9.8 ②：連鎖で大きなダメージ → よろこぶ音（ふつうの hit の音に重ねる） */
+    if(moveDmg>=700 || combo>=6){ SFX.bigdmg(); }
+    /* v9.8 ③：リーダーの色を、3種類以上の あわせわざ の中で消した → げんき＋10 */
+    if(Object.keys(moveCats).length>=3 && moveCats[G.leaderCat]){
+      const before=G.pHp; G.pHp=Math.min(G.pMax,G.pHp+10); G.rec.leaderHeals=(G.rec.leaderHeals||0)+1;
+      if(G.pHp>before){ updateHp(); showHealPop(G.pHp-before); }
+      leaderMixNote=true;
+    }
     charaCutIn(CI[cats[0]]);
     dmgEl.textContent=E(`${moveDmg} ダメージ`,`${moveDmg} ダメージ`);
     dmgEl.style.fontSize=Math.min(34,17+Math.round(moveDmg/60))+'px';
@@ -1936,6 +2150,24 @@ async function resolveBoard(){
     SFX.hit();
     const em=document.getElementById('eMid'); em.classList.add('shake'); setTimeout(()=>em.classList.remove('shake'),320);
     G.eHp-=moveDmg; updateHp();
+    /* 🛡 じゅんびの し直し：じゅんびが きれていた なかまの たまを消した */
+    { const re=Object.keys(G.guardSpent).filter(k=>G.guardSpent[k]&&moveCats[k]);
+      if(re.length){ re.forEach(k=>{ G.guardSpent[k]=false; markGuardChip(CI[k],false); flashChip(CI[k],'guard'); });
+        const c0=CATS[CI[re[0]]]; const es=document.getElementById('eSerif');
+        es.innerHTML=(es.innerHTML?es.innerHTML+'<br>':'')+`<b style="color:${c0.color}">${c0.chara}</b>「${E('じゅんび、し直した！','準備、し直した！')}」　<b style="color:#7DD3E8">🛡</b>`;
+        SFX.guard(); await sleep(700); } }
+    /* 💚 たてなおす：げんきが減ったあと、そのなかまの たまを消した */
+    if(G.healArm && moveCats[G.healArm]){
+      const w=G.healArm, ci=CI[w], cat=CATS[ci], card=CARD[G.deck[w]]; G.healArm=null;
+      G.pHp=Math.min(G.pMax,G.pHp+20); updateHp();
+      SFX.rescue(); flashChip(ci,'heal'); G.rec.heals++;
+      G.rec.roleLog.push({r:'heal',cat:w,card:card.title,foe:G.enemy.name});
+      const es=document.getElementById('eSerif');
+      es.innerHTML=(es.innerHTML?es.innerHTML+'<br>':'')+`<b style="color:${cat.color}">${cat.chara}</b>「${E(`『${G.easy?card.easy:card.title}』で たてなおした！`,`『${G.easy?card.easy:card.title}』で立てなおした！`)}」　<b style="color:#86efac">💚 げんき ＋20</b>`;
+      await sleep(900);
+    }
+    /* ✨ かがやくなかま：4種類以上を いっしょに消した */
+    if(shineDue){ await showShine(shineDue, cats[0]); }
   }else{
     document.getElementById('timerHint').textContent=E('まだ そろって いないみたい。もう一度 うごかしてみよう','まだそろっていないみたい。もう一度動かしてみよう');
   }
@@ -1943,7 +2175,7 @@ async function resolveBoard(){
   if(G.eHp<=0){ onEnemyDown(); return; }
   if(G.enemy.boss && G.bossNext>=0 && G.eHp<=G.bossNext){ await bossShift(); return; }
   G.turn++;
-  if(moveDmg>0&&G.turn%2===0) await enemyTurn();
+  if(moveDmg>0&&foeAttackDue()){ await enemyTurn(); if(current()!=='scBattle'){ G.busy=false; return; } }
   else if(moveDmg>0){
     G.sayCount=(G.sayCount||0)+1;
     /* リーダーのひとことと、つまずきのつぶやきを かわりばんこに出す。
@@ -1953,18 +2185,43 @@ async function resolveBoard(){
     if(G.turn>=2 && G.sayCount%2===0){
       const es=document.getElementById('eSerif');
       es.textContent=`${G.enemy.name}「${moveCats[G.enemy.weak]?enemyHurt():enemyDislike()}」`;
-      await sleep(1700); es.textContent='';
+      await sleep(900);
     }else{
-      showLeaderSay();
+      showLeaderSay(leaderMixNote ? E(`わたしの〈${catLabel(G.leaderCat)}〉と 3つ いじょう あわせたね！　<b style="color:#86efac">げんき ＋10</b>`,`わたしの〈${G.leaderCat}〉と3種類以上を合わせましたね！　<b style="color:#86efac">げんき ＋10</b>`) : undefined);
     }
   }
   G.busy=false;
+}
+/* ============================================================
+   ✨ かがやくなかま（v9.0）
+   ------------------------------------------------------------
+   CEOご要望（2026-08-28）：パズルの結びつきでレアななかまが登場すると面白い。
+   4種類以上を いっしょに消したとき（＝2倍のとき）、いちばん はたらいた なかまが
+   金色になって あらわれ、げんきを 1 もどす。
+   「方略は 組み合わせると 強い」という この教材の主張を、そのまま ごほうびにしたもの。
+   ============================================================ */
+async function showShine(cis, topCatKey){
+  const ci=CI[topCatKey]!=null?CI[topCatKey]:cis[0], cat=CATS[ci], card=CARD[G.deck[cat.key]];
+  G.rec.shines++; SFX.shine();
+  const el=document.getElementById('charaCut'); hideCutIn();
+  el.innerHTML=''; el.style.borderColor='#FFD54A'; el.classList.add('shine');
+  el.appendChild(monSprite(cat.pal,'shiny',60));
+  const t=document.createElement('span'); t.className='cutxt';
+  const healed=G.pHp<G.pMax;
+  if(healed){ G.pHp=Math.min(G.pMax,G.pHp+15); updateHp(); }
+  t.innerHTML=`<b style="color:#FFD54A">✨ ${E('かがやく','かがやく')}${cat.chara}</b><br>`
+    +E(`${cis.length}つの わざが 合わさった！`,`${cis.length}種類の方略が合わさった！`)
+    +(healed?`<br><b style="color:#86efac">💚 げんき ＋15</b>`:`<br><span style="color:#c3c9e8">${E('げんきは まんたん！','げんきは満タン！')}</span>`);
+  el.appendChild(t);
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  clearTimeout(el._t); scrollTalk();   /* v9.1：つぎの操作まで出しておく */
+  await sleep(1000);
 }
 /* ボスの段階が変わる：みたてをやり直す（HPは減ったまま引きつぐ） */
 async function bossShift(){
   stopTimer(); G.busy=true;
   const el=document.getElementById('bigClear');
-  el.textContent=E(G.enemy.shiftE,G.enemy.shiftF);
+  el.textContent=E('ようすが かわった！　中から ちがう 声が…','ようすが変わった！　中からちがう声が…');
   el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
   SFX.appear();
   document.getElementById('eSerif').textContent=`${G.enemy.name}「${E('まだ おわらないぞ','まだ終わらないぞ')}」`;
@@ -1990,15 +2247,172 @@ function applyGravity(){
   }
 }
 function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+/* ============================================================
+   つまずきの こうげき（v9.0）
+   ------------------------------------------------------------
+   CEOご指摘（2026-08-28）：つまずきがほとんど攻撃してこないので面白くない。
+     攻撃があり、持っていく方略の選択と関係を持たせたい。
+   ・回数：2手目・3手目・5手目・6手目…（3手に2回）。1手目・4手目…は リーダーの ひとこと。
+   ・向き：つまずきの こうげきは、その つまずきの「なかま」（＝弱点のなかま）に 向く。
+       ゆうわくインプ→リソース管理、フアンゴースト→メタ認知 … の つまずき。
+   ・受け方：そのなかまが持っているカードの役わりで 決まる。
+       🛡 ふせぐ（見通す）   → ダメージ 0。なかまが カードの名前を言って ふせぐ
+       💚 たてなおす（振り返る）→ ダメージ 1。つぎに そのなかまの たまを消すと げんき＋1
+       ⚔ こうげき（実行する） → ダメージ 1
+   ・なかまが しゃべる：どのカードが、なぜ はたらいたかを、そのたびに ことばで言う。
+   ============================================================ */
+function foeAttackDue(){ return G.turn>=2 && G.turn%3!==1; }
 async function enemyTurn(){
-  const e=G.enemy, line=e.lines[Math.floor(Math.random()*e.lines.length)];
-  document.getElementById('eSerif').textContent=`${e.name}「${line}」`;
-  await sleep(700);
-  G.pHp-=1; SFX.damage(); updateHp();
-  if(G.pHp<=0){ G.pHp=2; SFX.rescue(); updateHp();
-    document.getElementById('eSerif').textContent=E('なかまが かけつけた！　げんきが すこし もどった','なかまがかけつけた！　げんきがすこし戻った');
-    await sleep(900); }
-  document.getElementById('eSerif').textContent='';
+  const e=G.enemy, w=e.weak, ci=CI[w], cat=CATS[ci];
+  const cardKey=G.deck[w], card=CARD[cardKey], role=roleOf(cardKey);
+  const es=document.getElementById('eSerif');
+  hideLeaderSay();                                   /* 重ならないよう、リーダーの吹き出しは片づける */
+  const line=e.lines[Math.floor(Math.random()*e.lines.length)];
+  const head=`<span style="color:#ffe9b8">${e.name}「${line}」</span>`;
+  es.innerHTML=head;
+  await sleep(500);
+  /* こうげきの向きを、帯で いちど見せ、欄にも残す（あとで読める） */
+  const atk=E(`⚡ ${e.name}の こうげき！　〈${catLabel(w)}〉の つまずき`,`⚡ ${e.name}の攻撃！　〈${w}〉のつまずき`);
+  showAtkBanner(atk, cat.color);
+  const pre=head+`<br><span style="color:#fca5a5">${atk}</span><br>`;
+  await sleep(600);
+  const cname=G.easy?card.easy:card.title;
+  if(role==='guard' && !G.guardSpent[w]){
+    /* 🛡 ふせぐ：見通して じゅんびしていた。ふせいだら じゅんびは いちど きれる。
+       その なかまの たまを 消すと、じゅんびを し直せる（＝ふせぐ ⇄ 消す の リズム。
+       ずっと ふせぎ続けられると たたかいの緊張が なくなるので、こうした） */
+    SFX.guard(); cheerChip(ci); flashChip(ci,'guard'); G.guardSpent[w]=true; markGuardChip(ci,true);
+    G.rec.blocks++; G.rec.roleLog.push({r:'guard',cat:w,card:card.title,foe:e.name});
+    es.innerHTML=pre+`<b style="color:${cat.color}">${cat.chara}</b>「${E(`『${cname}』！　${ROLE.guard.whyE}よ`,`『${cname}』！　${ROLE.guard.whyF}`)}」　<b style="color:#7DD3E8">🛡 ふせいだ！</b>`
+      +`<br><span style="color:#8d95bd">${E(`（つぎに〈${catLabel(w)}〉の たまを 消すと、また じゅんび できる）`,`（つぎに〈${w}〉のドロップを消すと、また準備できます）`)}</span>`;
+    await sleep(900);
+  }else if(role==='guard'){
+    const d=incomingDamage(); G.pHp-=d.dmg; (d.why==='neglect'||d.dmg>=24)?SFX.bighurt():SFX.damage(); updateHp(); flashChip(ci,'hurt'); showDmgPop(d.dmg);
+    es.innerHTML=pre+`<b style="color:${cat.color}">${cat.chara}</b>「${E(`じゅんびが きれてた…！　〈${catLabel(w)}〉の たまを 消して、じゅんびを し直そう`,`準備が切れていた…！　〈${w}〉のドロップを消して、準備をし直しましょう`)}」`
+      +`<br><span style="color:#fca5a5">${whyText(w,d.why,d.dmg)}</span>`;
+    await sleep(900);
+    if(G.pHp<=0){ if(await onZero(es)) return; }
+  }else{
+    const d=incomingDamage(); G.pHp-=d.dmg; (d.why==='neglect'||d.dmg>=24)?SFX.bighurt():SFX.damage(); updateHp(); flashChip(ci,'hurt'); showDmgPop(d.dmg);
+    if(role==='heal'){
+      /* 💚 たてなおす：つぎに この色を消せば げんき＋1 */
+      G.healArm=w;
+      es.innerHTML=pre+`<span style="color:#fca5a5">${whyText(w,d.why,d.dmg)}</span><br>`
+        +`<b style="color:${cat.color}">${cat.chara}</b>「${E(`『${cname}』…つぎに〈${catLabel(w)}〉の たまを 消せば、げんき＋20 たてなおせるよ`,`『${cname}』…つぎに〈${w}〉のドロップを消せば、げんき＋20 立てなおせます`)}」　<b style="color:#86efac">💚</b>`;
+      await sleep(900);
+    }else{
+      es.innerHTML=pre+`<span style="color:#fca5a5">${whyText(w,d.why,d.dmg)}</span><br>`
+        +E(`${cat.chara}の『${cname}』は ⚔こうげきの わざ。ふせぐには 🛡の わざ`,`${cat.chara}の『${cname}』は⚔こうげきの方略。ふせぐには🛡の方略`);
+      await sleep(900);
+    }
+    if(G.pHp<=0){ if(await onZero(es)) return; }
+  }
+  /* v9.1：ここで消さない。つぎの操作まで 残す */
+}
+/* ============================================================
+   げんきが ゼロになったとき（v9.5）
+   ------------------------------------------------------------
+   CEOご質問（2026-09-10）「げんきがゼロになっても戻るのはどうして？」
+   → これまでは 何度でも「なかまがかけつける」だった（失敗の状態を作らない、という
+     教材としての判断。ふりかえりに必ず到達させるため）。ただし げんきの意味が薄い。
+   CEO決定：**かけつけは 1クエストに 1回**。2回目にゼロになったら、
+     そのつまずきから「一旦離れる」→ げんきを全部もどして、みたてから やり直す。
+     点は減らない。46枚にある方略『一旦離れる・得意なところを見つける』
+     （動機づけ調整・実行する）を、そのまま ことばにして使う。
+     ＝行き詰まったら離れて立てなおす、という自己調整の動きが ゲームの動きになる。
+   ============================================================ */
+async function onZero(es){
+  if(!G.rescueUsed){
+    G.rescueUsed=true; G.pHp=40; SFX.rescue(); updateHp(); G.rec.rescues=(G.rec.rescues||0)+1;
+    es.innerHTML+=`<br><span style="color:#86efac">${E('なかまが かけつけた！　げんきが 40 もどった（かけつけは 1回だけ）','なかまがかけつけた！　げんきが40戻った（かけつけは1回だけ）')}</span>`;
+    await sleep(700); return false;
+  }
+  /* 2回目：一旦離れて、やり直す */
+  G.retreating=true; stopTimer(); hideLeaderSay(); hideCutIn();
+  G.rec.retreats=(G.rec.retreats||0)+1;
+  const card=CARD['一旦離れる'], cat=CATS[CI[card.cat]];
+  G.rec.roleLog.push({r:'retreat',cat:card.cat,card:card.title,foe:G.enemy.name});
+  const wp=document.getElementById('winPanel'); clearTimeout(wp._t);
+  wp.innerHTML=
+     `<span class="wttl" style="color:#7DD3E8;font-size:20px">${E('げんきが ゼロに…','げんきがゼロに…')}</span>`
+    +`<div class="wbest" style="border-top:none;padding-top:2px"><span data-emb="1" class="wemb"></span><span class="wtx">`
+      +`<b style="color:${cat.color}">${cat.chara}</b>「${E(`『${card.easy}』！`,`『${card.title}』！`)}」<br>`
+      +`${E('いちど はなれて、たてなおそう。','いちど離れて、立てなおしましょう。')}</span></div>`
+    +`<span class="wdex" style="color:#86efac">💚 ${E('げんきが ぜんぶ もどった','げんきが全部もどった')}</span>`
+    +`<span class="wcnt">${E('はなれて 見ると、つまずきは 思ったより 小さい。みたてから もういちど いどむよ。ポイントは へらないよ。','離れて見ると、つまずきは思ったより小さい。みたてからもう一度いどみます。ポイントは減りません。')}</span>`
+    +`<span class="wtap">${E('▶ タップで もどる','▶ タップでもどる')}</span>`;
+  wp.querySelector('[data-emb]').appendChild(emblemCanvas(card.cat, EMB_SLOT[card.title]||0, true, 38, card.phase));
+  wp.classList.remove('show'); void wp.offsetWidth; wp.classList.add('show'); wp.style.pointerEvents='auto';
+  SFX.rescue();
+  await new Promise(res=>{ wp.onclick=()=>{ wp.onclick=null; res(); }; });
+  wp.classList.remove('show');
+  /* げんきを全部もどし、この つまずき（ボスなら この段階）を みたてから やり直す */
+  G.pHp=G.pMax; updateHp();
+  /* はなれて見ると、つまずきは 思っていたより 小さい：やり直しの相手は HPを 6割に。
+     （何度 離れても 終わらない、という つらい状態を作らないための下限） */
+  const base=G.foes[G.eIndex];
+  G.retreatShrink=0.6;
+  if(base.boss){ const step=base.hp/G.bossWeaks.length; G.eDmg={}; G.eHits=0; startGuess(true); G.eHp=Math.round((base.hp-step*G.bossPhase)*0.6); updateHp(); }
+  else { startGuess(false); G.eHp=Math.round(base.hp*0.6); }
+  G.retreating=false; G.busy=false;
+  return true;
+}
+/* ============================================================
+   受けるダメージ（v9.6）
+   ------------------------------------------------------------
+   CEOご指摘（2026-09-10）：必ず1減るのは予想できて面白くない。数字で、高いときと低いときがあり、
+   それを方略に関連させたい。
+   受けるダメージ ＝ つまずきの強さ × 方略の状態 × ゆらぎ（0.85〜1.15）
+     ×0.5：攻撃してくる なかまの たまを、直前の手で消していた（いま その方略を使っていた）
+     ×1.5：この つまずきで、その なかまを まだ一度も使っていない（ほうっておいた つまずきは大きくなる）
+     ×1.0：それ以外
+   与えるダメージ（弱点×2）と同じ向き＝「つまずきには、その方略を使い続けるほど有利」。覚えることを増やさない。
+   ============================================================ */
+function incomingDamage(){
+  const e=G.enemy, w=e.weak;
+  const base=(e.atk||16)*(e.rare?1.3:1);
+  let mul=1, why='';
+  if(G.lastMoveCats && G.lastMoveCats[w]){ mul=0.5; why='recent'; }
+  else if(!(G.eUse && G.eUse[w])){ mul=1.5; why='neglect'; }
+  const jitter=0.85+Math.random()*0.30;
+  const dmg=Math.max(1,Math.round(base*mul*jitter));
+  return {dmg,mul,why};
+}
+function whyText(w,why,dmg){
+  const lab=catLabel(w);
+  if(why==='recent') return E(`〈${lab}〉の たまを いま 消していたから、<b>半分</b>で すんだ（−${dmg}）`,`〈${w}〉のドロップを直前に消していたので、<b>半分</b>ですみました（−${dmg}）`);
+  if(why==='neglect') return E(`〈${lab}〉を まだ 一度も つかっていないから、つまずきが <b>大きく</b> なった（−${dmg}）`,`〈${w}〉をまだ一度も使っていないので、つまずきが<b>大きく</b>なりました（−${dmg}）`);
+  return E(`−${dmg}`,`−${dmg}`);
+}
+/* こうげきの向きを、大きめの帯で1回見せる */
+function showAtkBanner(txt,color){
+  const el=document.getElementById('atkBanner'); if(!el) return;
+  el.textContent=txt; el.style.borderColor=color||'#ef4444';
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),1600);
+}
+/* 🛡の じゅんびが きれている なかまの札を うすくする */
+function markGuardChip(ci,spent){
+  const d=document.querySelector('#deckBar .dchip[data-ci="'+ci+'"] .rolebadge'); if(!d) return;
+  d.classList.toggle('spent',!!spent);
+}
+/* 回復の数字を、げんきの近くに 1回 出す */
+function showHealPop(n){
+  const h=document.getElementById('pHearts'); if(!h) return;
+  const el=document.createElement('span'); el.className='hurtpop heal'; el.textContent='＋'+n;
+  h.appendChild(el); setTimeout(()=>el.remove(),1100);
+}
+/* 受けたダメージの数字を、げんきの近くに 1回 大きく出す */
+function showDmgPop(n){
+  const h=document.getElementById('pHearts'); if(!h) return;
+  const el=document.createElement('span'); el.className='hurtpop'; el.textContent='−'+n;
+  h.appendChild(el); setTimeout(()=>el.remove(),1100);
+}
+/* なかまの札を、ふせいだ／うけた で光らせる */
+function flashChip(ci,kind){
+  const d=document.querySelector('#deckBar .dchip[data-ci="'+ci+'"]'); if(!d) return;
+  d.classList.remove('fl-guard','fl-hurt','fl-heal'); void d.offsetWidth; d.classList.add('fl-'+kind);
+  setTimeout(()=>d.classList.remove('fl-'+kind),1400);
 }
 /* ============================================================
    つまずきに勝ったとき（v8.4）
@@ -2030,7 +2444,11 @@ function nextFoe(){
   const wp=document.getElementById('winPanel');
   wp.classList.remove('show'); clearTimeout(wp._t); wp.onclick=null;
   G.eIndex++;
-  if(G.eIndex<G.foes.length){ startGuess(); G.busy=false; } else { startLook(); }
+  if(G.eIndex<G.foes.length){
+    /* v9.8 ①：つぎの たたかいへ 進むとき、げんきを 20 もどす（ひと息つく） */
+    G.pHp=Math.min(G.pMax,G.pHp+20); updateHp();
+    startGuess(); G.busy=false;
+  } else { startLook(); }
 }
 function showWinPanel(){
   const wp=document.getElementById('winPanel'), sv=normSave(loadSave());
@@ -2040,8 +2458,9 @@ function showWinPanel(){
   const isNew=!sv.dex[card.title];
   const hits=G.eHits||0, pts=10+30*hits;
   const isBoss=!!G.enemy.boss;
+  if(G.enemy.rare) G.rec.rares++;
   wp.innerHTML=
-     `<span class="wttl">${isBoss?E('ボスに かった！','ボスに勝った！'):E('たおした！','たおした！')}</span>`
+     `<span class="wttl">${isBoss?E('ボスに かった！','ボスに勝った！'):(G.enemy.rare?E('✨ レアを たおした！','✨ レアを倒した！'):E('たおした！','たおした！'))}</span>`
     +`<span class="wname">${G.enemy.name}</span>`
     +`<span class="wpts">＋${pts} ${E('ほうりゃくポイント','方略ポイント')}</span>`
     +`<div class="wrow"><span>${E('たおした つまずき','たおしたつまずき')}</span><span>＋10</span></div>`
@@ -2054,6 +2473,7 @@ function showWinPanel(){
         ? E('📖 ずかんに まだ ない わざ！ クエストの さいごに 手に入るよ','📖 図鑑にまだない方略！ クエストの最後に手に入ります')
         : E('📖 ずかんに ある わざ（きろく ずみ）','📖 図鑑に記録ずみの方略')}</span>`
     +`<span class="wcnt">${E('ずかん','図鑑')} <b>${Object.keys(sv.dex).length}</b> / 46</span>`
+    +(G.eIndex+1<G.foes.length ? `<span class="wcnt" style="color:#86efac">💚 ${E('つぎの たたかいへ：げんき ＋20','つぎのたたかいへ：げんき ＋20')}</span>` : '')
     +`<span class="wtap">${E('▶ タップで つぎへ','▶ タップでつぎへ')}</span>`;
   /* ごほうびなので、くすませずに いつも色つきで出す。
      まだ手に入れていないことは「NEW」の札のほうで知らせる。 */
@@ -2068,16 +2488,18 @@ function showWinPanel(){
 /* ============================================================ ⑤振り返り ============================================================ */
 function startLook(){
   const r=G.rec, hits=r.guesses.filter(g=>g.hit).length;
-  const pts = hits*30 + r.mixCount*15 + r.maxCombo*4 + G.foes.length*10 + G.pHp*5;
+  const hpUnits=Math.round(Math.max(0,G.pHp)/20);           /* v9.6：げんき20ごとに＋5（♥1つ＝＋5 と同じ尺度）*/
+  const pts = hits*30 + r.mixCount*15 + r.maxCombo*4 + G.foes.length*10 + hpUnits*5;
   G.result={ points:pts, hits, mixes:r.mixCount, maxCombo:r.maxCombo,
     parts:[
       {k:E('みたてが あたった','みたてが的中'), n:hits, per:30},
       {k:E('3つ いじょう いっしょに','3種類以上を同時に'), n:r.mixCount, per:15},
       {k:E('いちばん ながい コンボ','最大コンボ'), n:r.maxCombo, per:4},
       {k:E('たおした つまずき','たおしたつまずき'), n:G.foes.length, per:10},
-      {k:E('のこった げんき','のこったげんき'), n:G.pHp, per:5},
+      {k:E('のこった げんき（20ごと）','のこったげんき（20ごと）'), n:hpUnits, per:5},
     ],
-    stampTitles:[], useCount:Object.assign({},r.catUse) };
+    stampTitles:[], useCount:Object.assign({},r.catUse),
+    blocks:r.blocks, heals:r.heals, shines:r.shines, rares:r.rares, roleLog:r.roleLog.slice() };
   paintLook(); show('scLook');
 }
 function paintLook(){
@@ -2092,7 +2514,14 @@ function paintLook(){
     <div class="stat"><span>${E('いちばん ながい コンボ','いちばん長いコンボ')}</span><b>${rec.maxCombo} コンボ</b></div>
     <div class="stat"><span>${E('3つ いじょうを いっしょに つかえた かず','3つ以上を同時につかえた回数')}</span><b>${rec.mixCount} ${E('かい','回')}</b></div>
     <div class="stat"><span>${E('よそうが あたった かず','みたてがあたった回数')}</span><b>${hits} / ${rec.guesses.length}</b></div>
-    <div class="stat" style="border:none"><span>${E('のこった げんき','のこったげんき')}</span><b>${'♥'.repeat(G.pHp)}</b></div>`;
+    <div class="stat"><span>🛡 ${E('ふせいだ かず','ふせいだ回数')}</span><b>${rec.blocks}</b></div>
+    <div class="stat"><span>💚 ${E('たてなおした かず','たてなおした回数')}</span><b>${rec.heals}</b></div>
+    <div class="stat"><span>✨ ${E('かがやく なかまを よんだ かず','かがやくなかまをよんだ回数')}</span><b>${rec.shines}</b></div>
+    <div class="stat"><span>💚 ${E('リーダーと あわせわざで かいふく','リーダーとのあわせわざで回復')}</span><b>${rec.leaderHeals||0}</b></div>
+    ${(rec.retreats||0)>0?`<div class="stat"><span>🔁 ${E('いちど はなれて やり直した かず','いちど離れてやり直した回数')}</span><b>${rec.retreats}</b></div>`:''}
+    <div class="stat" style="border:none"><span>${E('のこった げんき','のこったげんき')}</span><b>${Math.max(0,Math.round(G.pHp))} / ${G.pMax}</b></div>`
+    + (rec.roleLog.length ? `<div class="rsub" style="margin-top:6px;color:#98a0c8">${E('はたらいた わざ：','はたらいた方略：')}`
+        + rec.roleLog.slice(0,4).map(x=>`${x.r==='retreat'?'🔁':ROLE[x.r].icon}『${x.card}』`).join('　') + (rec.roleLog.length>4?'　…':'') + '</div>' : '');
   const bars=document.getElementById('lookBars'); bars.innerHTML='';
   const max=Math.max(1,...CATS.map(c=>rec.catDmg[c.key]||0));
   CATS.forEach(cat=>{
@@ -2145,6 +2574,8 @@ function startEnd(){
   const t=new Set();
   CATS.forEach(c=>t.add(CARD[G.deck[c.key]].title));
   t.add(CARD[G.leaderKey].title); t.add(CARD[G.pickKey].title);
+  /* v9.5：いちど離れて やり直したなら、その方略も「使った」ものとして ずかんに記録する */
+  if((G.rec.retreats||0)>0) t.add(CARD['一旦離れる'].title);
   G.result.stampTitles=[...t];
   G.result.pickKey=G.pickKey;
   G.applied=applyResult(G.result);
@@ -2364,6 +2795,7 @@ function trophyCanvas(id,owned,size){
   else if(id==='guess'){ m.ring(cx,cy,3.0,1.0,mark); m.disc(cx,cy,1.0,mark); }             /* まと */
   else if(id==='combo'){ m.poly([[cx+1,cy-3.4],[cx-1.6,cy+.2],[cx-.2,cy+.2],[cx-1.4,cy+3.4],[cx+1.8,cy-.6],[cx+.4,cy-.6]],mark); } /* いなずま */
   else if(id==='keep'){ m.ring(cx,cy,3.2,1.0,mark); m.box(cx-1,cy-1,cx,cy+1,mark); }        /* 月桂の輪 */
+  else if(id==='shine'){ m.poly([[cx,cy-3.6],[cx+1.1,cy-1.1],[cx+3.6,cy-.8],[cx+1.7,cy+.9],[cx+2.2,cy+3.4],[cx,cy+2.1],[cx-2.2,cy+3.4],[cx-1.7,cy+.9],[cx-3.6,cy-.8],[cx-1.1,cy-1.1]],mark); } /* 星 */
   else { m.box(cx-3,cy-2.5,cx+2,cy+2.5,mark); m.box(cx-1,cy-2.5,cx-1,cy+2.5,goldD); }       /* ひらいた本 */
   _trCache[id+'_'+(owned?1:0)+'_'+size+'_'+DPR]=m.c;
   return trophyCanvas(id,owned,size);
@@ -2407,6 +2839,8 @@ function paintDex(){
     <div class="stat"><span>${E('クエストを クリアした かず','クエストのクリア回数')}</span><b>${sv.quests}</b></div>
     <div class="stat"><span>${E('みたてが あたった かず','みたて的中の累計')}</span><b>${sv.hits}</b></div>
     <div class="stat"><span>${E('3つ いじょう いっしょに つかえた かず','3種類以上を同時に使えた累計')}</span><b>${sv.mixes}</b></div>
+    <div class="stat"><span>🛡 ${E('ふせいだ かず','ふせいだ累計')}　💚 ${E('たてなおした かず','たてなおした累計')}</span><b>${sv.blocks}　${sv.heals}</b></div>
+    <div class="stat"><span>✨ ${E('かがやく なかま','かがやくなかま')}　✨ ${E('レアつまずき','レアつまずき')}</span><b>${sv.shines}　${sv.rares}</b></div>
     <div class="stat" style="border:none"><span>${E('スタンプ','スタンプ')}</span><b>${got} / 46</b></div>
     <div class="lvline" id="lvLine"></div>
     <div class="rsub" style="color:#7d85ad">${E('ほうりゃくポイントが たまると、すがたが 5だんかいに そだつよ。','方略ポイントがたまると、すがたが5段階に育ちます。')}</div>`;
@@ -2562,7 +2996,7 @@ paintToggle(); paintBgmBtn(); paintTitle();
 })();
 
 /* ---------- テスト用フック（Playwright検証で使用） ---------- */
-window.__PZ={G,CATS,CARD,TUTO,LEVELS,TITLES,DEX,BGM,TRACKS,ac,MON_ART,monSprite,emblemCanvas,trophyCanvas,EMB_SLOT,showWinPanel,showLeaderSay,leaderSayLines,enemyDislike,enemyHurt,charaCutIn,hideCutIn,FOES,BOSS,POOL,CATWHY,recordText,unlockedOf,autoOpen,openTotal,findMatches,matchesOf,resolveBoard,loadSave,putSave,normSave,levelOf,forgetTuto,markTutoSeen,
+window.__PZ={G,CATS,CARD,TUTO,LEVELS,TITLES,DEX,BGM,TRACKS,ac,MON_ART,monSprite,clearTalk,layoutBoard,onZero,incomingDamage,ROLE,roleOf,enemyTurn,foeAttackDue,showShine,emblemCanvas,trophyCanvas,EMB_SLOT,showWinPanel,showLeaderSay,leaderSayLines,enemyDislike,enemyHurt,charaCutIn,hideCutIn,FOES,BOSS,POOL,CATWHY,recordText,unlockedOf,autoOpen,openTotal,findMatches,matchesOf,resolveBoard,loadSave,putSave,normSave,levelOf,forgetTuto,markTutoSeen,
   setGrid(rows){ rows.forEach((row,r)=>row.forEach((v,c)=>{ G.grid[r][c]=v; const old=G.els[r][c]; if(old) old.remove(); G.els[r][c]=makeDropEl(v); })); renderAll(); },
   forceResolve(){ return resolveBoard(); },
   solveTuto(){ const t=TUTO[G.tutoStep], a=t.from, b=t.to;
