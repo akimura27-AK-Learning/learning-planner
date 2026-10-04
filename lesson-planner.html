@@ -616,8 +616,9 @@
           <li><b>Google AI Studio</b> を開き、Googleアカウントでlog inします。<br><a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">→ キー発行ページを開く</a></li>
           <li><b>「Create API key（APIキーを作成）」</b>ボタンを押します。</li>
           <li>プロジェクトの選択を求められたら、案内に従って進めます（既存のものでOK）。</li>
-          <li>表示された <b>AIza… で始まる文字列</b>をコピーします。</li>
+          <li>表示された <b>AIza… または AQ.… で始まる文字列</b>をコピーします。</li>
           <li>下の入力欄に貼り付けます。<br><span class="ok">※無料枠の範囲ならカード登録なしで使えます。</span></li>
+          <li><b>キーが「AQ.」で始まる方</b>（2026年6月以降に取得した方）は、下の「モデル」で <b>Gemini 3.8 Flash</b> を選んでください。<br><span class="warn">※「AQ.」のキーでは古いモデル（Gemini 2.5 Flash など）は使えず、接続エラーになります。一覧に Gemini 3.8 Flash がない場合は「その他（モデル名を手入力）」を選び、<b>gemini-3.8-flash</b> と入力してください。</span></li>
         </ol>
       </div>
 
@@ -651,7 +652,7 @@
           <button class="btn btn-ghost" onclick="testConnection()">接続テスト</button>
           <span id="testResult" style="font-size:.84rem;"></span>
         </div>
-        <div class="key-help" style="margin-top:6px;">「✓ 接続できました」と出れば準備完了です。エラーが出たら、キーの貼り間違いがないか確認してください。</div>
+        <div class="key-help" style="margin-top:6px;">「✓ 接続できました」と出れば準備完了です。エラーが出たら、キーの貼り間違いがないか確認してください。「no longer available to new users」と出る場合は、モデルを <b>Gemini 3.8 Flash</b>（または「その他」に gemini-3.8-flash と入力）に変えてください。</div>
       </div>
 
       <div style="margin-top:18px;">
@@ -1434,35 +1435,35 @@ phaseは導入=intro, 展開=develop, まとめ=summary です。idは必ずカ�
    ============================================================ */
 const PROVIDERS={
   claude:{
-    label:"Anthropic (Claude)", keyPrefix:"sk-ant-", defaultModel:"claude-sonnet-4-5-20250929",
+    label:"Anthropic (Claude)", keyPrefix:"sk-ant-", defaultModel:"claude-sonnet-5-5",
     consoleUrl:"https://console.anthropic.com/settings/keys",
     help:'キーは <b>console.anthropic.com</b> の Settings → API keys で発行。sk-ant- で始まります。',
     models:[
-      {id:"claude-sonnet-4-5-20250929", name:"Claude Sonnet 4.5（推奨・バランス）"},
-      {id:"claude-opus-4-1-20250805",   name:"Claude Opus 4.1（最高品質・低速）"},
-      {id:"claude-3-5-haiku-20241022",  name:"Claude Haiku 3.5（高速・軽量）"}
+      {id:"claude-sonnet-5-5",          name:"Claude Sonnet 5.5（推奨・バランス）"},
+      {id:"claude-haiku-4-5-20251001",  name:"Claude Haiku 4.5（高速・低コスト）"},
+      {id:"claude-opus-5-5",            name:"Claude Opus 5.5（最高品質・高コスト）"}
     ]
   },
   gemini:{
-    label:"Google (Gemini)", keyPrefix:"AIza", defaultModel:"gemini-2.5-flash",
+    label:"Google (Gemini)", keyPrefix:"AQ. / AIza", defaultModel:"gemini-3.8-flash",
     consoleUrl:"https://aistudio.google.com/apikey",
     help:'キーは <b>aistudio.google.com/apikey</b>（Google AI Studio）で「Create API key」から取得。無料枠があります。',
     models:[
-      {id:"gemini-2.5-flash",      name:"Gemini 2.5 Flash（推奨・無料枠あり）"},
-      {id:"gemini-2.5-flash-lite", name:"Gemini 2.5 Flash-Lite（無料枠が緩い・連続利用向き）"},
-      {id:"gemini-3-flash",        name:"Gemini 3 Flash（高性能・無料枠あり）"},
-      {id:"gemini-2.5-pro",        name:"Gemini 2.5 Pro（最高品質・有料／無料枠は厳しい）"}
+      {id:"gemini-3.8-flash",      name:"Gemini 3.8 Flash（推奨・無料枠あり）"},
+      {id:"gemini-3.5-flash-lite", name:"Gemini 3.5 Flash-Lite（無料枠が緩い・連続利用向き）"},
+      {id:"gemini-3.5-flash",      name:"Gemini 3.5 Flash（一世代前・安定）"},
+      {id:"gemini-2.5-flash",      name:"Gemini 2.5 Flash（旧・2026年6月以前からの利用者のみ）"}
     ]
   },
   openai:{
-    label:"OpenAI (GPT)", keyPrefix:"sk-", defaultModel:"gpt-5.4-mini",
+    label:"OpenAI (GPT)", keyPrefix:"sk-", defaultModel:"gpt-6-luna",
     consoleUrl:"https://platform.openai.com/api-keys",
     help:'キーは <b>platform.openai.com/api-keys</b> で「Create new secret key」から取得。sk- で始まります。無料枠は基本なく従量課金です。',
     models:[
-      {id:"gpt-5.4-mini", name:"GPT-5.4 mini（推奨・低コスト）"},
-      {id:"gpt-5.5",      name:"GPT-5.5（最高品質・高コスト）"},
-      {id:"gpt-5.4-nano", name:"GPT-5.4 nano（最速・最安）"},
-      {id:"gpt-4.1-mini", name:"GPT-4.1 mini（従来世代・安定）"}
+      {id:"gpt-6-luna",   name:"GPT-6 Luna（推奨・低コスト）"},
+      {id:"gpt-6.1-sol",  name:"GPT-6.1 Sol（バランス）"},
+      {id:"gpt-6-astra",  name:"GPT-6 Astra（最高品質・高コスト）"},
+      {id:"gpt-5.4-mini", name:"GPT-5.4 mini（従来世代・安定）"}
     ]
   }
 };
@@ -1591,7 +1592,7 @@ async function callLLMOnce(system,msgs){
       body:JSON.stringify({
         system_instruction:{parts:[{text:system}]},
         contents,
-        generationConfig:{maxOutputTokens:8192,responseMimeType:"application/json",thinkingConfig:{thinkingBudget:0}}
+        generationConfig:{maxOutputTokens:8192,responseMimeType:"application/json",thinkingConfig:(/^gemini-2\./.test(model)?{thinkingBudget:0}:{thinkingLevel:"low"})}
       })
     });
     const data=await resp.json().catch(()=>({}));
@@ -2178,6 +2179,10 @@ function applyLoadedState(obj){
   // モデル設定は復元、APIキーは復元しない（保存ファイルには含まれていない）
   if(obj.models&&typeof obj.models==="object"){
     ["claude","gemini","openai"].forEach(p=>{ if(typeof obj.models[p]==="string")state.models[p]=obj.models[p]; });
+    // 旧JSON（引退済みモデルの指定）は推奨モデルに戻す
+    if(/^gemini-2\./.test(state.models.gemini||""))state.models.gemini="";
+    if(/^claude-(3|sonnet-4|opus-4)/.test(state.models.claude||""))state.models.claude="";
+    if(/^gpt-(4|5\.4-nano)/.test(state.models.openai||""))state.models.openai="";
   }
   const desiredProvider=["claude","gemini","openai"].includes(obj.provider)?obj.provider:state.provider;
   // 画面へ反映
