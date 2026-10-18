@@ -53,6 +53,34 @@ h2.ttl{font-size:17px;line-height:1.7;margin:10px 0 4px}
 #scTitle{align-items:center;justify-content:flex-start;text-align:center;padding:54px 24px 24px}
 #scTitle .logo{font-size:30px;letter-spacing:.1em;color:var(--gold);text-shadow:0 4px 0 #6b3d00;line-height:1.5}
 #scTitle .sub{font-size:12px;color:#c3c9e8;margin:10px 0 4px;line-height:2}
+/* v10.0 そだちの演出：自分モンスターの Lv.（t1〜t5）で、たたかいの場・ゆれ・ダメージ文字が 派手になる */
+#fxCv{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:6}
+.emid::before{content:'';position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .6s}
+.emid.t2::before{opacity:.25;background-image:radial-gradient(circle,#fff 1px,transparent 1.6px);background-size:46px 46px}
+.emid.t3::before{opacity:.4;background-image:radial-gradient(circle,#fff 1px,transparent 1.6px),radial-gradient(circle,#7DD3E8 1px,transparent 2px);background-size:46px 46px,71px 71px}
+.emid.t4::before{opacity:.5;background-image:radial-gradient(circle,#fff 1.2px,transparent 1.8px),radial-gradient(circle,#ffd54a 1px,transparent 2px),linear-gradient(180deg,transparent 60%,#7DD3E822 100%);background-size:40px 40px,67px 67px,100% 100%}
+.emid.t5::before{opacity:.65;background-image:radial-gradient(circle,#fff 1.2px,transparent 1.8px),radial-gradient(circle,#ffd54a 1.2px,transparent 2px),linear-gradient(120deg,#7DD3E82a,#F59E0B22 40%,#f43f5e26 70%,#a78bfa2a);background-size:36px 36px,61px 61px,300% 300%;animation:aurora 7s linear infinite}
+@keyframes aurora{0%{background-position:0 0,0 0,0% 50%}100%{background-position:36px 36px,-61px 61px,100% 50%}}
+.emid.shakeT{animation:shkT var(--shd,.3s)}
+@keyframes shkT{0%,100%{transform:translate(0,0)}20%{transform:translate(calc(var(--sha,7px) * -1),calc(var(--sha,7px) * .3))}45%{transform:translate(var(--sha,7px),calc(var(--sha,7px) * -.3))}70%{transform:translate(calc(var(--sha,7px) * -.6),0)}}
+#enemyCv.kb{animation:kb .38s ease-out}
+@keyframes kb{0%{transform:translate(0,0) scale(1)}30%{transform:translate(var(--kbx,6px),calc(var(--kbx,6px) * -.5)) scale(1.04)}100%{transform:translate(0,0) scale(1)}}
+.dmgtxt.t3{text-shadow:0 2px 0 #6b3d00,0 0 14px #ffd54a,0 0 4px #fff}
+.dmgtxt.t4{color:#fff3b0;text-shadow:0 2px 0 #6b3d00,0 0 18px #ffd54a,0 0 6px #fff}
+.dmgtxt.t5{color:#fff;text-shadow:0 2px 0 #6b3d00,0 0 22px #ffd54a,0 0 10px #7DD3E8,0 0 4px #fff}
+/* v10.0 段階版：いまの むずかしさ（はじめの画面の きろく箱の中） */
+.rdiff{display:block;margin-top:6px;padding:5px 8px;border:2px solid #4b5484;border-radius:8px;font-size:10px;color:#dfe3f7;line-height:1.7;background:#171531}
+.rdiff b{color:#ffd54a}
+/* v10.0 段階版：Lv.1 で 最初の1手を 指で やってみせる */
+.demofinger{position:absolute;z-index:30;font-size:34px;pointer-events:none;filter:drop-shadow(0 2px 4px #000);transition:transform .9s ease-in-out;left:0;top:0}
+.demohint{position:absolute;left:50%;top:6px;transform:translateX(-50%);z-index:30;font-size:12px;color:#ffd54a;white-space:nowrap;background:rgba(10,14,35,.88);border:2px solid #ffd54a;border-radius:8px;padding:4px 10px;pointer-events:none}
+/* v10.0 段階版：げんきゼロ（入門・なれる）の 見おとしパネル */
+.stageclear{position:absolute;inset:0;z-index:40;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;background:rgba(10,14,35,.92)}
+.stageclear.show{display:flex}
+.stageclear .box{width:100%;max-width:340px;padding:16px 14px;text-align:center}
+.stageclear .ttl2{font-size:22px;color:#ffd54a;text-shadow:0 0 14px #F59E0B,0 3px 0 #8a5a06;margin-bottom:6px}
+.stageclear .fb{font-size:12px;line-height:1.8;color:#fca5a5;margin:8px 0}
+.stageclear button{margin-top:8px}
 .record{width:100%;max-width:290px;padding:9px 11px;margin:6px 0 2px;font-size:10.5px;line-height:1.7;text-align:left}
 .record .rtop{display:flex;align-items:center;gap:10px}
 /* つぎの すがた（まだ手に入れていないので、かげにして見せる） */
@@ -367,6 +395,8 @@ y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window, documen
     </div>
   </div>
 
+  <div class="stageclear" id="stageClear"><div class="dqwin box" id="stageClearBox"></div></div>
+
   <!-- れんしゅう -->
   <div class="screen" id="scTuto"><div class="pad">
     <div class="tutohead">
@@ -430,6 +460,7 @@ y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window, documen
         <div class="leadersay dqwin" id="leaderSay"></div>
         <div class="characut dqwin" id="charaCut"></div>
       </div>
+      <canvas id="fxCv"></canvas>
       <div class="combotxt" id="comboTxt"></div>
       <div class="dmgtxt" id="dmgTxt"></div>
       <div class="leaderbadge" id="leaderBadge"></div>
@@ -481,6 +512,7 @@ y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window, documen
     <div class="dqwin note" id="endNote" style="text-align:left;margin-top:14px"></div>
     <div class="foot" style="display:flex;flex-direction:column;gap:8px;align-items:center">
       <button class="gold" id="btnAgain"></button>
+      <button class="sub" id="btnHome"></button>
       <div class="sharebox">
         <div class="rsub" id="shareLead" style="text-align:center"></div>
         <div class="sharebtns">
@@ -1134,6 +1166,34 @@ function buildDrop(ci,W,withLabel){
 }
 function roundRect(g,x,y,w,h,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); }
 
+/* ============================================================
+   段階（STAGE）── v10.0 段階版
+   ------------------------------------------------------------
+   CEO指示（2026-10-13）：段階を選ぶ画面は作らない。はじめの画面は これまでのまま。
+   自分モンスターの Lv.（levelOf(sv.pts)）で、クエストの むずかしさが 自動で きまる。
+   Lv.4 はかせ 以上は 現行版そのまま（STAGE=null）。現行版の文言は 一字も 変えない。
+   入門（Lv.1）から 負けはある（CEO 2026-10-13）：かけつけ無し・固定ダメージ・見おとしを1行。
+   ============================================================ */
+const STAGE_DEF=[
+  {lv:1, name:'入門',   subE:'つまずき1体・2つから えらぶ・じかん なし', subF:'つまずき1体・2択・時間制限なし',
+   foes:1, opts:2, colors:3, timer:false, atk:14, hpMul:0.7, goal:false, deck:false, look:false, rescue:false, loss:true, rare:false, demo:true,
+   leadE:'どっちが きく？', leadF:'どちらが効く？', fbMode:'simple'},
+  {lv:2, name:'なれる', subE:'つまずき2体・3つから えらぶ・めあてを えらぶ', subF:'つまずき2体・3択・めあてを選ぶ',
+   foes:2, opts:3, colors:4, timer:false, atk:15, hpMul:0.6, goal:true,  deck:false, look:false, rescue:false, loss:true, rare:false, demo:false,
+   leadE:'どれが きく？　せりふを 見て えらぼう', leadF:'どれが効く？　せりふを見て選びましょう', fbMode:'hint'},
+  {lv:3, name:'考える', subE:'つまずき3体・4つから えらぶ・もちものを えらぶ・7びょう', subF:'つまずき3体・4択・もちものを選ぶ・7秒',
+   foes:3, opts:4, colors:5, timer:true,  atk:null, hpMul:0.8, goal:true,  deck:true,  look:true,  rescue:true,  loss:false, rare:true, demo:false,
+   leadE:'どれが きく？　外すと うける ダメージが 大きい', leadF:'どれが効く？　外すと受けるダメージが大きくなります', fbMode:'hint'},
+  null,   /* Lv.4 はかせ：現行版そのまま（3体＋ごちゃまぜドラゴン・5択・かけつけ・一旦離れる） */
+  null,   /* Lv.5 マスター：現行版（「よむ」は 状況文15本の CEO確認後に 追加する） */
+];
+let STAGE=null;      /* いま遊んでいる段階（null＝現行版そのまま） */
+function stageForLevel(li){ return STAGE_DEF[li] ? Object.assign({},STAGE_DEF[li]) : null; }
+function clarityTag(k,v){ try{ if(window.clarity) clarity('set',k,String(v)); }catch(e){} }
+function clarityEvent(n){ try{ if(window.clarity) clarity('event',n); }catch(e){} }
+/* いま使える色（なかま）の番号から 1つ えらぶ */
+function randCI(){ const a=(STAGE&&STAGE.colorSet)||[0,1,2,3,4]; return a[Math.floor(Math.random()*a.length)]; }
+
 /* ============================================================ 状態 ============================================================ */
 const ROWS=5, COLS=6, TIME_LIMIT=7000;
 const G={
@@ -1245,24 +1305,24 @@ const SHARE_TAG='#方略パズル';
 
 function recordText(kind){
   const R=G.result, A=G.applied, sv=A.sv, L=LEVELS[A.after];
-  const goal=CARD[G.leaderKey], next=CARD[G.pickKey];
+  const goal=G.leaderKey?CARD[G.leaderKey]:null, next=G.pickKey?CARD[G.pickKey]:null;
   const use=CATS.map(c=>`${c.easy}${R.useCount[c.key]||0}`).join('／');
   const nG=G.rec.guesses.length, out=[];
   if(kind==='sns'){
     out.push('🧩 方略パズル で あそんだよ');
-    out.push(`きょうの めあて：${goal.title}`);
+    if(goal) out.push(`きょうの めあて：${goal.title}`);
     out.push(`みたてが あたった：${R.hits}／${nG}`);
     out.push(`つかった わざ：${use}`);
     out.push(`とくてん：${R.points}（Lv.${A.after+1} ${L.name}）`);
     out.push(SHARE_TAG);
   }else{
     out.push('方略パズルを 1かい やりました。');
-    out.push(`・きょうの めあて（リーダー）：${goal.title}〔${goal.cat}〕`);
+    if(goal) out.push(`・きょうの めあて（リーダー）：${goal.title}〔${goal.cat}〕`);
     out.push(`・つまずきの みたて：${nG}回中 ${R.hits}回 あたり`);
     out.push(`・つかった 方略：${use}`);
     out.push(`・3つ以上を同時に使えた：${R.mixes}回／いちばん長いコンボ：${R.maxCombo}`);
     out.push(`・とくてん：${R.points}（ごうけい ${sv.pts}／Lv.${A.after+1} ${L.name}）`);
-    out.push(`・つぎに つかって みたい：${next.title}`);
+    if(next) out.push(`・つぎに つかって みたい：${next.title}`);
     out.push(`・ずかん：${Object.keys(sv.dex).length}／46`);
   }
   if(SHARE_URL) out.push(`▶ ${SHARE_URL}`);
@@ -1336,6 +1396,7 @@ function catLabel(k){ const c=CATS[CI[k]]; return G.easy ? (c.easy+'（'+c.key+'
 /* リーダーが言うことの候補を、そのときの状況からつくる */
 function leaderSayLines(){
   const e=G.enemy, L=G.leaderCat, out=[];
+  if(!L) return [''];
   out.push(E(`わたしの なかま〈${catLabel(L)}〉を あわせると <b>1.5ばい</b> だよ`,
              `わたしの${WORD.cat()}〈${L}〉を合わせると <b>1.5倍</b> です`));
   if(G.guessHit && G.guessCat)
@@ -1362,6 +1423,7 @@ let LEADER_SAY_I=0;
 function scrollTalk(){}   /* v9.3：ことばは四すみに置くので、送りは不要 */
 function showLeaderSay(txt){
   const el=document.getElementById('leaderSay'); if(!el) return;
+  if(!G.leaderCat) return;
   /* 勝った直後や、たたかい以外の画面では出さない
      （時間差のタイマーが あとから割り込むのを防ぐ） */
   if(current()!=='scBattle' || G.eHp<=0) return;
@@ -1467,7 +1529,7 @@ function paintTitle(){
     E('〜 わざは、あわせると つよい 〜','〜 方略は、組み合わせると強い 〜')
     + E('<br><span style="font-size:11px;color:#c3c9e8">学び方の コツ（方略）を、<b>あわせて つかう</b> ゲーム。1回 5〜8分。</span>',
         '<br><span style="font-size:11px;color:#c3c9e8">自己調整学習の方略を、<b>組み合わせて使う</b>ゲームです。1回およそ5〜8分。</span>')
-    + '<br><span style="font-size:10px;color:#8d95bd">制作：木村明憲　／　v9.8</span>';
+    + '<br><span style="font-size:10px;color:#8d95bd">制作：木村明憲　／　v10.0</span>';
   const lg=document.getElementById('catLegend'); lg.innerHTML='';
   CATS.forEach((cat,i)=>{
     const d=document.createElement('div'); d.className='clg';
@@ -1513,7 +1575,10 @@ function paintRecord(){
     <div class="nextsp"><span class="rbar" style="flex:1"><span class="rfill" id="rFill"></span></span>
       ${ nx ? '<span data-nsp="1" class="nspcv"></span>' : '' }</div>
     <div class="rsub" style="margin-top:4px">${ nx ? E('つぎの レベルまで あと '+(nx.min-sv.pts)+'（すがたが かわるよ）','次のレベルまであと '+(nx.min-sv.pts)+'（すがたが変わります）') : E('さいこう レベル！','最高レベル！')}</div>
-    <div>${sv.titles.map(id=>{const t=TITLES.find(x=>x.id===id);return t?'<span class="rttl">'+t.name+'</span>':''}).join('')}</div>`;
+    <div>${sv.titles.map(id=>{const t=TITLES.find(x=>x.id===id);return t?'<span class="rttl">'+t.name+'</span>':''}).join('')}</div>
+    <span class="rdiff">${(function(){ const d=STAGE_DEF[li];
+      return d ? E('いまの クエスト：<b>Lv.'+(li+1)+' '+d.name+'</b>　'+d.subE+'<br>そだつと、つぎは もっと むずかしく なるよ', '現在のクエスト：<b>Lv.'+(li+1)+' '+d.name+'</b>　'+d.subF+'<br>育つと、次はもっと難しくなります')
+               : E('いまの クエスト：<b>Lv.'+(li+1)+' ほんばん</b>　つまずき3体＋ごちゃまぜドラゴン', '現在のクエスト：<b>Lv.'+(li+1)+' 本番</b>　つまずき3体＋ごちゃまぜドラゴン'); })()}</span>`;
   box.querySelector('[data-sp]').appendChild(monSprite(L.sp,'sp',46));
   /* つぎの すがたを、かげで うっすら見せる（何になるかは まだ分からない） */
   const nsp=box.querySelector('[data-nsp]');
@@ -1531,7 +1596,9 @@ document.getElementById('btnQuick').addEventListener('click',()=>{ ac(); SFX.con
 document.getElementById('btnTuto').addEventListener('click',()=>{ ac(); SFX.confirm();
   if(G.seenTuto){ G.tutoStep=0; tutoBoard.dataset.built=''; startTuto(); } else { startGoal(); } });
 document.getElementById('btnSkipTuto').addEventListener('click',()=>{ SFX.confirm(); startGoal(); });
-document.getElementById('btnAgain').addEventListener('click',()=>location.reload());
+/* v10.0：「つぎの クエストへ」＝読み込み直して そのまま クエストへ（状態は reload と同じく まっさら）。「はじめの画面へ」＝これまでの もういちど */
+document.getElementById('btnAgain').addEventListener('click',()=>{ location.hash='#next'; location.reload(); });
+document.getElementById('btnHome').addEventListener('click',()=>{ location.replace(location.pathname+location.search); });
 
 /* ============================================================ れんしゅう（さわってから、ことば） ============================================================ */
 const TUTO=[
@@ -1658,15 +1725,35 @@ function checkTuto(){
 }
 
 /* ============================================================ ①めあて ============================================================ */
-function startGoal(){ markTutoSeen(); paintGoal(); show('scGoal'); }
+function startGoal(){
+  markTutoSeen();
+  /* v10.0：自分モンスターの Lv. で むずかしさが きまる */
+  const li=levelOf(normSave(loadSave()).pts);
+  STAGE=stageForLevel(li); G.tier=li; clarityTag('level',li+1); clarityTag('stage',STAGE?STAGE.name:'full');
+  if(STAGE){
+    if(!STAGE.timer) G.mode='slow';
+    if(!STAGE.goal){ /* 入門：めあて・もちものは えらばず、すぐ つまずきへ */
+      G.deck={}; CATS.forEach(c=>{ G.deck[c.key]=unlockedOf(c.key)[0]; });
+      G.leaderKey=null; G.leaderCat=null; questGo(); return; }
+  }
+  paintGoal(); show('scGoal');
+}
+/* つまずきを きめて、みたてへ */
+function questGo(){
+  buildFoes(); G.eIndex=0; G.pHp=G.pMax; G.rescueUsed=STAGE?!STAGE.rescue:false; G.retreating=false; G.stageLoss=0;
+  startGuess();
+}
 function paintGoal(){
   document.getElementById('goalPhase').textContent=E('見とおす','見通す');
   document.getElementById('goalTtl').textContent=E('きょうは、どんな 学びに したい？','きょうは、どんな学びにしたい？');
-  document.getElementById('goalLead').innerHTML=
-    E(`めあてを えらぶと、その わざの <b>なかまが リーダー</b>に なって、たたかいの あいだ ずっと そばに いるよ。<br>リーダーの なかまの たまは <b>1.5ばい つよく</b>なる。`,
+  const nGoal=goalCount();
+  document.getElementById('goalLead').innerHTML= (STAGE && !STAGE.deck)
+    ? E(`めあてを えらぶと、その なかまが <b>リーダー</b>に なるよ。リーダーの たまは <b>1.5ばい</b>。`,
+        `めあてを選ぶと、そのなかまが<b>リーダー</b>になります。リーダーのドロップは <b>1.5倍</b>。`)
+    : E(`めあてを えらぶと、その わざの <b>なかまが リーダー</b>に なって、たたかいの あいだ ずっと そばに いるよ。<br>リーダーの なかまの たまは <b>1.5ばい つよく</b>なる。`,
       `めあてを選ぶと、その方略の<b>なかまがリーダー</b>になり、バトルのあいだ画面に表示されます。<br>リーダーのなかまのドロップは <b>1.5倍</b> になります。`);
   const box=document.getElementById('goalList'); box.innerHTML='';
-  GOALS.forEach(g=>{
+  GOALS.slice(0,nGoal).forEach(g=>{
     const ci=CI[CARD[g.card].cat];
     const b=document.createElement('button'); b.className='cardbtn';
     /* CEOご指摘（2026-08-27）：この画面が分かりにくい。
@@ -1680,12 +1767,23 @@ function paintGoal(){
     box.appendChild(b);
     b.querySelector('[data-sp]').prepend(charaSprite(ci,48));
   });
+  if(nGoal<GOALS.length){
+    const nx=GOALS[nGoal], nc=CATS[CI[CARD[nx.card].cat]];
+    const d=document.createElement('div'); d.className='rsub'; d.style.cssText='margin-top:10px;text-align:center;color:#8d95bd;line-height:1.8';
+    d.innerHTML=E(`そだつと、えらべる めあてが ふえるよ（あと ${GOALS.length-nGoal}）<br>つぎは <span style="color:${nc.color}">${nc.chara}</span> の「${nx.easy}」`,
+                  `育つと、選べるめあてが増えます（あと ${GOALS.length-nGoal}）<br>次は <span style="color:${nc.color}">${nc.chara}</span> の「${nx.full}」`);
+    box.appendChild(d);
+  }
 }
+/* v10.0：えらべる めあての数＝自分モンスターの Lv.（Lv.2＝2つ … Lv.5＝5つ。Lv.1 は めあて画面なし） */
+/* CEO修正（2026-10-13）：さいごの 情動調整が 意識されにくいので、Lv.2＝2つ／Lv.3＝4つ／Lv.4 以上＝5つ */
+function goalCount(li){ if(li===undefined) li=(G.tier||0); return [2,2,4,5,5][Math.max(0,Math.min(4,li))]; }
 
 /* ============================================================ ②もちもの ============================================================ */
 function startDeck(){
   G.deck={}; CATS.forEach(c=>{ G.deck[c.key]=unlockedOf(c.key)[0]; });
   G.deck[G.leaderCat]=G.leaderKey;
+  if(STAGE && !STAGE.deck){ questGo(); return; }     /* なれる：もちものは 自動 */
   paintDeck(); show('scDeck');
 }
 function paintDeck(){
@@ -1752,6 +1850,10 @@ function paintDeck(){
 function buildFoes(){
   const idx=FOES.map((f,i)=>i);
   for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [idx[i],idx[j]]=[idx[j],idx[i]]; }
+  if(STAGE){ /* 段階：かぶらない foes 体。ボスなし。HPは 段階で 小さく。レアは Lv.3 から */
+    G.foes=idx.slice(0,STAGE.foes).map(i=>{ const f=FOES[i]; const rare=STAGE.rare && Math.random()<0.15;
+      return Object.assign({},f,{rare, name:rare?'✨'+f.name:f.name, hp:Math.round(f.hp*STAGE.hpMul*(rare?1.3:1))}); });
+    G.bossWeaks=[]; G.bossFoes=[]; G.healArm=null; return; }
   let three=idx.slice(0,3).map(i=>FOES[i]);
   /* v9.0 レアつまずき：15%で金色。HP1.3倍。点にはしない（運なので）。会った回数だけ記録する */
   three=three.map(f=> Math.random()<0.15
@@ -1761,7 +1863,119 @@ function buildFoes(){
   G.foes=three.concat([BOSS]);
   G.healArm=null;
 }
-document.getElementById('btnDeckGo').addEventListener('click',()=>{ SFX.confirm(); buildFoes(); G.eIndex=0; G.pHp=G.pMax; G.rescueUsed=false; G.retreating=false; startGuess(); });
+document.getElementById('btnDeckGo').addEventListener('click',()=>{ SFX.confirm(); questGo(); });
+
+/* ---------- そだちの演出（v10.0）：こうげきの手ごたえ。Lv.が上がるほど 粒・斬撃・リング・いなずまが ふえる ---------- */
+function strikeFx(ci,dmg){
+  const em=document.getElementById('eMid'), cv=document.getElementById('fxCv'); if(!em||!cv) return;
+  const t=G.tier||0, W=em.clientWidth, H=em.clientHeight; if(!W||!H) return;
+  const dpr=Math.min(2,window.devicePixelRatio||1); cv.width=W*dpr; cv.height=H*dpr; cv.style.width=W+'px'; cv.style.height=H+'px';
+  const x=cv.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0);
+  const col=(CATS[ci]&&CATS[ci].color)||'#fff', big=dmg>=700;
+  const cx=W/2, cy=H*0.52;
+  const parts=[]; const nP=6+t*9+(big?10:0);
+  for(let i=0;i<nP;i++){ const a=Math.random()*Math.PI*2, sp=(1.2+Math.random()*2.2)*(1+t*0.35); parts.push({x:cx,y:cy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-0.6,r:1.5+Math.random()*(1.5+t*0.6),c:Math.random()<0.5?col:'#fff',life:1}); }
+  const slashes=[]; const nS=Math.min(5,1+t);
+  for(let i=0;i<nS;i++){ slashes.push({a:(-0.9+Math.random()*1.8)+(i%2?Math.PI/2:0), len:(0.55+Math.random()*0.35)*Math.min(W,H)*(0.8+t*0.1), w:2+t*0.8, d:i*0.07}); }
+  const t0=performance.now(), dur=520+t*70;
+  const draw=(now)=>{
+    const p=Math.max(0,Math.min(1,(now-t0)/dur)); x.clearRect(0,0,W,H);
+    /* 画面の光（Lv.2〜） */
+    if(t>=1 && p<0.25){ x.globalAlpha=(0.25-p)*(0.22+t*0.08); x.fillStyle= t>=4?'#ffd54a':'#fff'; x.fillRect(0,0,W,H); x.globalAlpha=1; }
+    /* リング（Lv.3〜） */
+    if(t>=2){ const rr=p*Math.max(W,H)*0.6; x.globalAlpha=(1-p)*0.8; x.lineWidth=2+t; x.strokeStyle=t>=4?'#ffd54a':col; x.beginPath(); x.arc(cx,cy,rr,0,Math.PI*2); x.stroke(); if(t>=4){ x.globalAlpha=(1-p)*0.5; x.strokeStyle='#7DD3E8'; x.beginPath(); x.arc(cx,cy,rr*0.7,0,Math.PI*2); x.stroke(); } x.globalAlpha=1; }
+    /* 斬撃 */
+    slashes.forEach(sl=>{ const q=Math.min(1,Math.max(0,(p-sl.d)/0.45)); if(q<=0) return; const L=sl.len*q; x.globalAlpha=(1-q)*0.95; x.lineCap='round'; x.lineWidth=sl.w; x.strokeStyle='#fff'; x.beginPath(); x.moveTo(cx-Math.cos(sl.a)*L,cy-Math.sin(sl.a)*L); x.lineTo(cx+Math.cos(sl.a)*L,cy+Math.sin(sl.a)*L); x.stroke(); x.lineWidth=sl.w*0.45; x.strokeStyle=col; x.stroke(); });
+    /* いなずま（Lv.5） */
+    if(t>=4 && p<0.5){ x.globalAlpha=(0.5-p)*1.6; x.strokeStyle='#fff'; x.lineWidth=2.5; for(let k=0;k<2;k++){ x.beginPath(); let px=cx+(k?60:-60), py=0; x.moveTo(px,py); for(let j=0;j<6;j++){ px+=(Math.random()-0.5)*40; py+=cy/6; x.lineTo(px,py); } x.stroke(); } x.globalAlpha=1; }
+    /* 粒 */
+    parts.forEach(pt=>{ pt.x+=pt.vx; pt.y+=pt.vy; pt.vy+=0.05; pt.life=1-p; x.globalAlpha=pt.life; x.fillStyle=pt.c; x.beginPath(); x.arc(pt.x,pt.y,pt.r,0,Math.PI*2); x.fill(); });
+    x.globalAlpha=1;
+    if(p<1) requestAnimationFrame(draw); else x.clearRect(0,0,W,H);
+  };
+  requestAnimationFrame(draw);
+  /* ゆれ・のけぞり：Lv.で 大きく */
+  em.style.setProperty('--sha',(5+t*3+(big?3:0))+'px'); em.style.setProperty('--shd',(0.28+t*0.05)+'s');
+  em.classList.remove('shakeT'); void em.offsetWidth; em.classList.add('shakeT'); setTimeout(()=>em.classList.remove('shakeT'),600);
+  const ec=document.getElementById('enemyCv'); if(ec){ ec.style.setProperty('--kbx',(4+t*3)+'px'); ec.classList.remove('kb'); void ec.offsetWidth; ec.classList.add('kb'); setTimeout(()=>ec.classList.remove('kb'),420); }
+}
+/* こうげきの音：Lv.で 低い音・高い音が かさなる（もとの hit は そのまま鳴らす） */
+function hitSoundTier(dmg){
+  const t=G.tier||0;
+  if(t>=1) tone(120,.16+t*.03,'triangle',.05+t*.015,0,50);
+  if(t>=2) tone(1760,.07,'square',.035,.02,520);
+  if(t>=3) tone(90,.26,'sawtooth',.045,.03,40);
+  if(t>=4){ tone(2400,.09,'square',.04,.05,700); tone(60,.3,'triangle',.06,.08,30); }
+}
+
+/* ---------- 段階（v10.0）：この つまずきで 盤面に出す色と、みたての選択肢 ---------- */
+function stagePrep(){
+  if(!STAGE) return;
+  const w=CI[G.enemy.weak];
+  const others=[0,1,2,3,4].filter(i=>i!==w); for(let i=others.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [others[i],others[j]]=[others[j],others[i]]; }
+  STAGE.colorSet=[w].concat(others.slice(0,STAGE.colors-1)).sort();
+  STAGE.optSet=[w].concat(others.slice(0,STAGE.opts-1)).sort();
+}
+/* 段階で げんきが ゼロ（入門・なれる）：何を見落としたかを 1行で。やり直しは みたてから */
+function stageLoss(){
+  const e=G.enemy, w=e.weak;
+  G.stageLoss=(G.stageLoss||0)+1; clarityEvent('stage_loss_'+STAGE.lv);
+  stopTimer(); hideLeaderSay(); hideCutIn();
+  const box=document.getElementById('stageClearBox'), wrap=document.getElementById('stageClear');
+  const picked=G.guessCat?catName(G.guessCat):E('（えらばず）','（選ばず）');
+  const fb = STAGE.fbMode==='simple'
+    ? E(`〈${catName(w)}〉が きく つまずき だった。つまずきは「${e.serif}」と 言っていたよ`,`〈${catName(w)}〉が効くつまずきでした。つまずきは「${e.serif}」と言っていました`)
+    : E(`つまずきは「${e.serif}」と 言っていた → それは 〈${catName(w)}〉の 手がかり。えらんだのは 〈${picked}〉`,`つまずきは「${e.serif}」と言っていた → それは〈${catName(w)}〉の手がかり。選んだのは〈${picked}〉`);
+  box.innerHTML=`<div class="ttl2" style="color:#7DD3E8;font-size:20px">${E('げんきが ゼロに…','げんきがゼロに…')}</div>
+    <div class="fb">${E('見おとし','見落とし')}：${fb}</div>
+    <div style="font-size:11px;color:#c3c9e8">${E('げんきを もどして、みたてから もういちど。','げんきをもどして、みたてからもう一度。')}</div>
+    <button class="gold" id="btnStageRetry">▶ ${E('もういちど','もう一度')}</button>
+    <br><button class="sub" id="btnStageHome" style="margin-top:8px">${E('はじめの画面へ','はじめの画面へ')}</button>`;
+  box.querySelector('#btnStageRetry').addEventListener('click',()=>{ SFX.confirm(); wrap.classList.remove('show');
+    G.pHp=G.pMax; G.busy=false; G.retreating=false; startGuess(false); });
+  box.querySelector('#btnStageHome').addEventListener('click',()=>{ SFX.confirm(); location.reload(); });
+  SFX.damage(); wrap.classList.add('show');
+}
+/* 入門：最初の1手を 指で やってみせる（文章の かわり） */
+function demoFirstMove(){
+  if(!STAGE||!STAGE.demo||G.demoDone) return;
+  G.demoDone=true;
+  const R=G.grid.length, C=G.grid[0].length; let best=null;
+  for(let r=0;r<R;r++)for(let c=0;c<C;c++) for(const [dr,dc] of [[0,1],[1,0]]){
+    const r2=r+dr,c2=c+dc; if(r2>=R||c2>=C) continue;
+    const g=G.grid.map(x=>x.slice()); const t=g[r][c]; g[r][c]=g[r2][c2]; g[r2][c2]=t;
+    const m=matchesOf(g,R,C); if(!m.length) continue;
+    const n=m.reduce((a,x)=>a+x.cells.length,0); if(!best||n>best.n) best={n,a:[r,c],b:[r2,c2]};
+  }
+  if(!best) return;
+  const f=document.createElement('div'); f.className='demofinger'; f.textContent='👆';
+  const h=document.createElement('div'); h.className='demohint'; h.textContent=E('ゆびで うごかして、3つ そろえよう','指で動かして、3つそろえよう');
+  boardWrap.appendChild(f); boardWrap.appendChild(h);
+  const pos=(p)=>`translate(${p[1]*CELL+CELL*0.3}px,${p[0]*CELL+CELL*0.25}px)`;
+  f.style.transition='none'; f.style.transform=pos(best.a);
+  let k=0; const loop=()=>{ if(!f.isConnected) return; f.style.transition='transform .9s ease-in-out'; f.style.transform=pos(k%2?best.a:best.b); k++; if(k<6) setTimeout(loop,1100); else { f.remove(); h.remove(); } };
+  setTimeout(loop,300);
+  const stop=()=>{ f.remove(); h.remove(); boardWrap.removeEventListener('pointerdown',stop); };
+  boardWrap.addEventListener('pointerdown',stop);
+}
+/* 入門・なれる：ふりかえり画面は とばして、結果（じぶんモンスターの そだち）へ。配点は §4 と同じ */
+function startLookShort(){
+  const r=G.rec, hits=r.guesses.filter(g=>g.hit).length;
+  const hpUnits=Math.round(Math.max(0,G.pHp)/20);
+  const pts = hits*30 + r.mixCount*15 + r.maxCombo*4 + G.foes.length*10 + hpUnits*5;
+  G.result={ points:pts, hits, mixes:r.mixCount, maxCombo:r.maxCombo,
+    parts:[
+      {k:E('みたてが あたった','みたてが的中'), n:hits, per:30},
+      {k:E('3つ いじょう いっしょに','3種類以上を同時に'), n:r.mixCount, per:15},
+      {k:E('いちばん ながい コンボ','最大コンボ'), n:r.maxCombo, per:4},
+      {k:E('たおした つまずき','たおしたつまずき'), n:G.foes.length, per:10},
+      {k:E('のこった げんき（20ごと）','のこったげんき（20ごと）'), n:hpUnits, per:5},
+    ],
+    stampTitles:[], useCount:Object.assign({},r.catUse),
+    blocks:r.blocks, heals:r.heals, shines:r.shines, rares:r.rares, roleLog:r.roleLog.slice() };
+  G.pickKey=null; clarityEvent('stage_clear_'+STAGE.lv);
+  startEnd();
+}
 
 /* ============================================================ ③どれがきくかな？ ============================================================ */
 function startGuess(shift){
@@ -1784,6 +1998,7 @@ function startGuess(shift){
   }else{ G.enemy=base; G.bossNext=-1; }
   G.guessCat=null; G.guessHit=false; G.turn=0;
   G.guardSpent={}; G.healArm=null;     /* あたらしい つまずき（段階）では、じゅんびは やり直せている */
+  stagePrep();
   paintGuess(false); SFX.appear(); show('scGuess');
 }
 function paintGuess(keep){
@@ -1823,6 +2038,12 @@ function paintGuess(keep){
     grid.appendChild(b);
     b.querySelector('[data-icon]').appendChild(charaSprite(CI[cat.key],46));
   });
+  if(STAGE){
+    document.getElementById('guessTtl').textContent = STAGE.foes>1 ? E(`${G.eIndex+1}たいめの つまずき${e.rare?'（✨レア）':''}`,`${G.eIndex+1}体目のつまずき${e.rare?'（✨レア）':''}`) : E('つまずきが あらわれた！','つまずきがあらわれた！');
+    document.getElementById('guessLead').innerHTML = E(STAGE.leadE,STAGE.leadF);
+    grid.querySelectorAll('.catbtn').forEach((b,i)=>{ if(STAGE.optSet.indexOf(i)<0) b.remove(); });
+    grid.style.gridTemplateColumns = STAGE.opts<=2 ? '1fr 1fr' : '';
+  }
   if(keep && G.guessCat){ paintGuessResult(); }
   else { document.getElementById('guessResult').style.display='none'; }
 }
@@ -1837,6 +2058,11 @@ function onGuess(catKey){
 function paintGuessResult(){
   document.querySelectorAll('#guessGrid .catbtn').forEach(b=>b.disabled=true);
   const note=document.getElementById('guessNote'), e=G.enemy;
+  if(STAGE && !STAGE.look){
+    note.innerHTML = G.guessHit ? E(`<b>あたり！</b>　〈${catName(G.guessCat)}〉の たまを そろえると <b>2ばい</b> きくよ`,`<b>あたり！</b>　〈${catName(G.guessCat)}〉のドロップをそろえると <b>2倍</b> 効きます`)
+                               : E(`<b>ためして みよう。</b>　パズルの 中で、どれが きくか さがそう`,`<b>ためしてみよう。</b>　パズルの中で、どれが効くかさがしましょう`);
+    document.getElementById('guessResult').style.display='block'; return;
+  }
   if(G.guessHit){
     note.innerHTML=E(`<b>あたり！ よく 見つけたね。</b><br>${e.whyE}<br>この たたかいの あいだ、<b>${catName(G.guessCat)}</b>が 1.5ばい つよくなるよ。`,
                      `<b>みたて、ぴったり！</b><br>${e.whyF}<br>このバトルのあいだ、<b>${G.guessCat}</b>の ${WORD.power()} が 1.5倍 になります。`);
@@ -1888,11 +2114,13 @@ function startBattle(){
   document.getElementById('eSerif').textContent='';
   newGrid(); paintBattle(); show('scBattle');
   setTimeout(()=>{ layoutBoard(); renderAll(); },30); setTimerBar(1);
+  if(STAGE && STAGE.demo){ G.demoDone=false; setTimeout(()=>{ if(current()==='scBattle'){ layoutBoard(); demoFirstMove(); } },700); return; }
   /* はじめに一度、リーダーから「わたしの なかまは 1.5ばい」を伝える */
   setTimeout(()=>{ if(current()==='scBattle') showLeaderSay(); },900);
 }
 function paintBattle(){
   document.getElementById('btPhase').textContent=E('やってみる','実行する');
+  { const em=document.getElementById('eMid'); ['t1','t2','t3','t4','t5'].forEach(c=>em.classList.remove(c)); em.classList.add('t'+((G.tier||0)+1)); }
   document.getElementById('eName').textContent=G.enemy.name;
   updateHp(); buildDeckBar();
   document.getElementById('timerHint').textContent = (G.mode==='slow')
@@ -1902,6 +2130,12 @@ function paintBattle(){
   if(!G.held) clearGrabName();
   /* リーダーのなかまを常駐表示 */
   const lb=document.getElementById('leaderBadge'); lb.innerHTML='';
+  if(STAGE){
+    if(!STAGE.timer) document.getElementById('timerHint').textContent=E('じかんは きにしなくて いいよ','時間は気にしなくてよいです');
+    document.querySelectorAll('#deckBar .dchip').forEach(d=>{ if(STAGE.colorSet.indexOf(+d.dataset.ci)<0) d.style.display='none'; if(!STAGE.deck){ const rb=d.querySelector('.rolebadge'); if(rb) rb.style.display='none'; } });
+  }
+  if(!G.leaderCat){ lb.style.display='none'; return; }
+  lb.style.display='';
   const lc=CI[G.leaderCat];
   lb.appendChild(charaSprite(lc,34));
   const t=document.createElement('span'); t.className='lb';
@@ -1989,7 +2223,7 @@ function updateHp(){
     +`<span class="hpbar"><span class="hpfill" style="width:${Math.max(0,Math.min(100,r*100))}%;background:${col}"></span></span>`;
 }
 function newGrid(){
-  do{ G.grid=[]; for(let r=0;r<ROWS;r++){ const row=[]; for(let c=0;c<COLS;c++) row.push(Math.floor(Math.random()*5)); G.grid.push(row); } }
+  do{ G.grid=[]; for(let r=0;r<ROWS;r++){ const row=[]; for(let c=0;c<COLS;c++) row.push(randCI()); G.grid.push(row); } }
   while(matchesOf(G.grid,ROWS,COLS).length>0);
   boardWrap.innerHTML=''; G.els=[];
   for(let r=0;r<ROWS;r++){ const row=[]; for(let c=0;c<COLS;c++) row.push(makeDropEl(G.grid[r][c])); G.els.push(row); }
@@ -2144,11 +2378,12 @@ async function resolveBoard(){
     }
     charaCutIn(CI[cats[0]]);
     dmgEl.textContent=E(`${moveDmg} ダメージ`,`${moveDmg} ダメージ`);
-    dmgEl.style.fontSize=Math.min(34,17+Math.round(moveDmg/60))+'px';
+    dmgEl.style.fontSize=Math.min(34+(G.tier||0)*3,17+(G.tier||0)*2+Math.round(moveDmg/60))+'px';
+    ['t1','t2','t3','t4','t5'].forEach(c=>dmgEl.classList.remove(c)); dmgEl.classList.add('t'+((G.tier||0)+1));
     dmgEl.style.transition='none'; dmgEl.style.opacity='1';
     setTimeout(()=>{ dmgEl.style.transition='opacity .8s'; dmgEl.style.opacity='0'; },900);
-    SFX.hit();
-    const em=document.getElementById('eMid'); em.classList.add('shake'); setTimeout(()=>em.classList.remove('shake'),320);
+    SFX.hit(); hitSoundTier(moveDmg);
+    strikeFx(CI[cats[0]],moveDmg);                       /* v10.0 そだちの演出（ゆれも この中で Lv.に応じて） */
     G.eHp-=moveDmg; updateHp();
     /* 🛡 じゅんびの し直し：じゅんびが きれていた なかまの たまを消した */
     { const re=Object.keys(G.guardSpent).filter(k=>G.guardSpent[k]&&moveCats[k]);
@@ -2238,7 +2473,7 @@ function applyGravity(){
       }
     }
     for(let r=write;r>=0;r--){
-      const ci=Math.floor(Math.random()*5); G.grid[r][c]=ci;
+      const ci=randCI(); G.grid[r][c]=ci;
       const el=makeDropEl(ci); el.style.transition='none'; setElPos(el,r-ROWS,c); G.els[r][c]=el;
       el.offsetHeight;
       el.style.transition='transform .22s ease-out'; setElPos(el,r,c);
@@ -2322,6 +2557,7 @@ async function enemyTurn(){
      ＝行き詰まったら離れて立てなおす、という自己調整の動きが ゲームの動きになる。
    ============================================================ */
 async function onZero(es){
+  if(STAGE && STAGE.loss){ G.retreating=true; stageLoss(); return true; }
   if(!G.rescueUsed){
     G.rescueUsed=true; G.pHp=40; SFX.rescue(); updateHp(); G.rec.rescues=(G.rec.rescues||0)+1;
     es.innerHTML+=`<br><span style="color:#86efac">${E('なかまが かけつけた！　げんきが 40 もどった（かけつけは 1回だけ）','なかまがかけつけた！　げんきが40戻った（かけつけは1回だけ）')}</span>`;
@@ -2370,6 +2606,7 @@ async function onZero(es){
    ============================================================ */
 function incomingDamage(){
   const e=G.enemy, w=e.weak;
+  if(STAGE && STAGE.atk){ const d=Math.round(STAGE.atk*(0.9+Math.random()*0.2)); return {dmg:d,mul:1,why:''}; }
   const base=(e.atk||16)*(e.rare?1.3:1);
   let mul=1, why='';
   if(G.lastMoveCats && G.lastMoveCats[w]){ mul=0.5; why='recent'; }
@@ -2448,13 +2685,14 @@ function nextFoe(){
     /* v9.8 ①：つぎの たたかいへ 進むとき、げんきを 20 もどす（ひと息つく） */
     G.pHp=Math.min(G.pMax,G.pHp+20); updateHp();
     startGuess(); G.busy=false;
-  } else { startLook(); }
+  } else if(STAGE && !STAGE.look){ G.busy=false; startLookShort(); }
+  else { startLook(); }
 }
 function showWinPanel(){
   const wp=document.getElementById('winPanel'), sv=normSave(loadSave());
   /* この つまずきに いちばん きいた なかま */
   const top=CATS.map(c=>({k:c.key,v:G.eDmg[c.key]||0})).sort((a,b)=>b.v-a.v)[0];
-  const card=CARD[G.deck[top.k]] || CARD[G.leaderKey];
+  const card=CARD[G.deck[top.k]] || CARD[G.deck[G.enemy.weak]];
   const isNew=!sv.dex[card.title];
   const hits=G.eHits||0, pts=10+30*hits;
   const isBoss=!!G.enemy.boss;
@@ -2572,22 +2810,26 @@ function paintLook(){
 function startEnd(){
   /* 図鑑スタンプ＝きょう持っていった5枚＋つぎに選んだ1枚＋リーダー */
   const t=new Set();
-  CATS.forEach(c=>t.add(CARD[G.deck[c.key]].title));
-  t.add(CARD[G.leaderKey].title); t.add(CARD[G.pickKey].title);
+  /* v10.0 段階：ずかんの スタンプは、その クエストで 盤面に出た なかまの わざだけ */
+  CATS.forEach((c,i)=>{ if(!STAGE || STAGE.colorSet.indexOf(i)>=0) t.add(CARD[G.deck[c.key]].title); });
+  if(G.leaderKey) t.add(CARD[G.leaderKey].title);
+  if(G.pickKey) t.add(CARD[G.pickKey].title);
   /* v9.5：いちど離れて やり直したなら、その方略も「使った」ものとして ずかんに記録する */
   if((G.rec.retreats||0)>0) t.add(CARD['一旦離れる'].title);
   G.result.stampTitles=[...t];
   G.result.pickKey=G.pickKey;
   G.applied=applyResult(G.result);
+  if(G.applied.levelUp && STAGE_DEF[G.applied.before]) clarityEvent('level_up_'+(G.applied.after+1));
   if(G.applied.levelUp) SFX.victory(); else SFX.confirm();
   paintEnd(); show('scEnd');
 }
 function paintEnd(){
-  const c=CARD[G.pickKey], leader=CARD[G.leaderKey], R=G.result, A=G.applied;
+  const c=G.pickKey?CARD[G.pickKey]:null, leader=G.leaderKey?CARD[G.leaderKey]:null, R=G.result, A=G.applied;
   const li=A.after, L=LEVELS[li], nx=LEVELS[li+1], sv=A.sv;
   document.getElementById('endTtl').innerHTML = A.levelUp
     ? E('レベルアップ！','レベルアップ！') : E('きょうの わざ、<br>手に 入れた！','きょうの方略、<br>手に入れた！');
-  document.getElementById('btnAgain').textContent=E('↻ もういちど','↻ もういちど');
+  document.getElementById('btnAgain').textContent=E('▶ つぎの クエストへ','▶ つぎのクエストへ');
+  document.getElementById('btnHome').textContent=E('はじめの画面へ','はじめの画面へ');
   document.getElementById('btnEndDex').textContent=E('📖 ずかんを 見る','📖 図鑑を見る');
   document.getElementById('shareLead').innerHTML=E(
     'きょうの きろくを コピーして、つたえて みよう。',
@@ -2615,6 +2857,9 @@ function paintEnd(){
       <span class="rsub" style="color:#ffd54a;font-size:10px">${E('あなたの じぶんモンスター','あなたの自分モンスター')}</span>
       <span class="rlv" style="font-size:15px">Lv.${li+1}　${L.name}</span>
       ${A.levelUp?`<span class="rsub" style="display:block;color:#ffd54a">${E('すがたが そだった！','すがたが育った！')}</span>`:''}
+      ${A.levelUp?`<span class="rdiff" style="text-align:left">${(function(){ const d=STAGE_DEF[li];
+          return d ? E('つぎの クエストから <b>Lv.'+(li+1)+' '+d.name+'</b>：'+d.subE,'次のクエストから <b>Lv.'+(li+1)+' '+d.name+'</b>：'+d.subF)
+                   : E('つぎの クエストから <b>ほんばん</b>：つまずき3体＋ごちゃまぜドラゴン。めあて・もちもの・ふりかえり が ぜんぶ 出てくるよ','次のクエストから<b>本番</b>：つまずき3体＋ごちゃまぜドラゴン。めあて・もちもの・振り返りがすべて出ます'); })()}</span>`:''}
     </div>`;
   html+=`<b>${E('きょうの ほうりゃくポイント','きょうの方略ポイント')}</b>`;
   R.parts.forEach(pt=>{ html+=`<div class="ptrow"><span>${pt.k} × ${pt.n}</span><b>${pt.n*pt.per}</b></div>`; });
@@ -2624,6 +2869,12 @@ function paintEnd(){
     <span class="rbar"><span class="rfill" id="eFill"></span></span>
     <div class="rsub" style="margin-top:4px">${ nx ? E('つぎの レベルまで あと '+(nx.min-sv.pts),'次のレベルまであと '+(nx.min-sv.pts)) : E('さいこう レベル！','最高レベル！')}</div>`;
 
+  if(A.levelUp && goalCount(A.after)>goalCount(A.before) && A.after>=1){
+    html+=`<div class="reward"><b>🎯 ${E('えらべる めあてが ふえた！','選べるめあてが増えた！')}</b>`;
+    GOALS.slice(goalCount(A.before),goalCount(A.after)).forEach(ng=>{ const ngc=CATS[CI[CARD[ng.card].cat]];
+      html+=`<div style="margin-top:6px"><span style="color:${ngc.color}">${ngc.chara}</span>「${G.easy?ng.easy:ng.full}」<br><span style="font-size:9.5px;color:#98a0c8">${CARD[ng.card].title}</span></div>`; });
+    html+=`<div class="rsub" style="margin-top:6px">${E('つぎの クエストの「めあて」で えらべるよ。','次のクエストの「めあて」で選べます。')}</div></div>`;
+  }
   if(A.gained.length){
     html+=`<div class="reward"><b>🎁 ${E('つかえる わざが ふえた！','使える方略がふえた！')}</b>`;
     A.gained.forEach(k=>{ const g=CARD[k];
@@ -2650,12 +2901,21 @@ function paintEnd(){
       <div class="rsub" style="margin-top:4px">${E('ずかん','図鑑')} <b style="color:#ffd54a">${got}</b> / 46　`
       +`<span style="color:#7DD3E8">${E('あと '+(46-got)+'まい','あと'+(46-got)+'枚')}</span></div></div>`;
   }
-  html+=`<hr style="border:none;border-top:1px dashed #3b4370;margin:12px 0">
-     <b>${E('きょうの めあて','きょうのめあて')}（${WORD.leader()}）</b><br>${chip(leader.cat)}${G.easy?leader.easy:leader.title}<br>
-     <span style="font-size:9.5px;color:#98a0c8">${leader.title}</span><br><br>
-     <b>${E('つぎに つかって みたい わざ','つぎに使ってみたい方略')}</b><br>${chip(c.cat)}${G.easy?c.easy:c.title}<br>
+  if(leader || c){
+    html+=`<hr style="border:none;border-top:1px dashed #3b4370;margin:12px 0">`;
+    if(leader) html+=`<b>${E('きょうの めあて','きょうのめあて')}（${WORD.leader()}）</b><br>${chip(leader.cat)}${G.easy?leader.easy:leader.title}<br>
+     <span style="font-size:9.5px;color:#98a0c8">${leader.title}</span><br><br>`;
+    if(c) html+=`<b>${E('つぎに つかって みたい わざ','つぎに使ってみたい方略')}</b><br>${chip(c.cat)}${G.easy?c.easy:c.title}<br>
      <span style="font-size:9.5px;color:#98a0c8">${c.title}</span><br>
      <span style="font-size:10.5px;color:#c3c9e8">${c.full}</span>`;
+  } else {
+    /* 入門：きょう つかった わざ（つまずきに きいた 1まい） */
+    const k=G.deck[G.foes[G.foes.length-1].weak], kc=CARD[k];
+    html+=`<hr style="border:none;border-top:1px dashed #3b4370;margin:12px 0">
+     <b>${E('きょう つかった わざ','きょう使った方略')}</b><br>${chip(kc.cat)}${G.easy?kc.easy:kc.title}<br>
+     <span style="font-size:9.5px;color:#98a0c8">${kc.title}</span><br>
+     <span style="font-size:10.5px;color:#c3c9e8">${kc.full}</span>`;
+  }
   document.getElementById('endNote').innerHTML=html;
   /* もらった称号に、ずかんと同じトロフィーを置く */
   document.querySelectorAll('#endNote .trgot').forEach(el=>{
@@ -2899,6 +3159,8 @@ bgmBtn.addEventListener('click',()=>{ ac(); SFX.confirm(); BGM.setOn(!BGM.on); p
   BGM.on = (sv.bgm===undefined) ? true : !!sv.bgm;   // はじめは鳴る。消したら覚える
 }
 paintToggle(); paintBgmBtn(); paintTitle();
+/* v10.0：おわり画面の「つぎの クエストへ」から 来たとき */
+if(location.hash==='#next'){ history.replaceState(null,'',location.pathname+location.search); setTimeout(()=>{ if(G.seenTuto) startGoal(); },60); }
 /* ============================================================
    音を鳴らしはじめる仕掛け（iPhone対策）
    ------------------------------------------------------------
@@ -2996,7 +3258,7 @@ paintToggle(); paintBgmBtn(); paintTitle();
 })();
 
 /* ---------- テスト用フック（Playwright検証で使用） ---------- */
-window.__PZ={G,CATS,CARD,TUTO,LEVELS,TITLES,DEX,BGM,TRACKS,ac,MON_ART,monSprite,clearTalk,layoutBoard,onZero,incomingDamage,ROLE,roleOf,enemyTurn,foeAttackDue,showShine,emblemCanvas,trophyCanvas,EMB_SLOT,showWinPanel,showLeaderSay,leaderSayLines,enemyDislike,enemyHurt,charaCutIn,hideCutIn,FOES,BOSS,POOL,CATWHY,recordText,unlockedOf,autoOpen,openTotal,findMatches,matchesOf,resolveBoard,loadSave,putSave,normSave,levelOf,forgetTuto,markTutoSeen,
+window.__PZ={G,CATS,CARD,TUTO,LEVELS,TITLES,DEX,BGM,TRACKS,ac,STAGE_DEF,stageForLevel,stageLoss,startLookShort,questGo,strikeFx,hitSoundTier,GOALS,goalCount,get STAGE(){return STAGE;},MON_ART,monSprite,clearTalk,layoutBoard,onZero,incomingDamage,ROLE,roleOf,enemyTurn,foeAttackDue,showShine,emblemCanvas,trophyCanvas,EMB_SLOT,showWinPanel,showLeaderSay,leaderSayLines,enemyDislike,enemyHurt,charaCutIn,hideCutIn,FOES,BOSS,POOL,CATWHY,recordText,unlockedOf,autoOpen,openTotal,findMatches,matchesOf,resolveBoard,loadSave,putSave,normSave,levelOf,forgetTuto,markTutoSeen,
   setGrid(rows){ rows.forEach((row,r)=>row.forEach((v,c)=>{ G.grid[r][c]=v; const old=G.els[r][c]; if(old) old.remove(); G.els[r][c]=makeDropEl(v); })); renderAll(); },
   forceResolve(){ return resolveBoard(); },
   solveTuto(){ const t=TUTO[G.tutoStep], a=t.from, b=t.to;
