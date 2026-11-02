@@ -44,6 +44,7 @@
   .step-btn:hover{background:rgba(255,255,255,.32);}
   .step-btn.active{background:var(--head);border-color:var(--head);color:#fff;font-weight:700;}
   .step-btn.active .n{background:rgba(255,255,255,.22);color:#fff;}
+  .step-btn.danger{margin-left:6px;background:rgba(0,0,0,.22);border-color:rgba(0,0,0,.45);font-weight:700;} .step-btn.danger:hover{background:#b23a2a;border-color:#b23a2a;color:#fff;}
   main{max-width:1240px;margin:0 auto;padding:22px 18px 90px;}
   .screen{display:none;animation:fade .25s ease;}
   .screen.active{display:block;}
@@ -403,7 +404,7 @@
    - 各時に「見通す・実行する・振り返る」の方略枠
    - AI相談：Kimura Edu Labの AI（中継サーバー）／自分のキー
    ============================================================ */
-const APP_VERSION="1.0";
+const APP_VERSION="1.0.1";
 const LAB={ url:"https://designer-ai-proxy.designer-ai-proxy.workers.dev", siteKey:"0x4AAAAAAFhxfG-IznPX9Fx6", perUser:12 };
 
 /* ---------- 方略カタログ（148） ---------- */
@@ -483,6 +484,15 @@ function buildStepper(){
   STEPS.forEach((label,i)=>{const b=document.createElement("button");b.className="step-btn"+(i===current?" active":"");b.innerHTML=`<span class="n">${i+1}</span>${label}`;b.onclick=()=>go(i);s.appendChild(b);});
   const g=document.createElement("button");g.className="step-btn"+(current===4?" active":"");g.innerHTML="⚙";g.title="AIの設定";g.onclick=()=>go(4);s.appendChild(g);
   const t=document.createElement("button");t.className="step-btn";const light=document.documentElement.dataset.theme==="light";t.innerHTML=light?"🌙":"☀";t.title=light?"濃い配色にする":"明るい配色にする";t.onclick=toggleTheme;s.appendChild(t);
+  /* v1.0.1（CEO指示 2026-11-02）：入力とAI相談の記録を全部消して最初から作り直すボタン。押すと確認してから消す */
+  const c=document.createElement("button");c.className="step-btn danger";c.innerHTML="🗑 すべて消去";c.title="入力した内容とAI相談の記録をこの端末から消して、最初から作り直す";c.onclick=clearAll;s.appendChild(c);
+}
+function clearAll(){
+  const ok=confirm("本当にすべて消してもよいですか？\n\n入力した単元・本時の内容と、AI相談のやりとりが、このブラウザから消えて最初の状態に戻ります。\n「保存したデータ(JSON)」として書き出したファイルは消えません。");
+  if(!ok)return;
+  clearTimeout(saveTimer);
+  try{localStorage.removeItem(LS_KEY);}catch(e){}
+  location.reload();
 }
 function toggleTheme(){const light=document.documentElement.dataset.theme==="light";if(light)delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme="light";try{localStorage.setItem("srl-theme",light?"dark":"light");}catch(e){}buildStepper();}
 try{if(localStorage.getItem("srl-theme")==="light")document.documentElement.dataset.theme="light";}catch(e){}
