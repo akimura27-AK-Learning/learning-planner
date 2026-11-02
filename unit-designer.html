@@ -450,6 +450,30 @@
   .lbl.You{background:var(--you-wash);color:#155764;}
   .lbl.We{background:var(--we-wash);color:#9a5b12;}
   /* ---- 設定 / APIキー ---- */
+
+  .way-opt{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:6px 0;cursor:pointer;display:flex;gap:10px;align-items:flex-start;}
+  .way-opt.on{border-color:#1f7a8c;background:#eaf5f7;}
+  .way-opt input{margin-top:4px;} .way-opt b{display:block;font-size:.9rem;} .way-opt .d{font-size:.8rem;color:var(--ink-soft);}
+  .lab-quota{font-weight:700;color:#145a68;margin-left:6px;}
+  .ai-notice{font-size:.72rem;color:#8a3b00;background:#fff7ef;border-top:1px solid #f0c9a3;padding:5px 12px;}
+  .lv-badge{min-width:52px;width:auto;padding:0 5px;white-space:nowrap;text-align:center;}
+  .level-seg-label{white-space:nowrap;}
+  .lv-legend{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:.76rem;color:var(--ink-soft);}
+  .lv-legend .note{flex-basis:100%;}
+  .strat-item{flex-wrap:wrap;}
+  .strat-item .tip{display:none;flex-basis:100%;background:#fffdf3;border:1px solid #e3d38e;border-radius:8px;padding:5px 9px;font-size:.76rem;line-height:1.5;}
+  .strat-item.show .tip{display:block;} @media(hover:hover){.strat-item:hover .tip{display:block;}}
+  .strat-item .info{font-size:.7rem;color:#145a68;border:1px solid #9ccbd4;border-radius:50%;width:16px;height:16px;display:inline-grid;place-items:center;margin-left:4px;cursor:pointer;}
+  .where-sel{font-size:.8rem;margin-right:6px;width:auto;display:inline-block;padding:3px 6px;}
+
+  .layer-count{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:.72rem;margin:4px 0 2px;width:100%;}
+  .lc{border-radius:999px;padding:1px 8px;font-weight:700;border:1px solid transparent;}
+  .lc-I{background:#e9eef7;color:#2b4a8a;} .lc-You{background:#e6f2ea;color:#1f6b3a;} .lc-We{background:#fbeede;color:#9a5b12;}
+  .lc-none{color:#888;} .lc-nudge{color:#8a3b00;background:#fff7ef;border:1px solid #f0c9a3;border-radius:8px;padding:1px 8px;}
+  .nudge-card{border-style:dashed!important;}
+  .min-total{font-size:.8rem;color:var(--ink-soft);margin:4px 0 10px;} .min-total.warn{color:#8a3b00;background:#fff7ef;border:1px solid #f0c9a3;border-radius:8px;padding:4px 10px;display:inline-block;}
+  .phours-wrap{font-size:.78rem;color:var(--ink-soft);margin-left:6px;} .phours-wrap input{width:46px;display:inline-block;padding:2px 4px;font-size:.8rem;}
+  .hours-total{font-size:.8rem;color:var(--ink-soft);margin:6px 0 10px;} .hours-total.warn{color:#8a3b00;}
   .api-note{font-size:.8rem;color:var(--ink-soft);background:var(--amber-wash);
     border-left:3px solid var(--amber);padding:10px 13px;border-radius:6px;margin-bottom:12px;}
   .balance{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0;}
@@ -497,7 +521,7 @@
 <header class="app">
   <div class="head-in">
     <div class="brand">調整方略つき 単元構想デザイナー
-      <small>SELF / CO / SOCIALLY-SHARED REGULATION ／ 作成：木村明憲</small>
+      <small>SELF / CO / SOCIALLY-SHARED REGULATION ／ 作成：木村明憲 ／ v4（Lab AI・151方略・11/2改善）</small>
     </div>
     <nav class="stepper" id="stepper"></nav>
   </div>
@@ -516,7 +540,7 @@
       </div>
       <div class="field"><label>単元名</label><input type="text" data-bind="unit" placeholder="例）日本の諸地域 ―近畿地方―"></div>
       <div class="field"><label>単元の目標 <span class="hint">単元全体で目指す姿</span></label><textarea data-bind="unitGoal" placeholder="例）近畿地方の地域的特色を多面的・多角的に捉え、課題と関連づけて説明できる。"></textarea></div>
-      <div class="field"><label>評価規準 <span class="hint">知識・技能／思考・判断・表現／主体的に学習に取り組む態度</span></label><textarea data-bind="assessment" placeholder="例）【知】地域の特色を理解している。【思】資料から要因を考察し説明できる。【主】学習を振り返り調整しようとしている。"></textarea></div>
+      <div class="field"><label>評価規準 <span class="hint">知識・技能／思考・判断・表現／主体的に学習に取り組む態度（複数あれば改行で）</span></label><textarea data-bind="assessment" placeholder="例）【知】地域の特色を理解している。【思】資料から要因を考察し説明できる。【主】学習を振り返り調整しようとしている。"></textarea></div>
       <div class="row">
         <div class="field"><label>児童・生徒数</label><input type="number" data-bind="students" placeholder="例）32"></div>
         <div class="field"><label>1時間の時間 <span class="hint">分</span></label><input type="number" data-bind="minutes" value="50"></div>
@@ -604,7 +628,7 @@
         <div><h3 id="aiDockTitle">単元構想アドバイザー</h3><small id="aiDockSub">Claude が単元の流れと活動を具体化する手助けをします</small></div>
       </div>
       <div class="ai-log" id="aiLog">
-        <div class="msg sys" id="aiSeed">右下の入力欄から相談を始めてください。例「この単元を見通す・実行する・振り返るの流れで何時間に分けるか一緒に考えたい」</div>
+        <div class="ai-notice">子どもの名前など個人情報は入力しないでください。相談内容はAIに送信されます。</div><div class="msg sys" id="aiSeed">右下の入力欄から相談を始めてください。例「この単元を見通す・実行する・振り返るの流れで何時間に分けるか一緒に考えたい」</div>
       </div>
       <div class="ai-input">
         <textarea id="aiInput" placeholder="例）第2次で資料を比べて考察する時間を具体的にしたい" onkeydown="if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing&&event.keyCode!==229){event.preventDefault();sendAI();}"></textarea>
@@ -640,8 +664,16 @@
   <section class="screen" data-screen="4">
     <h2 class="screen-title"><span class="eyebrow">SETUP</span>AI接続の設定</h2>
     <div class="card">
+
+      <div class="field" style="margin-bottom:14px;">
+        <label>AIの使い方</label>
+        <label class="way-opt" id="optLab"><input type="radio" name="aiway" value="lab" onchange="setWay('lab')"><div><b>Kimura Edu Labの AI で相談する（無料・1日12回まで）</b><div class="d">設定はいりません。Labが用意した Claude Sonnet 5.5 を使います。<span class="lab-quota"></span></div></div></label>
+        <label class="way-opt" id="optOwn"><input type="radio" name="aiway" value="own" onchange="setWay('own')"><div><b>自分のAPIキーで使う</b><div class="d">Gemini／ChatGPT／Claude。回数の制限はありません（各社の料金・無料枠によります）。</div></div></label>
+        <div class="api-note" style="margin-top:8px;">子どもの名前など個人情報は入力しないでください。相談内容はAI（Labの AI の場合は Anthropic社）に送信されます。Labのサーバーは相談内容を保存しません。</div>
+      </div>
+      <div id="ownSettings">
       <div class="api-note">
-        このツールのAI相談を使うには、<strong>あなた自身のAPIキー</strong>が必要です。下の手順でキーを取得し、入力してください。キーはこのブラウザの中だけで使われ、ファイルや外部には保存されません（ページを再読み込みすると消えます）。キーは料金に直結するので、他の人に教えないでください。
+        自分のキーで使う場合は、<strong>あなた自身のAPIキー</strong>が必要です。下の手順でキーを取得し、入力してください。キーはこのブラウザの中だけで使われ、ファイルや外部には保存されません（ページを再読み込みすると消えます）。キーは料金に直結するので、他の人に教えないでください。
       </div>
 
       <div class="field">
@@ -714,6 +746,7 @@
       <div style="margin-top:18px;">
         <button class="btn btn-primary" onclick="go(2)">準備完了：AI相談へ進む →</button>
       </div>
+      </div>
     </div>
   </section>
 </main>
@@ -727,10 +760,10 @@
     </div>
     <div class="modal-body">
       <div class="level-seg" id="levelSeg">
-        <span class="level-seg-label">レベル</span>
-        <button class="lvl-btn active" data-lv="1" onclick="setPickerLevel(1)">初級<small>基礎の方略</small></button>
-        <button class="lvl-btn" data-lv="2" onclick="setPickerLevel(2)">中級<small>初級＋α</small></button>
-        <button class="lvl-btn" data-lv="3" onclick="setPickerLevel(3)">上級<small>すべて</small></button>
+        <span class="level-seg-label">目安</span>
+        <button class="lvl-btn active" data-lv="1" onclick="setPickerLevel(3)" style="display:none">初級<small>基礎の方略</small></button>
+        <button class="lvl-btn" data-lv="2" onclick="setPickerLevel(3)" style="display:none">中級<small>初級＋α</small></button>
+        <button class="lvl-btn" data-lv="3" onclick="setPickerLevel(3)" style="display:none">上級<small>すべて</small></button><span class="lv-legend"><span class="lv-badge lv1">低学年〜</span><span class="lv-badge lv2">中学年〜</span><span class="lv-badge lv3">高学年〜中学・高校</span><span class="note">ラベルは学年帯の目安。ⓘ で「使う場面・子どもの姿・声かけの例」が開きます（PCはマウスを乗せる）</span></span>
       </div>
       <div class="phase-tabs">
         <button class="phase-tab active" data-layer="I" onclick="setPickerLayer('I')"><div class="t">自己調整 (I)</div><div class="s">個人で調整する</div></button>
@@ -748,6 +781,7 @@
 </div>
 
 <!-- ファイル解析ライブラリ（利用者のブラウザでCDNから読み込み） -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
@@ -851,218 +885,11 @@ const SUBPROC_ORDER={
   "適用":["適用","適応"]
 };
 
-const STRATEGY_LIST=[
-  // ========================= 見通す：課題 =========================
-  {phase:"見通す",proc:"課題",layer:"I",  lv:1,type:"認知",  text:"課題を分解し、関係・解決策を考えて正確に理解する"},
-  {phase:"見通す",proc:"課題",layer:"I",  lv:1,type:"メタ認知",text:"課題をもとに身近なこと・知っていることを振り返る"},
-  {phase:"見通す",proc:"課題",layer:"I",  lv:1,type:"動機づけ",text:"課題を解決すると何ができるかを考え、前向きな気持ちを高める"},
-  {phase:"見通す",proc:"課題",layer:"I",  lv:2,type:"動機づけ",text:"この課題は大切で能力を高めると自分に言い聞かせる"},
-  {phase:"見通す",proc:"課題",layer:"I",  lv:3,type:"動機づけ",text:"課題を解決したときの自分への褒美を考え、前向きな気持ちを高める"},
-  {phase:"見通す",proc:"課題",layer:"You",lv:1,type:"認知",  text:"課題理解の仕方を他者に相談し、対話で類似点・相違点を見つける"},
-  {phase:"見通す",proc:"課題",layer:"You",lv:2,type:"認知",  text:"他者からの評価や助言をもとに理解を更に深める"},
-  {phase:"見通す",proc:"課題",layer:"You",lv:1,type:"動機づけ",text:"課題の意義を他者と対話し、前向きな気持ちを高める"},
-  {phase:"見通す",proc:"課題",layer:"We", lv:1,type:"認知",  text:"課題の理解の仕方を集団で協議し、進捗を確認し合い深める"},
-  {phase:"見通す",proc:"課題",layer:"We", lv:1,type:"動機づけ",text:"課題に取り組む意義を集団で協議し、前向きな気持ちを高める"},
-  {phase:"見通す",proc:"課題",layer:"We", lv:3,type:"動機づけ",text:"解決時の個人・集団への褒美を協議し、前向きな気持ちを高める"},
-  // ========================= 見通す：目標 =========================
-  {phase:"見通す",proc:"目標",layer:"I",  lv:1,type:"認知",  text:"学習内容に関する目標を考える（広げる→順序立て→焦点化）"},
-  {phase:"見通す",proc:"目標",layer:"I",  lv:1,type:"メタ認知",text:"生成した目標を振り返り、優先順位を考える"},
-  {phase:"見通す",proc:"目標",layer:"I",  lv:1,type:"動機づけ",text:"学習後の自分の成長を予想し、前向きな気持ちを高める"},
-  {phase:"見通す",proc:"目標",layer:"I",  lv:2,type:"動機づけ",text:"目標達成で自らの能力が高まると言い聞かせ、前向きさを高める"},
-  {phase:"見通す",proc:"目標",layer:"You",lv:1,type:"認知",  text:"設定した目標の妥当性を他者と対話して深める"},
-  {phase:"見通す",proc:"目標",layer:"You",lv:2,type:"動機づけ",text:"目標達成で高まる能力を他者と対話し、前向きさを高める"},
-  {phase:"見通す",proc:"目標",layer:"We", lv:1,type:"認知",  text:"集団としての共通目標を協議して設定する"},
-  {phase:"見通す",proc:"目標",layer:"We", lv:2,type:"メタ認知",text:"生成した目標を集団で振り返り、協議して優先順位を考える"},
-  // ========================= 見通す：計画 =========================
-  {phase:"見通す",proc:"計画",layer:"I",  lv:1,type:"メタ認知",text:"過去の計画を振り返り、学習計画の見通しをもつ"},
-  {phase:"見通す",proc:"計画",layer:"I",  lv:1,type:"リソース管理",text:"短期目標を達成する方法・方略を決め、準備する"},
-  {phase:"見通す",proc:"計画",layer:"I",  lv:2,type:"リソース管理",text:"時間配分を決め、今後の学習の準備をする"},
-  {phase:"見通す",proc:"計画",layer:"I",  lv:3,type:"動機づけ",text:"目標達成時に創り出せる考えや成果物を予想し、前向きさを高める"},
-  {phase:"見通す",proc:"計画",layer:"I",  lv:3,type:"動機づけ",text:"立案した計画でうまく実行できそうかを考える（自己効力）"},
-  {phase:"見通す",proc:"計画",layer:"You",lv:1,type:"リソース管理",text:"短期目標と方法・方略・時間配分を他者と対話して決める"},
-  {phase:"見通す",proc:"計画",layer:"You",lv:3,type:"リソース管理",text:"学習活動における役割分担を他者と対話して決める"},
-  {phase:"見通す",proc:"計画",layer:"We", lv:1,type:"リソース管理",text:"共通の計画・方法・時間配分・役割分担を協議して立案する"},
-  {phase:"見通す",proc:"計画",layer:"We", lv:2,type:"リソース管理",text:"一人一人の良さを活かす役割分担を集団で協議して考える"},
-  {phase:"見通す",proc:"計画",layer:"We", lv:3,type:"動機づけ",text:"計画でうまく実行できそうかを集団で協議し、前向きさを高める"},
-
-  // ========================= 実行する：推進 =========================
-  // 環境設定（情報活用の前）
-  {phase:"実行する",proc:"推進",layer:"I",  lv:2,type:"リソース管理",text:"学習に適切な環境（物的・人的）を整える"},
-  {phase:"実行する",proc:"推進",layer:"You",lv:3,type:"リソース管理",text:"学習に適切な環境（物的・人的）について他者と対話し、整える"},
-  {phase:"実行する",proc:"推進",layer:"We", lv:3,type:"リソース管理",text:"集団で学習を進める上で適切な環境について協議し、整える"},
-  {phase:"実行する",proc:"推進",layer:"We", lv:3,type:"リソース管理",text:"個の強みを活かす役割分担や人数構成を考え、学習環境を整える"},
-  // 情報活用①収集
-  {phase:"実行する",proc:"推進",layer:"I",  lv:1,type:"認知",  text:"情報を収集して理解を深める（精緻化）"},
-  {phase:"実行する",proc:"推進",layer:"You",lv:1,type:"認知",  text:"他者と情報収集について対話し、理解を深める"},
-  {phase:"実行する",proc:"推進",layer:"We", lv:1,type:"認知",  text:"共通目標を確認し、個または集団で情報を収集し共有して深める"},
-  // 情報活用②関連付け
-  {phase:"実行する",proc:"推進",layer:"I",  lv:2,type:"認知",  text:"情報を関連付け、カテゴリーを生成しラベルを付ける（精緻化）"},
-  {phase:"実行する",proc:"推進",layer:"You",lv:3,type:"認知",  text:"情報の関連付けについて他者と対話し、理解を深める"},
-  {phase:"実行する",proc:"推進",layer:"We", lv:3,type:"認知",  text:"共通目標を確認し、個または集団で情報を関連付け共有する"},
-  // 情報活用③多面的に見る
-  {phase:"実行する",proc:"推進",layer:"I",  lv:2,type:"認知",  text:"情報を多面的に見て吟味し、視点や見方・考え方で再整理する"},
-  {phase:"実行する",proc:"推進",layer:"You",lv:3,type:"認知",  text:"情報を多面的に見ることについて他者と対話し、理解を深める"},
-  {phase:"実行する",proc:"推進",layer:"We", lv:3,type:"認知",  text:"共通目標を確認し、個または集団で情報を多面的に吟味し共有する"},
-  // 情報活用④構造化（体制化）
-  {phase:"実行する",proc:"推進",layer:"I",  lv:1,type:"認知",  text:"情報を構造化し、考えをつくる（体制化）"},
-  {phase:"実行する",proc:"推進",layer:"You",lv:3,type:"認知",  text:"情報を構造化し考えをつくることについて他者と対話する"},
-  {phase:"実行する",proc:"推進",layer:"We", lv:3,type:"認知",  text:"共通目標を確認し、個または集団で情報を構造化し考えをつくり共有する"},
-  // 情報活用⑤新たな価値の創造
-  {phase:"実行する",proc:"推進",layer:"I",  lv:3,type:"認知",  text:"新たな価値を創造することを通して理解を深める"},
-  {phase:"実行する",proc:"推進",layer:"You",lv:3,type:"認知",  text:"新たな価値を創造することについて他者と対話し、理解を深める"},
-  {phase:"実行する",proc:"推進",layer:"We", lv:3,type:"認知",  text:"共通目標を確認し、個または集団で新たな価値を創造し共有する"},
-  // 情報活用⑥価値の発信（転移）
-  {phase:"実行する",proc:"推進",layer:"I",  lv:3,type:"認知",  text:"創造した価値を発信することを通して理解を深める（転移）"},
-  {phase:"実行する",proc:"推進",layer:"You",lv:3,type:"認知",  text:"創造した価値を発信することについて他者と対話し、理解を深める"},
-  {phase:"実行する",proc:"推進",layer:"We", lv:3,type:"認知",  text:"共通目標を確認し、個または集団で創造した価値を他者に発信する"},
-  // 情報活用⑦リハーサル
-  {phase:"実行する",proc:"推進",layer:"I",  lv:2,type:"認知",  text:"大切な情報をくり返し言ったり書いたりして理解を深める（リハーサル）"},
-  {phase:"実行する",proc:"推進",layer:"You",lv:3,type:"認知",  text:"大切な情報をくり返し言う・書くことについて他者と対話する"},
-  {phase:"実行する",proc:"推進",layer:"We", lv:3,type:"認知",  text:"大切な情報をくり返し言う・書く方法を集団で協議する"},
-  // 共調整の基本方略（対話・モデリング・足場かけ）
-  {phase:"実行する",proc:"推進",layer:"You",lv:2,type:"認知",  text:"他者との議論や説明を通して理解を深める（対話）"},
-  {phase:"実行する",proc:"推進",layer:"You",lv:2,type:"メタ認知",text:"教師や上級者の調整・メタ認知の姿を観察して学ぶ（モデリング）"},
-  {phase:"実行する",proc:"推進",layer:"You",lv:3,type:"メタ認知",text:"適切なヒントや手助けを受けながら学習する（足場かけ）"},
-  // ========================= 実行する：確認 =========================
-  {phase:"実行する",proc:"確認",layer:"I",  lv:1,type:"メタ認知",text:"学習活動が課題・目標からずれていないか自らに問いかけ確認する"},
-  {phase:"実行する",proc:"確認",layer:"I",  lv:1,type:"メタ認知",text:"方法・方略が適切かを振り返り、進捗と時間配分を確認する"},
-  {phase:"実行する",proc:"確認",layer:"I",  lv:2,type:"環境",  text:"取り組みやすい物的・人的環境になっているかを確認する（環境確認）"},
-  {phase:"実行する",proc:"確認",layer:"I",  lv:2,type:"情動",  text:"学習に向かう心や体の状態を振り返り確認する（情動・興味確認）"},
-  {phase:"実行する",proc:"確認",layer:"You",lv:1,type:"メタ認知",text:"学習活動・方法が適切か他者に問いかけ、相談しながら確認する"},
-  {phase:"実行する",proc:"確認",layer:"You",lv:2,type:"メタ認知",text:"他者からの評価や助言を活用する（フィードバック）"},
-  {phase:"実行する",proc:"確認",layer:"We", lv:1,type:"メタ認知",text:"進捗や行動・動機づけ・メタ認知を集団で確認し合う（相互モニタリング）"},
-  {phase:"実行する",proc:"確認",layer:"We", lv:3,type:"情動",  text:"学習環境や心身の状態を集団で振り返り、確認し合う"},
-  // ========================= 実行する：調節 =========================
-  {phase:"実行する",proc:"調節",layer:"I",  lv:1,type:"メタ認知",text:"課題・目標をもとに学習活動を修正し、調節する"},
-  {phase:"実行する",proc:"調節",layer:"I",  lv:1,type:"メタ認知",text:"より効果的・効率的な方法・方略に調節する"},
-  {phase:"実行する",proc:"調節",layer:"I",  lv:1,type:"情動",  text:"不快な感情の原因・意味を考え、調節する（情動調節）"},
-  {phase:"実行する",proc:"調節",layer:"I",  lv:2,type:"動機づけ",text:"困難な課題をやりがいある挑戦と捉え、前向きさを高める（興味促進）"},
-  {phase:"実行する",proc:"調節",layer:"I",  lv:2,type:"リソース管理",text:"進捗をもとに学習活動の時間配分を変更し、調節する"},
-  {phase:"実行する",proc:"調節",layer:"I",  lv:3,type:"動機づけ",text:"行き詰まった際の向き合い方・解決法を考え、前向きさを高める"},
-  {phase:"実行する",proc:"調節",layer:"You",lv:1,type:"メタ認知",text:"他者から助言や支援を受け、活用しながら活動を調節する"},
-  {phase:"実行する",proc:"調節",layer:"You",lv:2,type:"情動",  text:"感情の原因や解決法を他者と対話し、調節する"},
-  {phase:"実行する",proc:"調節",layer:"You",lv:3,type:"リソース管理",text:"他者から助言や支援を受け、方法・方略や時間配分を調節する"},
-  {phase:"実行する",proc:"調節",layer:"We", lv:1,type:"メタ認知",text:"集団で協議しながら学習活動・方法・時間配分を調節する"},
-  {phase:"実行する",proc:"調節",layer:"We", lv:2,type:"環境",  text:"人数構成や役割分担など人的環境を集団で協議し調節する"},
-  {phase:"実行する",proc:"調節",layer:"We", lv:2,type:"情動",  text:"感情の原因や解決法を集団で協議し調節する"},
-  {phase:"実行する",proc:"調節",layer:"We", lv:3,type:"メタ認知",text:"話し合いながら学習を深める・調整する方略を決める（協働的意思決定）"},
-  {phase:"実行する",proc:"調節",layer:"We", lv:3,type:"リソース管理",text:"それぞれの強みを活かした役割分担を考える（役割分担）"},
-
-  // ========================= 振り返る：評価 =========================
-  {phase:"振り返る",proc:"評価",layer:"I",  lv:1,type:"メタ認知",text:"目標と結果を比較し、成果と課題を自己評価する"},
-  {phase:"振り返る",proc:"評価",layer:"I",  lv:2,type:"メタ認知",text:"効果的・効率的な方法で学べたかを考え、自己評価する"},
-  {phase:"振り返る",proc:"評価",layer:"I",  lv:3,type:"メタ認知",text:"時間配分や物的・人的環境の成果と課題を考え、自己評価する"},
-  {phase:"振り返る",proc:"評価",layer:"I",  lv:3,type:"情動",  text:"学習中の自らの気持ちの変化を振り返り、自己評価する"},
-  {phase:"振り返る",proc:"評価",layer:"You",lv:1,type:"メタ認知",text:"成果と課題を他者と対話し、得た評価をもとに自己評価する"},
-  {phase:"振り返る",proc:"評価",layer:"We", lv:1,type:"メタ認知",text:"成果と課題を集団で協議し、相互評価する"},
-  // ========================= 振り返る：帰属 =========================
-  {phase:"振り返る",proc:"帰属",layer:"I",  lv:1,type:"メタ認知",text:"自己評価の成果・課題の原因や理由を考え振り返る"},
-  {phase:"振り返る",proc:"帰属",layer:"You",lv:2,type:"メタ認知",text:"成果・課題の原因や理由について他者と対話し振り返る"},
-  {phase:"振り返る",proc:"帰属",layer:"We", lv:2,type:"メタ認知",text:"成果・課題の原因や理由について集団で協議し振り返る"},
-  // ========================= 振り返る：適用 =========================
-  {phase:"振り返る",proc:"帰属",layer:"I",  lv:1,type:"動機づけ",text:"満足できるところを見つけ、前向きな気持ちを高める"},
-  {phase:"振り返る",proc:"適用",layer:"I",  lv:1,type:"動機づけ",text:"次の学習に活かすことを決め、学び方の変化を考える"},
-  {phase:"振り返る",proc:"適用",layer:"You",lv:2,type:"動機づけ",text:"次の学習への活かし方を他者と対話して考える"},
-  {phase:"振り返る",proc:"帰属",layer:"You",lv:3,type:"動機づけ",text:"満足できるところを他者と対話し、前向きな気持ちを高める"},
-  {phase:"振り返る",proc:"適用",layer:"We", lv:2,type:"動機づけ",text:"次の学習への活かし方・学び方の変化を集団で協議する"},
-  {phase:"振り返る",proc:"帰属",layer:"We", lv:3,type:"動機づけ",text:"集団の学習で満足できるところを協議し、前向きさを高める"},
-
-  // ============================================================
-  // 上級(lv3) 拡充：調整方略リストPDFの□項目を網羅（短縮表記）
-  // ============================================================
-
-  // ===== 見通す：課題（課題理解／課題興味） =====
-  // 課題理解 認知
-  {phase:"見通す",proc:"課題",layer:"You",lv:3,type:"認知",  text:"個が理解した課題を他者と対話し、類似点・相違点を見つける"},
-  {phase:"見通す",proc:"課題",layer:"We", lv:3,type:"認知",  text:"どのように課題を理解するかを集団で協議し、理解を深める"},
-  {phase:"見通す",proc:"課題",layer:"We", lv:3,type:"認知",  text:"個が理解した課題を集団で協議し、類似点・相違点を見つける"},
-  // 課題興味 メタ認知（身近なこと振り返り）
-  {phase:"見通す",proc:"課題",layer:"You",lv:3,type:"メタ認知",text:"身近なこと・知っていることを振り返るため他者と対話する"},
-  {phase:"見通す",proc:"課題",layer:"We", lv:3,type:"メタ認知",text:"身近なこと・知っていることを振り返るため集団で協議する"},
-  // 課題興味 動機づけ（期待感・必要感等）
-  {phase:"見通す",proc:"課題",layer:"You",lv:3,type:"動機づけ",text:"解決でわかること・できることを他者と対話し前向きさを高める"},
-  {phase:"見通す",proc:"課題",layer:"We", lv:3,type:"動機づけ",text:"解決でわかること・できることを集団で協議し前向きさを高める"},
-  // 課題興味 動機づけ（大切と言い聞かせ）
-  {phase:"見通す",proc:"課題",layer:"You",lv:3,type:"動機づけ",text:"なぜ大切か・どんな能力が高まるかを対話し言い聞かせる"},
-  {phase:"見通す",proc:"課題",layer:"We", lv:3,type:"動機づけ",text:"なぜ大切か・どんな能力が高まるかを集団で協議する"},
-  {phase:"見通す",proc:"課題",layer:"You",lv:3,type:"動機づけ",text:"解決時の自分への褒美を他者と対話し前向きさを高める"},
-
-  // ===== 見通す：目標（目標設定／目標志向／結果予期） =====
-  // 目標設定 認知
-  {phase:"見通す",proc:"目標",layer:"I",  lv:3,type:"認知",  text:"目標設定の仕方（広げる・順序立て・焦点化・構造化）を他者に相談する"},
-  {phase:"見通す",proc:"目標",layer:"We", lv:3,type:"認知",  text:"目標達成へ向け役割分担をどうするか集団で協議して考える"},
-  // 目標志向 動機づけ（目標構造の整理）
-  {phase:"見通す",proc:"目標",layer:"I",  lv:3,type:"動機づけ",text:"目標の構造（内容・行動・調整）を整理し、前向きさを高める"},
-  {phase:"見通す",proc:"目標",layer:"You",lv:3,type:"動機づけ",text:"目標の構造を整理しながら他者と対話し、前向きさを高める"},
-  {phase:"見通す",proc:"目標",layer:"We", lv:3,type:"動機づけ",text:"目標の構造を整理しながら集団で協議し、前向きさを高める"},
-  // 結果予期 動機づけ（成長予想）
-  {phase:"見通す",proc:"目標",layer:"You",lv:3,type:"動機づけ",text:"学習後の成長を他者と対話し、前向きさを高める"},
-  {phase:"見通す",proc:"目標",layer:"We", lv:3,type:"動機づけ",text:"学習後の成長を集団で協議し、前向きさを高める"},
-  // 結果予期 動機づけ（成果物予想）
-  {phase:"見通す",proc:"目標",layer:"You",lv:3,type:"動機づけ",text:"創り出せる考えや成果物を他者と対話して予想し、前向きさを高める"},
-  {phase:"見通す",proc:"目標",layer:"We", lv:3,type:"動機づけ",text:"創り出せる考えや成果物を集団で協議して予想し、前向きさを高める"},
-
-  // ===== 見通す：計画（計画立案／自己集団効力） =====
-  {phase:"見通す",proc:"計画",layer:"You",lv:3,type:"メタ認知",text:"過去の計画を振り返り、他者との対話で計画の見通しをもつ"},
-  {phase:"見通す",proc:"計画",layer:"We", lv:3,type:"メタ認知",text:"過去の計画を振り返り、集団との協議で計画の見通しをもつ"},
-  {phase:"見通す",proc:"計画",layer:"I",  lv:3,type:"動機づけ",text:"見本や他者の計画を参考に、長期から短期の課題・目標と活動を決める"},
-  {phase:"見通す",proc:"計画",layer:"You",lv:3,type:"動機づけ",text:"長期から短期の課題・目標と学習活動を他者と対話して決める"},
-  {phase:"見通す",proc:"計画",layer:"We", lv:3,type:"動機づけ",text:"長期から短期の課題・目標と学習活動を集団で協議して決める"},
-  {phase:"見通す",proc:"計画",layer:"We", lv:3,type:"リソース管理",text:"短期課題・目標の方法・方略を集団で協議して決め、準備する"},
-  {phase:"見通す",proc:"計画",layer:"You",lv:3,type:"リソース管理",text:"短期課題・目標の時間配分を他者と対話して決め、準備する"},
-  {phase:"見通す",proc:"計画",layer:"You",lv:3,type:"動機づけ",text:"計画をもとにうまく実行できそうかを他者と対話し、前向きさを高める"},
-
-
-  // ===== 実行する：確認（実行確認 活動/方法/時間 ×層、環境確認、情動興味確認） =====
-  // 時間配分の確認
-  {phase:"実行する",proc:"確認",layer:"I",  lv:3,type:"メタ認知",text:"計画の時間配分と進捗を比べ、予定内に達成できるか確認する"},
-  {phase:"実行する",proc:"確認",layer:"We", lv:3,type:"メタ認知",text:"集団で立てた時間配分と進捗を協議し、確認する"},
-  {phase:"実行する",proc:"確認",layer:"You",lv:3,type:"メタ認知",text:"立案した時間配分と進捗を他者に相談しながら確認する"},
-  // 環境確認 環境
-  {phase:"実行する",proc:"確認",layer:"You",lv:3,type:"環境",  text:"取り組みやすい環境かを他者に問いかけ、相談しながら確認する"},
-  // 情動・興味確認 情動
-  {phase:"実行する",proc:"確認",layer:"You",lv:3,type:"情動",  text:"学習に向かう心や体の状態を他者に問いかけ、相談しながら確認する"},
-
-  // ===== 実行する：調節（実行調節 活動/方法/時間、環境調節、情動調節、興味促進） =====
-  // 活動調節 You補完（相談）
-  {phase:"実行する",proc:"調節",layer:"You",lv:3,type:"メタ認知",text:"他者に相談しながら学習活動を調節する"},
-  // 方法方略調節 各層
-  {phase:"実行する",proc:"調節",layer:"You",lv:3,type:"メタ認知",text:"他者に相談しながら方法・方略を調節する"},
-  // 時間配分調節 各層
-  {phase:"実行する",proc:"調節",layer:"You",lv:3,type:"リソース管理",text:"他者に相談しながら時間配分を調節する"},
-  // 環境調節
-  {phase:"実行する",proc:"調節",layer:"I",  lv:3,type:"環境",  text:"これまでより学習が進みやすい物的・人的環境に調節する"},
-  {phase:"実行する",proc:"調節",layer:"You",lv:3,type:"環境",  text:"他者から助言や支援を受け、物的・人的環境を調節する"},
-  {phase:"実行する",proc:"調節",layer:"We", lv:3,type:"環境",  text:"物的環境について集団で協議し調節する"},
-  // 情動調節（離れる等の解決法）
-  {phase:"実行する",proc:"調節",layer:"I",  lv:3,type:"情動",  text:"不快な感情の解決法（一旦離れる等）を考え、調節する"},
-  {phase:"実行する",proc:"調節",layer:"You",lv:3,type:"情動",  text:"感情の解決法（離れる時間や過ごし方）を他者と対話し調節する"},
-  {phase:"実行する",proc:"調節",layer:"We", lv:3,type:"情動",  text:"感情の解決法（離れる時間や過ごし方）を集団で協議し調節する"},
-  // 興味促進（やりがいある挑戦）
-  {phase:"実行する",proc:"調節",layer:"You",lv:3,type:"動機づけ",text:"課題をやりがいある挑戦と捉える見方を他者と対話し高める"},
-  {phase:"実行する",proc:"調節",layer:"We", lv:3,type:"動機づけ",text:"課題をやりがいある挑戦と捉える見方を集団で協議し高める"},
-  // 興味促進（長時間行き詰まり）
-  {phase:"実行する",proc:"調節",layer:"You",lv:3,type:"動機づけ",text:"行き詰まったときの向き合い方・解決法を他者と対話し高める"},
-  {phase:"実行する",proc:"調節",layer:"We", lv:3,type:"動機づけ",text:"行き詰まったときの向き合い方・解決法を集団で協議し高める"},
-
-  // ===== 振り返る：評価（成果課題/方法/時間/環境/気持ち ×層） =====
-  // 方法方略の評価 You/We
-  {phase:"振り返る",proc:"評価",layer:"You",lv:3,type:"メタ認知",text:"効果的・効率的な方法で学べたかを他者と対話し自己評価する"},
-  {phase:"振り返る",proc:"評価",layer:"We", lv:3,type:"メタ認知",text:"効果的・効率的な方法で学べたかを集団で協議し相互評価する"},
-  // 時間配分の評価 You/We
-  {phase:"振り返る",proc:"評価",layer:"You",lv:3,type:"メタ認知",text:"時間配分の成果と課題を他者と対話し自己評価する"},
-  {phase:"振り返る",proc:"評価",layer:"We", lv:3,type:"メタ認知",text:"時間配分の成果と課題を集団で協議し相互評価する"},
-  // 環境の評価 You/We
-  {phase:"振り返る",proc:"評価",layer:"You",lv:3,type:"メタ認知",text:"効果的な物的・人的環境だったかを他者と対話し自己評価する"},
-  {phase:"振り返る",proc:"評価",layer:"We", lv:3,type:"メタ認知",text:"効果的な物的・人的環境だったかを集団で協議し相互評価する"},
-  // 気持ちの変化の評価 You/We
-  {phase:"振り返る",proc:"評価",layer:"You",lv:3,type:"情動",  text:"学習中の気持ちの変化を他者と対話し自己評価する"},
-  {phase:"振り返る",proc:"評価",layer:"We", lv:3,type:"情動",  text:"学習中の気持ちの変化を集団で協議し相互評価する"},
-
-  // ===== 振り返る：適用（適用／適応） =====
-  // 適応（学び方の変化）
-  {phase:"振り返る",proc:"適用",layer:"I",  lv:3,type:"動機づけ",text:"次の学習へ向け、自らの学び方をどう変えるかを考える"},
-];
+const STRATEGY_LIST=[{"phase": "見通す", "proc": "課題", "sub": "課題理解", "layer": "I", "lv": 1, "type": "認知", "text": "課題を分解し、関係・解決策を考えて正確に理解する", "listNo": "I1"}, {"phase": "見通す", "proc": "課題", "sub": "課題理解", "layer": "You", "lv": 1, "type": "認知", "text": "課題理解の仕方（分解・関係・解決策）を他者に相談して理解する", "listNo": "You1"}, {"phase": "見通す", "proc": "課題", "sub": "課題理解", "layer": "You", "lv": 3, "type": "認知", "text": "個が理解した課題を他者と対話し、類似点・相違点を見つける", "listNo": "You2"}, {"phase": "見通す", "proc": "課題", "sub": "課題理解", "layer": "You", "lv": 2, "type": "認知", "text": "他者からの評価や助言をもとに課題の理解を更に深める", "listNo": "You3"}, {"phase": "見通す", "proc": "課題", "sub": "課題理解", "layer": "We", "lv": 3, "type": "認知", "text": "どのように課題を理解するかを集団で協議し、理解を深める", "listNo": "We1"}, {"phase": "見通す", "proc": "課題", "sub": "課題理解", "layer": "We", "lv": 1, "type": "認知", "text": "課題理解の進捗を互いに確認し合いながら理解を深める", "listNo": "We2"}, {"phase": "見通す", "proc": "課題", "sub": "課題理解", "layer": "We", "lv": 3, "type": "認知", "text": "個が理解した課題を集団で協議し、類似点・相違点を見つける", "listNo": "We3"}, {"phase": "見通す", "proc": "課題", "sub": "課題興味", "layer": "I", "lv": 1, "type": "メタ認知", "text": "課題をもとに身近なこと・知っていることを振り返る", "listNo": "I2"}, {"phase": "見通す", "proc": "課題", "sub": "課題興味", "layer": "I", "lv": 1, "type": "動機づけ", "text": "課題を解決すると何ができるかを考え、前向きな気持ちを高める", "listNo": "I3"}, {"phase": "見通す", "proc": "課題", "sub": "課題興味", "layer": "I", "lv": 2, "type": "動機づけ", "text": "この課題は大切で能力を高めると自分に言い聞かせる", "listNo": "I4"}, {"phase": "見通す", "proc": "課題", "sub": "課題興味", "layer": "I", "lv": 3, "type": "動機づけ", "text": "課題を解決したときの自分への褒美を考え、前向きな気持ちを高める", "listNo": "I5"}, {"phase": "見通す", "proc": "課題", "sub": "課題興味", "layer": "You", "lv": 3, "type": "メタ認知", "text": "身近なこと・知っていることを振り返るため他者と対話する", "listNo": "You4"}, {"phase": "見通す", "proc": "課題", "sub": "課題興味", "layer": "You", "lv": 3, "type": "動機づけ", "text": "解決でわかること・できることを他者と対話し前向きさを高める", "listNo": "You5"}, {"phase": "見通す", "proc": "課題", "sub": "課題興味", "layer": "You", "lv": 3, "type": "動機づけ", "text": "なぜ大切か・どんな能力が高まるかを他者と対話し、言い聞かせる", "listNo": "You6"}, {"phase": "見通す", "proc": "課題", "sub": "課題興味", "layer": "You", "lv": 3, "type": "動機づけ", "text": "解決時の自分への褒美を他者と対話し前向きさを高める", "listNo": "You7"}, {"phase": "見通す", "proc": "課題", "sub": "課題興味", "layer": "We", "lv": 3, "type": "メタ認知", "text": "身近なこと・知っていることを振り返るため集団で協議する", "listNo": "We4"}, {"phase": "見通す", "proc": "課題", "sub": "課題興味", "layer": "We", "lv": 1, "type": "動機づけ", "text": "解決でわかること・できることを集団で協議し前向きさを高める", "listNo": "We5"}, {"phase": "見通す", "proc": "課題", "sub": "課題興味", "layer": "We", "lv": 3, "type": "動機づけ", "text": "なぜ大切か・どんな能力が高まるかを集団で協議し、前向きさを高める", "listNo": "We6"}, {"phase": "見通す", "proc": "課題", "sub": "課題興味", "layer": "We", "lv": 3, "type": "動機づけ", "text": "解決時の個人・集団への褒美を協議し、前向きな気持ちを高める", "listNo": "We7"}, {"phase": "見通す", "proc": "目標", "sub": "目標設定", "layer": "I", "lv": 1, "type": "認知", "text": "学習内容に関する目標を考える（広げる→順序立て→焦点化）", "listNo": "I6"}, {"phase": "見通す", "proc": "目標", "sub": "目標設定", "layer": "I", "lv": 1, "type": "メタ認知", "text": "生成した目標を振り返り、優先順位を考える", "listNo": "I7"}, {"phase": "見通す", "proc": "目標", "sub": "目標設定", "layer": "You", "lv": 3, "type": "認知", "text": "目標設定の仕方（広げる・順序立て・焦点化・構造化）を他者に相談する", "listNo": "You8"}, {"phase": "見通す", "proc": "目標", "sub": "目標設定", "layer": "You", "lv": 1, "type": "認知", "text": "設定した目標の妥当性を他者と対話して深める", "listNo": "You9"}, {"phase": "見通す", "proc": "目標", "sub": "目標設定", "layer": "You", "lv": 2, "type": "メタ認知", "text": "生成した目標を他者と振り返り、対話しながら優先順位を考える", "listNo": "You10"}, {"phase": "見通す", "proc": "目標", "sub": "目標設定", "layer": "We", "lv": 1, "type": "認知", "text": "個の目標をもとに集団で協議し、共通の目標を考える", "listNo": "We8"}, {"phase": "見通す", "proc": "目標", "sub": "目標設定", "layer": "We", "lv": 2, "type": "認知", "text": "目標達成へ向け、一人一人の良さを活かす役割分担を集団で協議する", "listNo": "We9"}, {"phase": "見通す", "proc": "目標", "sub": "目標設定", "layer": "We", "lv": 2, "type": "メタ認知", "text": "生成した目標を集団で振り返り、協議して優先順位を考える", "listNo": "We10"}, {"phase": "見通す", "proc": "目標", "sub": "目標志向", "layer": "I", "lv": 2, "type": "動機づけ", "text": "目標達成で自らの能力が高まると言い聞かせ、前向きさを高める", "listNo": "I8"}, {"phase": "見通す", "proc": "目標", "sub": "目標志向", "layer": "I", "lv": 3, "type": "動機づけ", "text": "目標の構造（内容・行動・調整）を整理し、前向きさを高める", "listNo": "I9"}, {"phase": "見通す", "proc": "目標", "sub": "目標志向", "layer": "You", "lv": 2, "type": "動機づけ", "text": "目標達成で高まる能力を他者と対話し、前向きさを高める", "listNo": "You11"}, {"phase": "見通す", "proc": "目標", "sub": "目標志向", "layer": "You", "lv": 3, "type": "動機づけ", "text": "目標の構造を整理しながら他者と対話し、前向きさを高める", "listNo": "You12"}, {"phase": "見通す", "proc": "目標", "sub": "目標志向", "layer": "We", "lv": 3, "type": "動機づけ", "text": "目標達成で一人一人のどんな能力が高まるかを協議し、前向きさを高める", "listNo": "We11"}, {"phase": "見通す", "proc": "目標", "sub": "目標志向", "layer": "We", "lv": 3, "type": "動機づけ", "text": "目標の構造を整理しながら集団で協議し、前向きさを高める", "listNo": "We12"}, {"phase": "見通す", "proc": "目標", "sub": "結果予期", "layer": "I", "lv": 1, "type": "動機づけ", "text": "学習後の自分の成長を予想し、前向きな気持ちを高める", "listNo": "I10"}, {"phase": "見通す", "proc": "目標", "sub": "結果予期", "layer": "I", "lv": 3, "type": "動機づけ", "text": "目標達成時に創り出せる考えや成果物を予想し、前向きさを高める", "listNo": "I11"}, {"phase": "見通す", "proc": "目標", "sub": "結果予期", "layer": "You", "lv": 3, "type": "動機づけ", "text": "学習後の成長を他者と対話し、前向きさを高める", "listNo": "You13"}, {"phase": "見通す", "proc": "目標", "sub": "結果予期", "layer": "You", "lv": 3, "type": "動機づけ", "text": "創り出せる考えや成果物を他者と対話して予想し、前向きさを高める", "listNo": "You14"}, {"phase": "見通す", "proc": "目標", "sub": "結果予期", "layer": "We", "lv": 3, "type": "動機づけ", "text": "学習後の成長を集団で協議し、前向きさを高める", "listNo": "We13"}, {"phase": "見通す", "proc": "目標", "sub": "結果予期", "layer": "We", "lv": 3, "type": "動機づけ", "text": "創り出せる考えや成果物を集団で協議して予想し、前向きさを高める", "listNo": "We14"}, {"phase": "見通す", "proc": "計画", "sub": "計画立案", "layer": "I", "lv": 1, "type": "メタ認知", "text": "過去の計画を振り返り、学習計画の見通しをもつ", "listNo": "I12"}, {"phase": "見通す", "proc": "計画", "sub": "計画立案", "layer": "I", "lv": 3, "type": "動機づけ", "text": "見本や他者の計画を参考に、長期から短期の課題・目標と活動を決める", "listNo": "I13"}, {"phase": "見通す", "proc": "計画", "sub": "計画立案", "layer": "I", "lv": 1, "type": "リソース管理", "text": "短期目標を達成する方法・方略を決め、準備する", "listNo": "I14"}, {"phase": "見通す", "proc": "計画", "sub": "計画立案", "layer": "I", "lv": 2, "type": "リソース管理", "text": "時間配分を決め、今後の学習の準備をする", "listNo": "I15"}, {"phase": "見通す", "proc": "計画", "sub": "計画立案", "layer": "You", "lv": 3, "type": "メタ認知", "text": "過去の計画を振り返り、他者との対話で計画の見通しをもつ", "listNo": "You15"}, {"phase": "見通す", "proc": "計画", "sub": "計画立案", "layer": "You", "lv": 3, "type": "動機づけ", "text": "長期から短期の課題・目標と学習活動を他者と対話して決める", "listNo": "You16"}, {"phase": "見通す", "proc": "計画", "sub": "計画立案", "layer": "You", "lv": 1, "type": "リソース管理", "text": "短期目標を達成する方法・方略を他者と対話して決め、準備する", "listNo": "You17"}, {"phase": "見通す", "proc": "計画", "sub": "計画立案", "layer": "You", "lv": 3, "type": "リソース管理", "text": "短期目標の時間配分を他者と対話して決め、準備する", "listNo": "You18"}, {"phase": "見通す", "proc": "計画", "sub": "計画立案", "layer": "We", "lv": 3, "type": "メタ認知", "text": "過去の計画を振り返り、集団との協議で計画の見通しをもつ", "listNo": "We15"}, {"phase": "見通す", "proc": "計画", "sub": "計画立案", "layer": "We", "lv": 3, "type": "動機づけ", "text": "長期から短期の課題・目標と学習活動を集団で協議して決める", "listNo": "We16"}, {"phase": "見通す", "proc": "計画", "sub": "計画立案", "layer": "We", "lv": 2, "type": "リソース管理", "text": "学習活動における役割分担を決め、今後の学習の準備をする", "listNo": "We17"}, {"phase": "見通す", "proc": "計画", "sub": "計画立案", "layer": "We", "lv": 3, "type": "リソース管理", "text": "短期目標の方法・方略を集団で協議して決め、準備する", "listNo": "We18"}, {"phase": "見通す", "proc": "計画", "sub": "計画立案", "layer": "We", "lv": 2, "type": "リソース管理", "text": "時間配分を集団で協議して決め、今後の学習の準備をする", "listNo": "We19"}, {"phase": "見通す", "proc": "計画", "sub": "自己・集団効力", "layer": "I", "lv": 3, "type": "動機づけ", "text": "立案した計画でうまく実行できそうかを考える（自己効力）", "listNo": "I16"}, {"phase": "見通す", "proc": "計画", "sub": "自己・集団効力", "layer": "You", "lv": 3, "type": "動機づけ", "text": "計画をもとにうまく実行できそうかを他者と対話し、前向きさを高める", "listNo": "You19"}, {"phase": "見通す", "proc": "計画", "sub": "自己・集団効力", "layer": "We", "lv": 3, "type": "動機づけ", "text": "計画でうまく実行できそうかを集団で協議し、前向きさを高める", "listNo": "We20"}, {"phase": "実行する", "proc": "推進", "sub": "環境設定", "layer": "I", "lv": 2, "type": "リソース管理", "text": "学習に適切な環境（物的・人的）を整える", "listNo": "I17"}, {"phase": "実行する", "proc": "推進", "sub": "環境設定", "layer": "You", "lv": 3, "type": "リソース管理", "text": "学習に適切な環境（物的・人的）について他者と対話し、整える", "listNo": "You20"}, {"phase": "実行する", "proc": "推進", "sub": "環境設定", "layer": "We", "lv": 3, "type": "リソース管理", "text": "集団で学習を進める上で適切な環境について協議し、整える", "listNo": "We21"}, {"phase": "実行する", "proc": "推進", "sub": "環境設定", "layer": "We", "lv": 3, "type": "リソース管理", "text": "個の強みを活かす役割分担や人数構成を考え、学習環境を整える", "listNo": "We22"}, {"phase": "実行する", "proc": "推進", "sub": "情報活用", "layer": "I", "lv": 1, "type": "認知", "text": "情報を収集して理解を深める（精緻化）", "listNo": "I18"}, {"phase": "実行する", "proc": "推進", "sub": "情報活用", "layer": "I", "lv": 2, "type": "認知", "text": "情報を関連付け、カテゴリーを生成しラベルを付ける（精緻化）", "listNo": "I19"}, {"phase": "実行する", "proc": "推進", "sub": "情報活用", "layer": "I", "lv": 2, "type": "認知", "text": "情報を多面的に見て吟味し、様々な視点で再整理する", "listNo": "I20"}, {"phase": "実行する", "proc": "推進", "sub": "情報活用", "layer": "I", "lv": 1, "type": "認知", "text": "情報を構造化し、考えをつくる（体制化）", "listNo": "I21"}, {"phase": "実行する", "proc": "推進", "sub": "情報活用", "layer": "I", "lv": 3, "type": "認知", "text": "新たな価値を創造することを通して理解を深める", "listNo": "I22"}, {"phase": "実行する", "proc": "推進", "sub": "情報活用", "layer": "I", "lv": 3, "type": "認知", "text": "創造した価値を発信することを通して理解を深める（転移）", "listNo": "I23"}, {"phase": "実行する", "proc": "推進", "sub": "情報活用", "layer": "I", "lv": 2, "type": "認知", "text": "大切な情報をくり返し言ったり書いたりして理解を深める（リハーサル）", "listNo": "I24"}, {"phase": "実行する", "proc": "推進", "sub": "情報活用", "layer": "You", "lv": 1, "type": "認知", "text": "他者と情報収集について対話し、理解を深める", "listNo": "You21"}, {"phase": "実行する", "proc": "推進", "sub": "情報活用", "layer": "You", "lv": 3, "type": "認知", "text": "情報の関連付けについて他者と対話し、理解を深める", "listNo": "You22"}, {"phase": "実行する", "proc": "推進", "sub": "情報活用", "layer": "You", "lv": 3, "type": "認知", "text": "情報を多面的に見ることについて他者と対話し、理解を深める", "listNo": "You23"}, {"phase": "実行する", "proc": "推進", "sub": "情報活用", "layer": "You", "lv": 3, "type": "認知", "text": "情報を構造化し考えをつくることについて他者と対話する", "listNo": "You24"}, {"phase": "実行する", "proc": "推進", "sub": "情報活用", "layer": "You", "lv": 3, "type": "認知", "text": "新たな価値を創造することについて他者と対話し、理解を深める", "listNo": "You25"}, {"phase": "実行する", "proc": "推進", "sub": "情報活用", "layer": "You", "lv": 3, "type": "認知", "text": "創造した価値を発信することについて他者と対話し、理解を深める", "listNo": "You26"}, {"phase": "実行する", "proc": "推進", "sub": "情報活用", "layer": "You", "lv": 3, "type": "認知", "text": "大切な情報をくり返し言う・書くことについて他者と対話する", "listNo": "You27"}, {"phase": "実行する", "proc": "推進", "sub": "情報活用", "layer": "We", "lv": 1, "type": "認知", "text": "共通目標を確認し、個または集団で情報を収集し共有して深める", "listNo": "We23"}, {"phase": "実行する", "proc": "推進", "sub": "情報活用", "layer": "We", "lv": 3, "type": "認知", "text": "共通目標を確認し、個または集団で情報を関連付け共有する", "listNo": "We24"}, {"phase": "実行する", "proc": "推進", "sub": "情報活用", "layer": "We", "lv": 3, "type": "認知", "text": "共通目標を確認し、個または集団で情報を多面的に吟味し共有する", "listNo": "We25"}, {"phase": "実行する", "proc": "推進", "sub": "情報活用", "layer": "We", "lv": 3, "type": "認知", "text": "共通目標を確認し、個または集団で情報を構造化し考えをつくり共有する", "listNo": "We26"}, {"phase": "実行する", "proc": "推進", "sub": "情報活用", "layer": "We", "lv": 3, "type": "認知", "text": "共通目標を確認し、個または集団で新たな価値を創造し共有する", "listNo": "We27"}, {"phase": "実行する", "proc": "推進", "sub": "情報活用", "layer": "We", "lv": 3, "type": "認知", "text": "共通目標を確認し、個または集団で創造した価値を他者に発信する", "listNo": "We28"}, {"phase": "実行する", "proc": "推進", "sub": "情報活用", "layer": "We", "lv": 3, "type": "認知", "text": "大切な情報をくり返し言う・書く方法を集団で協議する", "listNo": "We29"}, {"phase": "実行する", "proc": "確認", "sub": "実行確認", "layer": "I", "lv": 1, "type": "メタ認知", "text": "学習活動が課題・目標からずれていないか自らに問いかけ確認する", "listNo": "I25"}, {"phase": "実行する", "proc": "確認", "sub": "実行確認", "layer": "I", "lv": 1, "type": "メタ認知", "text": "方法・方略が適切かを自らに問いかけ、記録しながら確認する", "listNo": "I26"}, {"phase": "実行する", "proc": "確認", "sub": "実行確認", "layer": "I", "lv": 3, "type": "メタ認知", "text": "計画の時間配分と進捗を比べ、予定内に達成できるか確認する", "listNo": "I27"}, {"phase": "実行する", "proc": "確認", "sub": "実行確認", "layer": "You", "lv": 1, "type": "メタ認知", "text": "学習活動が課題・目標からずれていないか他者に問いかけ、相談しながら確認する", "listNo": "You28"}, {"phase": "実行する", "proc": "確認", "sub": "実行確認", "layer": "You", "lv": 2, "type": "メタ認知", "text": "方法・方略が適切か他者に問いかけ、相談しながら確認する", "listNo": "You29"}, {"phase": "実行する", "proc": "確認", "sub": "実行確認", "layer": "You", "lv": 3, "type": "メタ認知", "text": "立案した時間配分と進捗を他者に相談しながら確認する", "listNo": "You30"}, {"phase": "実行する", "proc": "確認", "sub": "実行確認", "layer": "We", "lv": 1, "type": "メタ認知", "text": "学習活動が集団の課題・目標からずれていないかを協議し、確認する（相互モニタリング）", "listNo": "We30"}, {"phase": "実行する", "proc": "確認", "sub": "実行確認", "layer": "We", "lv": 2, "type": "メタ認知", "text": "方法・方略が適切かを集団で協議し、様子を記録して確認する", "listNo": "We31"}, {"phase": "実行する", "proc": "確認", "sub": "実行確認", "layer": "We", "lv": 3, "type": "メタ認知", "text": "集団で立てた時間配分と進捗を協議し、確認する", "listNo": "We32"}, {"phase": "実行する", "proc": "確認", "sub": "環境確認", "layer": "I", "lv": 2, "type": "メタ認知", "text": "取り組みやすい物的・人的環境になっているかを確認する（環境確認）", "listNo": "I28"}, {"phase": "実行する", "proc": "確認", "sub": "環境確認", "layer": "You", "lv": 3, "type": "メタ認知", "text": "取り組みやすい環境かを他者に問いかけ、相談しながら確認する", "listNo": "You31"}, {"phase": "実行する", "proc": "確認", "sub": "環境確認", "layer": "We", "lv": 3, "type": "メタ認知", "text": "取り組みやすい物的・人的環境かを集団で協議し、確認する", "listNo": "We33"}, {"phase": "実行する", "proc": "確認", "sub": "情動・興味確認", "layer": "I", "lv": 2, "type": "メタ認知", "text": "学習に向かう心や体の状態を振り返り確認する（情動・興味確認）", "listNo": "I29"}, {"phase": "実行する", "proc": "確認", "sub": "情動・興味確認", "layer": "You", "lv": 3, "type": "メタ認知", "text": "学習に向かう心や体の状態を他者に問いかけ、相談しながら確認する", "listNo": "You32"}, {"phase": "実行する", "proc": "確認", "sub": "情動・興味確認", "layer": "We", "lv": 3, "type": "メタ認知", "text": "学習に向かうそれぞれの心や体の状態を集団で振り返り、確認し合う", "listNo": "We34"}, {"phase": "実行する", "proc": "調節", "sub": "実行調節", "layer": "I", "lv": 1, "type": "リソース管理", "text": "課題・目標をもとに学習活動を修正し、調節する", "listNo": "I30"}, {"phase": "実行する", "proc": "調節", "sub": "実行調節", "layer": "I", "lv": 1, "type": "リソース管理", "text": "より効果的・効率的な方法・方略に調節する", "listNo": "I31"}, {"phase": "実行する", "proc": "調節", "sub": "実行調節", "layer": "I", "lv": 2, "type": "リソース管理", "text": "進捗をもとに学習活動の時間配分を変更し、調節する", "listNo": "I32"}, {"phase": "実行する", "proc": "調節", "sub": "実行調節", "layer": "You", "lv": 1, "type": "リソース管理", "text": "他者から助言や支援を受け、活用しながら学習活動を調節する", "listNo": "You33"}, {"phase": "実行する", "proc": "調節", "sub": "実行調節", "layer": "You", "lv": 3, "type": "リソース管理", "text": "他者に相談しながら学習活動を調節する", "listNo": "You34"}, {"phase": "実行する", "proc": "調節", "sub": "実行調節", "layer": "You", "lv": 3, "type": "リソース管理", "text": "他者から助言や支援を受け、活用しながら方法・方略を調節する", "listNo": "You35"}, {"phase": "実行する", "proc": "調節", "sub": "実行調節", "layer": "You", "lv": 3, "type": "リソース管理", "text": "他者に相談しながら方法・方略を調節する", "listNo": "You36"}, {"phase": "実行する", "proc": "調節", "sub": "実行調節", "layer": "You", "lv": 3, "type": "リソース管理", "text": "他者から助言や支援を受け、活用しながら時間配分を調節する", "listNo": "You37"}, {"phase": "実行する", "proc": "調節", "sub": "実行調節", "layer": "You", "lv": 3, "type": "リソース管理", "text": "他者に相談しながら時間配分を調節する", "listNo": "You38"}, {"phase": "実行する", "proc": "調節", "sub": "実行調節", "layer": "We", "lv": 1, "type": "リソース管理", "text": "集団で協議しながら学習活動を調節する", "listNo": "We35"}, {"phase": "実行する", "proc": "調節", "sub": "実行調節", "layer": "We", "lv": 2, "type": "リソース管理", "text": "集団で協議しながら方法・方略を調節する", "listNo": "We36"}, {"phase": "実行する", "proc": "調節", "sub": "実行調節", "layer": "We", "lv": 2, "type": "リソース管理", "text": "集団で協議しながら時間配分を調節する", "listNo": "We37"}, {"phase": "実行する", "proc": "調節", "sub": "環境調節", "layer": "I", "lv": 3, "type": "リソース管理", "text": "これまでより学習が進みやすい物的・人的環境に調節する", "listNo": "I33"}, {"phase": "実行する", "proc": "調節", "sub": "環境調節", "layer": "You", "lv": 3, "type": "リソース管理", "text": "他者から助言や支援を受け、物的・人的環境を調節する", "listNo": "You39"}, {"phase": "実行する", "proc": "調節", "sub": "環境調節", "layer": "You", "lv": 3, "type": "リソース管理", "text": "他者に相談しながら物的・人的環境を調節する", "listNo": "You40"}, {"phase": "実行する", "proc": "調節", "sub": "環境調節", "layer": "We", "lv": 3, "type": "リソース管理", "text": "物的環境について集団で協議し調節する", "listNo": "We38"}, {"phase": "実行する", "proc": "調節", "sub": "環境調節", "layer": "We", "lv": 2, "type": "リソース管理", "text": "人数構成や役割分担など人的環境を集団で協議し調節する", "listNo": "We39"}, {"phase": "実行する", "proc": "調節", "sub": "情動調節", "layer": "I", "lv": 1, "type": "情動", "text": "不快な感情の原因・意味を考え、調節する（情動調節）", "listNo": "I34"}, {"phase": "実行する", "proc": "調節", "sub": "情動調節", "layer": "I", "lv": 3, "type": "情動", "text": "不快な感情の解決法（一旦離れる等）を考え、調節する", "listNo": "I35"}, {"phase": "実行する", "proc": "調節", "sub": "情動調節", "layer": "You", "lv": 2, "type": "情動", "text": "不快な感情の原因や意味を他者と対話し、調節する", "listNo": "You41"}, {"phase": "実行する", "proc": "調節", "sub": "情動調節", "layer": "You", "lv": 3, "type": "情動", "text": "不快な感情の解決法（離れる時間や過ごし方）を他者と対話し調節する", "listNo": "You42"}, {"phase": "実行する", "proc": "調節", "sub": "情動調節", "layer": "We", "lv": 2, "type": "情動", "text": "不快な感情の原因や意味を集団で協議し、調節する", "listNo": "We40"}, {"phase": "実行する", "proc": "調節", "sub": "情動調節", "layer": "We", "lv": 3, "type": "情動", "text": "不快な感情の解決法（離れる時間や過ごし方）を集団で協議し調節する", "listNo": "We41"}, {"phase": "実行する", "proc": "調節", "sub": "興味促進", "layer": "I", "lv": 2, "type": "動機づけ", "text": "困難な課題をやりがいある挑戦と捉え、前向きさを高める（興味促進）", "listNo": "I36"}, {"phase": "実行する", "proc": "調節", "sub": "興味促進", "layer": "I", "lv": 3, "type": "動機づけ", "text": "行き詰まった際の向き合い方・解決法を考え、前向きさを高める", "listNo": "I37"}, {"phase": "実行する", "proc": "調節", "sub": "興味促進", "layer": "You", "lv": 3, "type": "動機づけ", "text": "課題をやりがいある挑戦と捉える見方を他者と対話し高める", "listNo": "You43"}, {"phase": "実行する", "proc": "調節", "sub": "興味促進", "layer": "You", "lv": 3, "type": "動機づけ", "text": "行き詰まったときの向き合い方・解決法を他者と対話し高める", "listNo": "You44"}, {"phase": "実行する", "proc": "調節", "sub": "興味促進", "layer": "We", "lv": 3, "type": "動機づけ", "text": "課題をやりがいある挑戦と捉える見方を集団で協議し高める", "listNo": "We42"}, {"phase": "実行する", "proc": "調節", "sub": "興味促進", "layer": "We", "lv": 3, "type": "動機づけ", "text": "行き詰まったときの向き合い方・解決法を集団で協議し高める", "listNo": "We43"}, {"phase": "振り返る", "proc": "評価", "sub": "自己・相互評価", "layer": "I", "lv": 1, "type": "メタ認知", "text": "目標と結果を比較し、成果と課題を自己評価する", "listNo": "I38"}, {"phase": "振り返る", "proc": "評価", "sub": "自己・相互評価", "layer": "I", "lv": 2, "type": "メタ認知", "text": "効果的・効率的な方法で学べたかを考え、自己評価する", "listNo": "I39"}, {"phase": "振り返る", "proc": "評価", "sub": "自己・相互評価", "layer": "I", "lv": 3, "type": "メタ認知", "text": "時間配分の成果と課題を考え、自己評価する", "listNo": "I40"}, {"phase": "振り返る", "proc": "評価", "sub": "自己・相互評価", "layer": "I", "lv": 3, "type": "メタ認知", "text": "効果的な物的・人的環境だったかを考え、自己評価する", "listNo": "I41"}, {"phase": "振り返る", "proc": "評価", "sub": "自己・相互評価", "layer": "I", "lv": 3, "type": "メタ認知", "text": "学習中の自らの気持ちの変化を振り返り、自己評価する", "listNo": "I42"}, {"phase": "振り返る", "proc": "評価", "sub": "自己・相互評価", "layer": "You", "lv": 1, "type": "メタ認知", "text": "成果と課題を他者と対話し、得た評価をもとに自己評価する", "listNo": "You45"}, {"phase": "振り返る", "proc": "評価", "sub": "自己・相互評価", "layer": "You", "lv": 3, "type": "メタ認知", "text": "効果的・効率的な方法で学べたかを他者と対話し自己評価する", "listNo": "You46"}, {"phase": "振り返る", "proc": "評価", "sub": "自己・相互評価", "layer": "You", "lv": 3, "type": "メタ認知", "text": "時間配分の成果と課題を他者と対話し自己評価する", "listNo": "You47"}, {"phase": "振り返る", "proc": "評価", "sub": "自己・相互評価", "layer": "You", "lv": 3, "type": "メタ認知", "text": "効果的な物的・人的環境だったかを他者と対話し自己評価する", "listNo": "You48"}, {"phase": "振り返る", "proc": "評価", "sub": "自己・相互評価", "layer": "You", "lv": 3, "type": "メタ認知", "text": "学習中の気持ちの変化を他者と対話し自己評価する", "listNo": "You49"}, {"phase": "振り返る", "proc": "評価", "sub": "自己・相互評価", "layer": "We", "lv": 1, "type": "メタ認知", "text": "成果と課題を集団で協議し、相互評価する", "listNo": "We44"}, {"phase": "振り返る", "proc": "評価", "sub": "自己・相互評価", "layer": "We", "lv": 3, "type": "メタ認知", "text": "効果的・効率的な方法で学べたかを集団で協議し相互評価する", "listNo": "We45"}, {"phase": "振り返る", "proc": "評価", "sub": "自己・相互評価", "layer": "We", "lv": 3, "type": "メタ認知", "text": "時間配分の成果と課題を集団で協議し相互評価する", "listNo": "We46"}, {"phase": "振り返る", "proc": "評価", "sub": "自己・相互評価", "layer": "We", "lv": 3, "type": "メタ認知", "text": "効果的な物的・人的環境だったかを集団で協議し相互評価する", "listNo": "We47"}, {"phase": "振り返る", "proc": "評価", "sub": "自己・相互評価", "layer": "We", "lv": 3, "type": "メタ認知", "text": "学習中の気持ちの変化を集団で協議し相互評価する", "listNo": "We48"}, {"phase": "振り返る", "proc": "帰属", "sub": "原因帰属", "layer": "I", "lv": 1, "type": "メタ認知", "text": "自己評価の成果・課題の原因や理由を考え振り返る", "listNo": "I43"}, {"phase": "振り返る", "proc": "帰属", "sub": "原因帰属", "layer": "You", "lv": 2, "type": "メタ認知", "text": "成果・課題の原因や理由について他者と対話し振り返る", "listNo": "You50"}, {"phase": "振り返る", "proc": "帰属", "sub": "原因帰属", "layer": "We", "lv": 2, "type": "メタ認知", "text": "成果・課題の原因や理由について集団で協議し振り返る", "listNo": "We49"}, {"phase": "振り返る", "proc": "帰属", "sub": "自己・相互満足", "layer": "I", "lv": 1, "type": "動機づけ", "text": "満足できるところを見つけ、前向きな気持ちを高める", "listNo": "I44"}, {"phase": "振り返る", "proc": "帰属", "sub": "自己・相互満足", "layer": "You", "lv": 3, "type": "動機づけ", "text": "満足できるところを他者と対話し、前向きな気持ちを高める", "listNo": "You51"}, {"phase": "振り返る", "proc": "帰属", "sub": "自己・相互満足", "layer": "We", "lv": 3, "type": "動機づけ", "text": "集団の学習で満足できるところを協議し、前向きさを高める", "listNo": "We50"}, {"phase": "振り返る", "proc": "適用", "sub": "適用", "layer": "I", "lv": 1, "type": "動機づけ", "text": "次の学習に活かすことを決め、前向きな気持ちを高める", "listNo": "I45"}, {"phase": "振り返る", "proc": "適用", "sub": "適用", "layer": "You", "lv": 2, "type": "動機づけ", "text": "次の学習への活かし方を他者と対話し、前向きな気持ちを高める", "listNo": "You52"}, {"phase": "振り返る", "proc": "適用", "sub": "適用", "layer": "We", "lv": 2, "type": "動機づけ", "text": "次の学習に活かすことを集団で協議し、前向きな気持ちを高める", "listNo": "We51"}, {"phase": "振り返る", "proc": "適用", "sub": "適応", "layer": "I", "lv": 3, "type": "動機づけ", "text": "次の学習へ向け、自らの学び方をどう変えるかを考える", "listNo": "I46"}, {"phase": "振り返る", "proc": "適用", "sub": "適応", "layer": "You", "lv": 3, "type": "動機づけ", "text": "次の学習へ向け、学び方をどう変えるかを他者と対話して考える", "listNo": "You53"}, {"phase": "振り返る", "proc": "適用", "sub": "適応", "layer": "We", "lv": 3, "type": "動機づけ", "text": "次の学習へ向け、それぞれの学び方をどう変えるかを集団で協議する", "listNo": "We52"}];
+const STRATEGY_INFO={"0": {"scene": "単元のはじめに、問いや課題文を受け取った直後。難しそうで何を聞かれているか分からないとき", "child": "「この問題は、①何を調べて、②どう比べるか、の2つに分けられるな」と課題を分けて考える", "voice": "「この課題は、いくつのことをすればよさそう？分けてみよう」"}, "1": {"scene": "課題の意味がつかみにくいとき。ペアや隣の人と課題の読み取りを確かめたいとき", "child": "「ぼくは,課題をこう読んだけど、どう？」と相手と比べ、同じところと違うところを見つける", "voice": "「隣の人と、課題をどう読んだか比べてみよう。違ったところはどこ？」"}, "2": {"scene": "自分なりに課題を読み取ったあと、相手の読み取りと比べて自分の理解を確かめたいとき", "child": "「わたしは『比べる』ことが課題だと読んだけど、あなたはどう読んだ？」と共有し、同じところ・違うところから自分の理解を見直す", "voice": "「自分の課題の読み取りを近くの人に話して、相手の読み取りと比べてみよう」"}, "3": {"scene": "課題に対する自分なりの理解を一度つくったあと、友達や教師からの意見で深めたいとき", "child": "「課題にある『比べる』は大きさだけを比べるんじゃないって言われて、見方が増えた」と助言を取り入れる", "voice": "「友達の意見を聞いて、課題の見方は変わった？」"}, "4": {"scene": "課題の理解の仕方を、グループで話し合って深める場面", "child": "班で「この課題は、こう考えると分かりやすい」と理解の仕方を出し合う", "voice": "「班で、課題をどう理解すればよいか話し合おう」"}, "5": {"scene": "グループや学級全体で、課題のとらえ方をそろえてから進みたいとき", "child": "班で「この課題はこういうこと」と確かめ合ったり，か「課題について，今どこまで分かった？」と共有する", "voice": "「班で、課題をどう理解したか確かめ合ってから進めよう」"}, "6": {"scene": "一人一人が理解した課題を、グループで比べ合う場面", "child": "班で「それぞれ課題をどう読んだ？」と出し合い、同じところと違うところを整理する", "voice": "「班で、課題の読み取りの同じところ・違うところを見つけよう」"}, "7": {"scene": "新しい課題に出会ったとき。身の回りや前に習ったことと結びつけて考えさせたいとき", "child": "「これ、スーパーの値引きの表示と同じだ」と身近な経験を思い出して課題を自分ごとにする", "voice": "「これと似たこと、どこかで見たことない？」"}, "8": {"scene": "課題に取り組む意味が見えず、やる気が出ていないとき。導入の後半", "child": "「これが分かれば、自分で安い買い方を選べるようになる」と解決後にできることを思い描く", "voice": "「これができるようになったら、どんなときに役に立ちそう？」"}, "9": {"scene": "面倒・苦手と感じている課題に向かうとき。自分を励ます言葉をもたせたいとき", "child": "「これは大事なことだし、できたら力がつく」と心の中で自分に言い聞かせる", "voice": "「この勉強は、あなたのどんな力を伸ばしてくれると思う？」"}, "10": {"scene": "長い課題や自由進度学習で、自分で気持ちを保つ必要があるとき", "child": "「ここまで終わったら、好きな本を読もう」と自分へのごほうびを決めて取りかかる", "voice": "「やりきったときの自分へのごほうびを決めておこうか」"}, "11": {"scene": "課題に出会ったとき、相手がどんな経験や知識と結びつけているかを聞いて、自分の結びつけ方を広げたいとき", "child": "「ぼくは去年の理科を思い出した。あなたは何を思い出した？」と共有し、相手の結びつけ方を自分の見方に取り入れる", "voice": "「この課題から思い出したことを近くの人と出し合って、自分の見方を広げよう」"}, "12": {"scene": "課題の意味や価値を、相手と話すことでつかませたいとき。導入でペア対話を入れるとき", "child": "「これができると、なぜ便利かを2人で出し合ったら、やる気が出てきた」と話す", "voice": "「この勉強が何の役に立つか、隣の人と話してみよう」"}, "13": {"scene": "課題の大切さや高まる力を、相手がどう自分に言い聞かせているかを聞いて、自分の言い聞かせ方を見つけたいとき", "child": "「わたしは『考える力がつく』と自分に言っている。あなたはどう言い聞かせている？」と共有し、自分の言葉を見つける", "voice": "「この課題の大切さを自分にどう言い聞かせているか、近くの人と話してみよう」"}, "14": {"scene": "自分へのごほうびの決め方を、相手のやり方を参考にして決めたいとき", "child": "「終わったら本を読むのがごほうび。あなたは何にする？」と共有し、相手の決め方を参考にする", "voice": "「自分へのごほうびをどう決めたか、近くの人と話して参考にしよう」"}, "15": {"scene": "身近なことや知っていることを、グループで出し合う場面", "child": "班で「知っていること」を付せんに書いて出し合い、課題を身近にする", "voice": "「班で、この課題について知っていることを出し合おう」"}, "16": {"scene": "グループや学級全体で課題に向かう意味を共有したいとき。探究の立ち上げなど", "child": "「みんなで取り組む価値はどこにある？」を話し合い、「自分たちの学級を良くするためだ」と共通の思いをもつ", "voice": "「この課題をみんなで解く意味は、どこにあるだろう？」"}, "17": {"scene": "課題がなぜ大切か・どんな力がつくかを、グループで話し合う場面", "child": "班で「この学習で高まる力」を出し合い、取り組む意味を共有する", "voice": "「班で、この学習で高まる力について話し合おう」"}, "18": {"scene": "長期のグループ活動で、集団として気持ちを保ちたいとき", "child": "「全員ができたら、発表会でみんなに見てもらおう」とごほうびを相談して決める", "voice": "「やりとげたら、班でどんないいことがあるといい？」"}, "19": {"scene": "単元のめあてから、自分の目標を立てる場面。目標づくりの手順を教えたいとき", "child": "「知りたいこと（問い）をできる限り出して→順番をつけて→一番大事なものにしぼる」と目標を絞り込む", "voice": "「知りたいことを広げて、順番をつけて、一つにしぼってみよう」"}, "20": {"scene": "目標やめあてを複数出したあと、どれから取り組むか決める場面", "child": "「3つ書いたけど、まず計算の仕方を先にしよう」と自分で順番を決める", "voice": "「立てた目標の中で、一番先にやるのはどれ？」"}, "21": {"scene": "目標の立て方（広げる・順序立てる・焦点化する・構造化する）に迷ったとき、相手の立て方を聞いて自分の立て方をつかみたいとき", "child": "「目標をどうやって決めた？」と相手に聞き、「知りたいことを全部出してからしぼった」という立て方を自分にも取り入れる", "voice": "「目標の立て方を近くの人に聞いて、自分の立て方に活かしてみよう」"}, "22": {"scene": "立てた目標が妥当か、ペアで確かめる場面。目標の立て方を学び合うとき", "child": "「その目標、1時間でできそう？」と友達に聞かれて「じゃあ半分にしよう」と見直す", "voice": "「隣の人の目標を聞いて、気づいたことを伝え合おう」"}, "23": {"scene": "目標を複数出したあと、相手がどんな順番で取り組むかを聞いて、自分の優先順位を考えたいとき", "child": "「ぼくは計算を先にする。あなたは何から？」と共有し、相手の順番の決め方を参考に自分の順番を決める", "voice": "「何から取り組むか近くの人と話して、自分の順番を決めよう」"}, "24": {"scene": "グループ活動の最初に、集団としての目標を決める場面", "child": "班で「わたしたちの目標は、全員が説明できるようになること」と決める", "voice": "「班の目標を一つ決めよう。全員が納得できる言葉で」"}, "25": {"scene": "グループの役割分担を、一人一人のよさを生かして決めたいとき", "child": "「○○さんは絵が得意だからポスター担当がいいね」と良さを認め合って分担する", "voice": "「班の一人一人の得意なことを生かした分担を考えよう」"}, "26": {"scene": "集団で目標を複数出したあと、優先順位を話し合って決める場面", "child": "「それぞれの目標を出し合って、まずこれからやろう」と班で順番を決める", "voice": "「それぞれが考えた目標を出し合って、何から取り組むか決めよう」"}, "27": {"scene": "目標が高くて気後れしているとき", "child": "「目標まで行けたら、考える力がついている」と自分に言い聞かせて取りかかる", "voice": "「この目標を達成したら、どんな力が伸びると思う？」"}, "28": {"scene": "目標を「何を・どうする・どう調整する」に整理して前向きさを高めたいとき", "child": "「内容は分数、行動は図にかく、うまくいかなければ友達に聞く」と目標を整理する", "voice": "「目標を『何を・どうやって・困ったらどうする』に分けて整理してみよう」"}, "29": {"scene": "目標に向かう気持ちを、相手との対話で高めたいとき", "child": "「これができると、どんな力がつくかな」と2人で話し、「説明する力だ」と前向きになる", "voice": "「目標を達成したら、どんな力が高まるか、話してみよう」"}, "30": {"scene": "目標を「何を・どうやって・困ったらどうする」に整理するとき、相手の整理の仕方を参考にしたいとき", "child": "「わたしは『図にかく』でやる。困ったら友達に聞く。あなたはどう整理した？」と共有し、自分の整理を見直す", "voice": "「目標の中身をどう整理したか、近くの人と見せ合って自分の整理に活かそう」"}, "31": {"scene": "目標を達成すると一人一人にどんな力がつくかを、グループで話し合って前向きさを高める場面", "child": "班で「達成したら、わたしは説明する力、○○さんは図にする力がつく」と出し合い、取り組む気持ちを高める", "voice": "「班の目標を達成したら、一人一人にどんな力がつくか話し合おう」"}, "32": {"scene": "目標の整理を、グループで話し合って進める場面", "child": "班で「目標の内容・やること・困ったときの手」を整理する", "voice": "「班の目標を、何を・どうやって・困ったらどうするに整理しよう」"}, "33": {"scene": "目標を立てたあと、学習への前向きな気持ちを高めたいとき", "child": "「この単元が終わったら、分数の計算がすらすらできる自分になっている」と成長した姿を想像する", "voice": "「この学習が終わったとき、自分はどんなふうになっていそう？」"}, "34": {"scene": "ゴールの作品や考えが見えにくいとき。計画づくりの後半で前向きさを高めたいとき", "child": "「最後には、町の魅力を伝える新聞ができているはず」と完成の姿を思い描く", "voice": "「終わったとき、どんな作品や考えができあがっていそう？」"}, "35": {"scene": "学習後の自分の成長の見通しを、相手の見通しを聞いて具体的にしたいとき", "child": "「終わったら、わたしは発表が得意になっていたい。あなたは？」と共有し、自分の見通しを具体的にする", "voice": "「学習が終わったときの自分の姿を近くの人と話して、見通しをはっきりさせよう」"}, "36": {"scene": "完成の姿（考えや作品）の見通しを、相手の見通しを参考にして具体的にしたいとき", "child": "「最後はポスターにするつもり。あなたはどんな形？」と共有し、相手のイメージを参考に自分の完成像をはっきりさせる", "voice": "「完成したときの姿を近くの人と話して、自分のイメージをはっきりさせよう」"}, "37": {"scene": "学習後の成長を、グループで話し合う場面", "child": "班で「この単元が終わったときのわたしたち」を出し合い、前向きになる", "voice": "「班で、学習が終わったときの自分たちの姿を話し合おう」"}, "38": {"scene": "創り出せる考えや成果物を、グループで予想する場面", "child": "班で「完成した新聞はこんな感じ」と絵にかいてイメージを共有する", "voice": "「班で、完成イメージをかいて共有しよう」"}, "39": {"scene": "単元のはじめや自由進度学習の計画づくりで、前の学習の計画表を見返すとき", "child": "「前の単元では時間が足りなかったから、今度は調べる時間を多めにしよう」と計画表を見ながら考える", "voice": "「前の計画表を見て、今回はどこを変える？」"}, "40": {"scene": "見本や友達の計画を参考にして、長期から短期の計画を立てる場面", "child": "見本の計画表を参考に、「単元の目標→今週の目標→今日やることを決めた」と計画する", "voice": "「見本や友達の計画を見て、自分の計画に取り入れられるところはある？」"}, "41": {"scene": "1時間や短い期間の目標に向けて、やり方と準備を決める場面", "child": "「今日は教科書と地図帳で調べる。付せんを用意しよう」とやり方を決めて準備する", "voice": "「今日の目標を達成するために、どんなやり方で、何を用意する？」"}, "42": {"scene": "1時間の自由進度学習や単元の計画で、時間配分を決めるとき", "child": "「調べるのに2時間、まとめに1時間」と計画表に時間を書き込む", "voice": "「それぞれ何時間（何分）くらいかかりそう？計画表に書いてみよう」"}, "43": {"scene": "前の計画の振り返り方を、相手の振り返りを聞いて自分の見通しに活かしたいとき", "child": "「前は時間が足りなかったから調べる時間を増やす。あなたは前の計画から何を変える？」と共有し、自分の計画の見通しをもつ", "voice": "「前の計画から何を変えるか近くの人と話して、自分の計画に活かそう」"}, "44": {"scene": "単元の目標から今日の目標・活動を決めるとき、相手の決め方を参考にしたいとき", "child": "「わたしは今週は調べる、今日は資料を集める、にした。あなたはどう分けた？」と共有し、自分の目標と活動を整える", "voice": "「ゴールから今日やることをどう決めたか、近くの人と話して自分の計画に活かそう」"}, "45": {"scene": "目標を達成するために，どのような方法・方略で学べばよいのかを共有し，学習の準備をする", "child": "「わたしはこの方法で，こんなやり方で学習を進めようと思っているけれど，あなたはどうするの」と共有する", "voice": "「どのように学習を進めるのかを，近くの人と話して，自分に学び方に活かしてみよう。"}, "46": {"scene": "短期の目標に向けた時間配分を、ペアで確認する", "child": "「わたしは調べるのに20分、まとめに15分としたよ。あなたはどう？」と調整について共有する", "voice": "「今後の活動の時間配分を確認しよう」"}, "47": {"scene": "過去の計画を、グループで振り返って見通しをもつ", "child": "班で前回の計画表を見返し、「今回は調べる時間を増やそう」と決める", "voice": "「班で、前の計画の良かったところと直すところを出し合おう」"}, "48": {"scene": "長期から短期の課題・目標と活動を、グループで話し合って決める", "child": "班で「最終目標→週の目標→今日の活動」の順に話し合って決める", "voice": "「班で、ゴールから逆算して今日やることを決めよう」"}, "49": {"scene": "グループの活動を始める前に、誰が何を担当するかを決めて準備する場面", "child": "班で「記録は○○さん、発表は△△さん」と役割を決め、それぞれ必要な物を準備する", "voice": "「班の役割を決めて、それぞれ何を準備するか確かめよう」"}, "50": {"scene": "グループで共通の計画を立てる場面。探究やプロジェクトの立ち上げ", "child": "班で「何を、どんな方法で、何時間で、誰がやるか」を一枚の計画表にまとめる", "voice": "「班の計画表に、やること・やり方・時間・担当を書き込もう」"}, "51": {"scene": "グループで時間配分を話し合って決め、準備する場面", "child": "班で「調べるのに20分、まとめに15分」と相談して決め、計画表に書く", "voice": "「班で時間の配分を決めて、計画表に書き込もう」"}, "52": {"scene": "計画を立て終わったとき。実行する前に自信をもたせたいとき", "child": "「この計画なら、できそうな気がする」「ここが不安だから、聞ける人を決めておこう」と見直す", "voice": "「この計画で、うまくいきそう？不安なところはある？」"}, "53": {"scene": "計画を立て終わったとき、相手の自信のもち方を聞いて、自分の計画への自信や不安を整理したいとき", "child": "「この計画でできそうと思う。あなたは不安なところある？」と共有し、相手の見方を参考に自分の計画を見直す", "voice": "「その計画でうまくいきそうか、近くの人と話して自分の計画を見直そう」"}, "54": {"scene": "グループの計画が立ったあと、実行前に全員の自信を確かめたいとき", "child": "「この計画でいける？」と確かめ合い、「ここは心配だから先生に聞こう」と決める", "voice": "「班の計画でうまくいきそうか、みんなで確かめよう」"}, "55": {"scene": "自由進度学習や調べ学習で、学ぶ場所・道具・相手を自分で選べるとき", "child": "「集中したいから、窓側の静かな席で、辞書を持って始めよう」と環境を整える", "voice": "「今日は、どこで、何を使って、誰と学ぶと進みやすい？」"}, "56": {"scene": "ペアで学ぶとき、どんな場所や道具が合うかを相談して整えたいとき", "child": "「あなたはどのような環境で学んだ方が学びやすい」と聞き，自分がどのように学ぶのかの参考にする", "voice": "「どのような環境で学ぶのが学びやすいのかを共有してごらん」"}, "57": {"scene": "グループ活動の前に、学びやすい環境を全員で整える場面", "child": "「班で机を向かい合わせにして、資料は真ん中に置こう」と相談して整える", "voice": "「班で活動しやすいように、場所と物の置き方を決めよう」"}, "58": {"scene": "グループの人数や役割を、一人一人の強みに合わせて組み直したいとき", "child": "「調べ係は2人、まとめ係は1人にしよう。○○さんは図が得意だから」と話し合う", "voice": "「一人一人の強みが生きるように、人数と役割を考えよう」"}, "59": {"scene": "調べ学習で、必要な情報を集めて理解を深める場面", "child": "「教科書だけでなく、資料集と地図帳でも確かめた」と複数の資料から情報を集める", "voice": "「ほかにも確かめられる資料はないかな」"}, "60": {"scene": "集めた情報が増えて、整理が必要になったとき", "child": "「これは『自然』、これは『産業』」と情報を仲間分けして見出しをつける", "voice": "「集めた情報を、仲間分けして名前をつけてみよう」"}, "61": {"scene": "一つの見方にかたよっているとき。考察で視点を増やしたいとき", "child": "「売る人の立場で見るとどうなる？」と見方を変えて情報を見直す", "voice": "「別の立場や視点から見ると、どう見える？」"}, "62": {"scene": "集めた情報から自分の考えをつくる場面。まとめ・表現の前", "child": "「主張→理由→根拠」の順に情報を並べて、自分の考えを組み立てる", "voice": "「集めたことを並べ替えて、自分の考えを一つの形にしてみよう」"}, "63": {"scene": "学んだことをもとに、新しいアイデアや作品を生み出す場面", "child": "「学んだことを生かして、自分たちの町のためにできる提案を考えた」と新しい考えをつくる", "voice": "「学んだことから、新しく生み出せることはないかな」"}, "64": {"scene": "つくった考えや作品を、発表や発信で伝える場面", "child": "「地域の人に発表したら質問されて、もっと調べたいことが見つかった」と発信から学ぶ", "voice": "「つくった考えを、誰に、どう伝えると学びが深まるかな」"}, "65": {"scene": "漢字・計算・用語など、確実に覚える必要があるとき", "child": "「大事な言葉を3回書いて、声に出して確かる」などくり返して覚える", "voice": "「覚えるために、くり返す方法を一つ決めよう」"}, "66": {"scene": "情報の集め方について、他者のやり方を聞いて自分のやり方に取り入れたいとき", "child": "「ぼくは教科書と資料集で調べた。あなたは胴のように調べた？」と共有し、相手の情報の集め方を聞き参考にする", "voice": "「どうやって情報を集めたか近くの人と話して、自分の調べ方に活かそう」"}, "67": {"scene": "集めた情報のつなげ方・仲間分けの仕方について、他者のやり方を参考にしたいとき", "child": "「わたしは『自然』と『産業』で分けた。あなたはどう分けた？」と共有し、自分の整理の仕方を見直す", "voice": "「情報をどうつなげたかを近くの人と見せ合って、自分の整理に活かそう」"}, "68": {"scene": "情報を別の見方から見直すとき、相手がどんな視点で見ているかを聞いて自分の視点を増やしたいとき", "child": "「ぼくは買う人の立場で見た。あなたはどの立場で見た？」と共有し、相手の視点を自分の見方に加える", "voice": "「どんな視点で情報を見たか近くの人と話して、自分の見方を増やそう」"}, "69": {"scene": "自分の考えの組み立て方を、相手の組み立て方を参考にして見直したいとき", "child": "「わたしは主張→理由→根拠の順にした。あなたはどう組み立てた？」と共有し、自分の考えの組み立てを直す", "voice": "「考えをどう組み立てたか近くの人と見せ合って、自分の組み立てに活かそう」"}, "70": {"scene": "新しいアイデアのつくり方を、相手の発想の仕方を聞いて自分の発想を広げたいとき", "child": "「学んだことから、わたしはこんな提案を考えた。あなたはどこからアイデアを出した？」と共有し、発想の広げ方を参考にする", "voice": "「アイデアをどう生み出したか近くの人と話して、自分の発想に活かそう」"}, "71": {"scene": "発信の仕方（誰に・どう伝えるか）について、他者の伝え方を聞き，自分の伝え方を見直すとき", "child": "「ぼくは図を入れて伝える。あなたは何を工夫する？」と共有し、相手の工夫を自分の伝え方に取り入れる", "voice": "「どのように伝える工夫をしたか近くの人と話して、自分の発信に活かそう」"}, "72": {"scene": "覚え方を、相手のやり方を聞いて自分に合う覚え方を見つけたいとき", "child": "「わたしは3回書いて覚える。あなたはどうやって覚える？」と共有し、相手の方法を自分の覚え方に取り入れる", "voice": "「覚え方を近くの人と話して、自分に合う方法を見つけよう」"}, "73": {"scene": "グループで目標を確かめてから、分担・協力して情報を集める場面", "child": "「目標は町の特色を見つけること。わたしは地図、きみは統計」と分担し、集めた情報を持ち寄る", "voice": "「班の目標を確かめてから、どう分担して調べるか決めよう」"}, "74": {"scene": "グループで目標を確かめてから、情報を関連づけて共有する場面", "child": "班で「目標は要因を見つけること」と確かめ、集めた情報を一枚の図に整理する", "voice": "「班の目標に戻って、集めた情報をつなげて一枚に整理してみよう」"}, "75": {"scene": "グループで目標を確かめ、情報を多面的に吟味して共有する場面", "child": "班で「目標は多面的に考えること」と確かめ、立場ごとの見方を出し合って表にする", "voice": "「班で、いくつの立場から見られるか出し合ってみよう」"}, "76": {"scene": "グループで目標を確かめ、考えを構造化して共有する場面", "child": "班で「目標は提案をつくること」と確かめ、意見を図に整理して班の考えをつくる", "voice": "「班の目標に向けて、みんなの考えを一つの図に整理しよう」"}, "77": {"scene": "グループで目標を確かめ、新しい価値をつくって共有する場面", "child": "班で「目標は提案をつくること」と確かめ、全員のアイデアを合わせて一つの提案にする", "voice": "「班の目標に向けて、みんなの考えから新しい提案をつくろう」"}, "78": {"scene": "グループで目標を確かめ、つくったものを他者に発信する場面", "child": "班で「目標は伝えること」と確かめ、役割を決めて発表し、質問に答える", "voice": "「班でつくったものを、誰にどう届けるか決めて発信しよう」"}, "79": {"scene": "グループで、覚えるための方法を話し合って決める場面", "child": "班で「カルタにして覚えよう」と方法を決めて取り組む", "voice": "「班で、みんなが覚えやすい方法を一つ決めよう」"}, "80": {"scene": "活動の途中で、めあてからずれていないか立ち止まらせたいとき", "child": "「あれ、今日のめあては『比べる』だったのに、調べるだけになっていない？」と気づく", "voice": "「今やっていることは、今日のめあてに向かっているかな」"}, "81": {"scene": "活動の中盤で、やり方や進み具合・時間を確かめさせたいとき", "child": "「残り15分で、まだ半分。やり方を変えたほうがいいかも」と進み具合を確かめる", "voice": "「今のやり方で進めて残り時間で、終わりそう？」"}, "82": {"scene": "計画の時間配分と進み具合を比べて、予定内に終わるか確かめる場面", "child": "「計画では今ごろまとめに入るはずなのに、まだ調べている。急ごう」と確かめる", "voice": "「計画表と今の進み具合を比べてみて、どう？」"}, "83": {"scene": "活動の途中で、めあてからずれていないかを、相手の確かめ方を参考にしながら確かめたいとき", "child": "「わたしは『めあては比べること』と確かめた。あなたは今、何を確かめている？」と共有し、自分の確かめ方を整える", "voice": "「今の活動がめあてに合っているか、近くの人と確かめ合って自分の確かめ方に活かそう」"}, "84": {"scene": "自分のやり方でいいかを、相手の確かめ方や判断を聞いて見直したいとき", "child": "「ぼくは表でやっているけど合っているかな。あなたはどうやって確かめている？」と共有し、自分のやり方を見直す", "voice": "「今のやり方が合っているか、近くの人の確かめ方を聞いて自分のやり方を見直そう」"}, "85": {"scene": "時間配分と進み具合の確かめ方を、相手の確かめ方を参考にして見直したいとき", "child": "「わたしは残り15分で半分。あなたはどのくらい進んだ？」と共有し、相手のペースの見方を参考に自分の進み方を見直す", "voice": "「進み具合をどう確かめているか近くの人と話して、自分の確かめ方に活かそう」"}, "86": {"scene": "グループ活動の途中で、進み具合や取り組み方を確かめ合う場面", "child": "班で「今どこまで？」「集中できてる？」と確かめ合い、遅れている人を助ける", "voice": "「班で、今の進み具合と調子を確かめ合おう」"}, "87": {"scene": "グループ活動の途中で、やり方・方略が合っているかを話し合い、記録しながら確かめる場面", "child": "班で「分担して調べる方法でいい？」と確かめ合い、進み具合をホワイトボードに記録する", "voice": "「班のやり方が合っているか、みんなで確かめて記録しておこう」"}, "88": {"scene": "グループで立てた時間配分と進み具合を話し合って確かめる場面", "child": "班で「予定より遅れている。どこを縮める？」と確かめ合う", "voice": "「班の計画と今の進み具合を、みんなで確かめよう」"}, "89": {"scene": "自由進度学習で、場所や相手が自分に合っているか確かめさせたいとき", "child": "「ここはおしゃべりが多くて集中できない。場所を変えよう」と気づく", "voice": "「今の場所や周りの人は、学びやすい状態？」"}, "90": {"scene": "取り組みやすい環境かを、相手に聞いて確かめる場面", "child": "「情報を集める活動を一緒に進めているけれど，あなたはどう思う？」と相手と確かめる", "voice": "「今の場所や周りの様子を、2人で確かめてみよう」"}, "91": {"scene": "長いグループ活動で、環境や全員の心身の状態を振り返る場面", "child": "班で「場所は良い？」「疲れてない？」と確かめ合い、休憩を入れることを決める", "voice": "「班の環境とみんなの調子、今のままで大丈夫？」"}, "92": {"scene": "長い活動の途中で、気持ちや体の状態を確かめさせたいとき", "child": "「少し疲れてきて、集中が切れている」と自分の状態に気づく", "voice": "「今の自分の調子は、10点中何点？」"}, "93": {"scene": "自分の心や体の状態の確かめ方を、相手の確かめ方を参考にしたいとき", "child": "「わたしは少し疲れたと気づいた。あなたは自分の調子をどう確かめている？」と共有し、自分の確かめ方に取り入れる", "voice": "「自分の調子をどう確かめているか、近くの人と話してみよう」"}, "94": {"scene": "長いグループ活動で、一人一人の心や体の状態を振り返り、確かめ合う場面", "child": "班で「疲れてない？集中できてる？」と確かめ合い、休憩を入れることを決める", "voice": "「班のみんなの調子を、ひとことずつ確かめ合おう」"}, "95": {"scene": "活動がめあてからずれていると気づいたあと、立て直す場面", "child": "「めあては『説明すること』だから、そろそろ調べるのをやめて説明を書こう」と活動を変える", "voice": "「めあてに戻るために、今の活動をどう変える？」"}, "96": {"scene": "今のやり方でうまくいかないと気づいたあと、方法を変える場面", "child": "「表にしても分からないから、図にかいてみよう」と別のやり方を試す", "voice": "「うまくいかないなら、別のやり方を一つ試してみよう」"}, "97": {"scene": "進み具合を見て、時間配分を変える場面", "child": "「調べるのに時間がかかりすぎた。まとめは10分でやろう」と配分を変える", "voice": "「残り時間で終えるために、時間の配分を変えてみよう」"}, "98": {"scene": "助言や手助けをもとに、自分の活動を立て直す場面", "child": "「友達に『順番を変えたら』と言われて、自分の活動を見直したらうまくいった」と助言を自分の調整に活かす", "voice": "「もらった助言を、自分の活動の立て直しにどう活かす？」"}, "99": {"scene": "活動そのものを変えるかどうかを、相手の調整の仕方を聞いて決めたいとき", "child": "「ぼくは調べるのをやめて書く活動に変えた。あなたは活動をどう変えた？」と共有し、自分の活動の変え方を決める", "voice": "「活動をどう変えたか近くの人と話して、自分の活動の立て直しに活かそう」"}, "100": {"scene": "助言や手助けをもとに、やり方・方略を変える場面", "child": "「先生に『図にしたら』と言われて、自分のやり方を変えた」と助言をうけたことを他者と交流する", "voice": "「もらった助言を、自分のやり方の変更にどう活かすか共有しよう」"}, "101": {"scene": "やり方・方略を変えるかどうかを、相手の変え方を聞いて決めたいとき", "child": "「わたしは表から図に変えた。あなたはやり方をどう変えた？」と共有し、相手の変え方を参考に自分の方略を調節する", "voice": "「やり方をどう変えたか近くの人と話して、自分の方略の調節に活かそう」"}, "102": {"scene": "助言や手助けをもとに、時間配分を変える場面", "child": "「先生に『まとめを先に』と言われて、自分の時間配分を組み替えた」と助言をうけたことについて他者と交流する。", "voice": "「もらった助言を、自分の時間の使い方にどう活かしたか共有しよう」"}, "103": {"scene": "時間配分の変え方を、相手の変え方を聞いて決めたいとき", "child": "「ぼくは調べる時間を減らしてまとめを増やした。あなたはどう変えた？」と共有し、自分の時間配分を調節する", "voice": "「時間の配分をどう変えたか近くの人と話して、自分の時間の使い方に活かそう」"}, "104": {"scene": "グループで、活動・やり方・時間配分を話し合って変える場面", "child": "班で「調べる時間を減らして、作る時間を増やそう」と相談して変える", "voice": "「班で、今の進め方と時間配分を見直そう」"}, "105": {"scene": "グループで、やり方・方略を話し合って変える場面", "child": "班で「表にするより図にしよう」と相談してやり方を変える", "voice": "「班のやり方を変えたほうがよいところはある？話し合おう」"}, "106": {"scene": "グループで、時間配分を話し合って変える場面", "child": "班で「調べる時間を減らして、作る時間を増やそう」と相談して変える", "voice": "「残り時間で終えるために、班の時間配分を見直そう」"}, "107": {"scene": "自由進度学習などで、より学びやすい場所・道具・相手に変える場面", "child": "「一人では進まないから、同じ課題の人の近くに移ろう」と環境を変える", "voice": "「もっと進めやすくするために、場所や相手を変えるとしたら？」"}, "108": {"scene": "助言や手助けをもとに、学ぶ場所や相手を変える場面", "child": "「先生に『静かな席で』と言われて、自分の学ぶ場所を変えた」ということを他者に共有する", "voice": "「もらった助言を、自分の学ぶ環境の整え方にどう活かす？」"}, "109": {"scene": "学ぶ場所や相手の変え方を、相手の変え方を聞いて決めたいとき", "child": "「わたしは同じ課題の人の近くに移った。あなたは環境をどう変えた？」と共有し、自分の学ぶ環境を調節する", "voice": "「学ぶ環境をどう変えたか近くの人と話して、自分の環境づくりに活かそう」"}, "110": {"scene": "グループで、学ぶ場所や道具の置き方を話し合って変える場面", "child": "班で「机をくっつけて、タブレットは真ん中に」と相談して変える", "voice": "「班で、物の置き方や場所を変えたほうがいいところはある？」"}, "111": {"scene": "グループの人数構成や役割がうまくいかないとき", "child": "「2人で足りないから、もう1人調べ係に入ってもらおう」と班で話して変える", "voice": "「班の役割や人数を変えたほうがいいところはある？」"}, "112": {"scene": "いらいら・不安など、いやな気持ちが学習のじゃまをしているとき", "child": "「いらいらしているのは、時間が足りないからだ」と原因に気づき、やることを減らす", "voice": "「今の気持ちの原因は何だろう。どうすれば楽になる？」"}, "113": {"scene": "いやな気持ちが強いとき、一旦離れるなどの解決法を自分で決める場面", "child": "「いらいらしてきたから、1分だけ席を離れて水を飲もう」と決める", "voice": "「気持ちが落ち着かないとき、自分に合う切りかえ方は何？」"}, "114": {"scene": "いやな気持ちの原因や意味の見つけ方を、相手の向き合い方を参考にしたいとき", "child": "「わたしのいらいらは時間が足りないからだった。あなたは不快な気持ちの原因をどう見つけている？」と共有し、自分の気持ちの整え方を見つける", "voice": "「気持ちの原因をどう見つけているか近くの人と話して、自分の整え方に活かそう」"}, "115": {"scene": "いやな気持ちの切りかえ方（離れる時間や過ごし方）を、相手の切りかえ方を参考にしたいとき", "child": "「ぼくは1分だけ席を離れて水を飲む。あなたはどう切りかえている？」と共有し、自分に合う切りかえ方を見つける", "voice": "「気持ちの切りかえ方を近くの人と話して、自分に合う方法を見つけよう」"}, "116": {"scene": "グループの中で、気持ちのもつれやいらだちが出てきたとき", "child": "班で「もめたのは、やることが多すぎたから」と原因を話し、分担を変える", "voice": "「班でいやな気持ちになった原因を、みんなで考えてみよう」"}, "117": {"scene": "気持ちの切りかえ方を、グループで話し合って決める場面", "child": "班で「もめてきたから、一度休憩して仕切り直そう」と決める", "voice": "「班の雰囲気を立て直す方法を、みんなで決めよう」"}, "118": {"scene": "難しい課題に「無理」と感じているとき", "child": "「難しいけど、これは挑戦だ」と捉え直して取り組む", "voice": "「難しいということは、伸びるチャンスかもしれないね」"}, "119": {"scene": "長く行き詰まったとき。に，自分で切り抜け方を考えさせたいとき", "child": "「ここは後回しにして、できるところから進めよう」と行き詰まりへの向き合い方を考える", "voice": "「行き詰まったとき、自分はどうするとまた進める？」"}, "120": {"scene": "難しい課題を挑戦と捉える見方を、相手の捉え方を聞いて自分の捉え方を変えたいとき", "child": "「難しいけど伸びるチャンスだと思うようにした。あなたはどう捉えている？」と共有し、自分の捉え方を前向きにする", "voice": "「難しさをどう受け止めているか近くの人と話して、自分の捉え方に活かそう」"}, "121": {"scene": "行き詰まったときの切り抜け方を、相手の切り抜け方を聞いて自分の方法を見つけたいとき", "child": "「わたしは後回しにしてできるところから進める。あなたは行き詰まったらどうしている？」と共有し、自分の切り抜け方を増やす", "voice": "「行き詰まったときの切り抜け方を近くの人と話して、自分の方法を増やそう」"}, "122": {"scene": "難しい課題を挑戦と捉える見方を、グループで話し合って高める場面", "child": "班で「難しいからこそやりがいがある」と話し、取り組む気持ちを高める", "voice": "「班で、この難しさをどう受け止めるか話し合おう」"}, "123": {"scene": "行き詰まったときの切り抜け方を、グループで話し合って決める場面", "child": "班で「ここで止まっている理由」を出し合い、「順番を変えよう」と決める", "voice": "「班で行き詰まったら、原因と抜け道をみんなで考えよう」"}, "124": {"scene": "授業や単元の終わりに、課題と結果を比べて自己評価する場面", "child": "「めあては『説明できる』だったけど、半分くらいできた」と課題と比べて評価する", "voice": "「今日のめあてと比べて、うまくいったことは？うまくいかなかったことは？」"}, "125": {"scene": "振り返りで、やり方が良かったかを考えさせたいとき", "child": "「図にかいたら早く分かった。このやり方は良かった」とやり方を評価する", "voice": "「今日のやり方で、うまくいったことは？うまくいかなかったことは？」"}, "126": {"scene": "振り返りで、時間配分を評価させたいとき", "child": "「時間は足りなかった」と振り返る", "voice": "「時間の使い方についてうまくいったことは？うまくいかなかったことは？」"}, "127": {"scene": "振り返りで、学んだ場所や相手が自分に合っていたかを評価させたいとき", "child": "「静かな場所を選んだのは良かった。でも一人で調べたのは遠回りだった」と環境を評価する", "voice": "「学んだ場所や相手について、うまくいったことは？うまくいかなかったことは？」"}, "128": {"scene": "振り返りで、学習中の気持ちの変化に目を向けさせたいとき", "child": "「最初はいやだったけど、できたときはうれしかった」と気持ちの変化を書く", "voice": "「学習の中で、気持ちはどう変わっていった？」"}, "129": {"scene": "成果と課題を、相手からの評価も聞いて自己評価を確かなものにしたいとき", "child": "「わたしは半分できたと思う。あなたから見てどう？」と共有し、相手の評価をもとに自分の評価を見直す", "voice": "「自分の成果と課題を近くの人に話して、相手の見方も入れて自己評価しよう」"}, "130": {"scene": "やり方の良し悪しを、相手の評価を聞いて自己評価したいとき", "child": "「図にする方法は良かったと思う。あなたから見てどうだった？」と共有し、相手の評価を自分のやり方の評価に活かす", "voice": "「今日のやり方の良し悪しを近くの人と話して、相手の見方も入れて評価しよう」"}, "131": {"scene": "時間の使い方の成果と課題を、相手の評価を聞いて自己評価したいとき", "child": "「調べる時間が長すぎたと思う。あなたの時間の使い方はどうだった？」と共有し、相手の見方を自分の評価に活かす", "voice": "「時間の使い方を近くの人と振り返って、相手の見方も入れて評価しよう」"}, "132": {"scene": "学んだ場所や相手が良かったかを、相手の評価を聞いて自己評価したいとき", "child": "「静かな席は良かった。あなたの学んだ環境はどうだった？」と共有し、相手の見方を自分の環境の評価に活かす", "voice": "「学んだ環境について近くの人と振り返って、自分の環境の評価に活かそう」"}, "133": {"scene": "学習中の気持ちの変化を、相手の気持ちの変化と比べて自己評価したいとき", "child": "「最初はいやだったけど途中から楽しくなった。あなたの気持ちはどう変わった？」と共有し、自分の気持ちの動きを評価する", "voice": "「学習中の気持ちの変化を近くの人と伝え合って、自分の気持ちの動きを振り返ろう」"}, "134": {"scene": "グループで成果と課題を話し合い、互いに評価する場面", "child": "班で「協力はできたけど、時間が足りなかった」と話し合って評価し合う", "voice": "「班の成果と課題を、みんなで出し合おう」"}, "135": {"scene": "やり方が効果的だったかを、グループで話し合って相互評価する場面", "child": "班で「分担して調べる方法は早かった」と話し合って評価する", "voice": "「班のやり方を、みんなで評価し合おう」"}, "136": {"scene": "時間配分の成果と課題を、グループで話し合って相互評価する場面", "child": "班で「まとめの時間が足りなかった」と話し、次回の配分を考える", "voice": "「班の時間の使い方を、みんなで振り返ろう」"}, "137": {"scene": "学んだ場所や相手が良かったかを、グループで話し合って相互評価する場面", "child": "班で「廊下側は静かで良かった」と環境を評価し合う", "voice": "「班で、学んだ環境が良かったか振り返ろう」"}, "138": {"scene": "学習中の気持ちの変化を、グループで話し合って相互評価する場面", "child": "班で「もめたけど最後は協力できた」と気持ちの変化を振り返る", "voice": "「班の気持ちの変化を、みんなで振り返ろう」"}, "139": {"scene": "自己評価のあと、なぜその結果になったかを考えさせたいとき", "child": "「できたのは、最初に計画を立てたから」「できなかったのは、調べすぎたから」と原因を考える", "voice": "「なぜうまくいった（いかなかった）のだと思う？」"}, "140": {"scene": "成果・課題の原因の考え方を、相手の考えを聞いて自分の振り返りを深めたいとき", "child": "「時間が足りなかったのは調べすぎたからだと思う。あなたはどう考える？」と共有し、相手の見方で自分の原因の考え方を深める", "voice": "「結果の理由をどう考えたか近くの人と話して、自分の振り返りを深めよう」"}, "141": {"scene": "グループの成果・課題の原因を、話し合って考える場面", "child": "班で「うまくいったのは、分担がはっきりしていたから」と原因を話し合う", "voice": "「班の結果の理由を、みんなで考えよう」"}, "142": {"scene": "振り返りで、できたことに目を向けて前向きさを高めたいとき", "child": "「全部はできなかったけど、図は上手にかけた」と満足できるところを見つける", "voice": "「今日、自分で『よくできた』と思うところはどこ？」"}, "143": {"scene": "満足できるところの見つけ方を、相手の見つけ方を参考にして前向きに振り返りたいとき", "child": "「わたしは図がうまくかけたことに満足。あなたはどこに満足した？」と共有し、相手の見つけ方で自分の良さに気づく", "voice": "「満足できたところを近くの人と伝え合って、自分の良さを見つけよう」"}, "144": {"scene": "グループの学習で、満足できるところを話し合って前向きさを高める場面", "child": "班で「協力して最後までできたのが良かった」と話し、次への意欲を高める", "voice": "「班で『ここは良かった』と思うところを出し合おう」"}, "145": {"scene": "振り返りの最後に、次の学習に生かすことを決める場面", "child": "「次は、最初に時間配分を決めてから始めよう」と次に生かすことを書く", "voice": "「次の学習で、一つ変えるとしたら何？」"}, "146": {"scene": "次に活かすことの決め方を、相手の決め方を聞いて自分の次の一手を決めたいとき", "child": "「次は先に計画を立てる。あなたは次に何を変える？」と共有し、相手の決め方を参考に自分の次の一手を決める", "voice": "「次に活かすことを近くの人と話して、自分の次の一手を決めよう」"}, "147": {"scene": "グループで次の学習への生かし方・学び方の変化を話し合う場面", "child": "班で「次は役割を先に決めよう」と話し合い、学び方を変える", "voice": "「班で、次の活動に生かすことを決めよう」"}, "148": {"scene": "次の学習に向けて、自分の学び方をどう変えるかを考える場面", "child": "「次は、分からなくなったら早めに人に聞く学び方にしよう」と学び方の変化を決める", "voice": "「次の学習で、自分の学び方をどう変える？」"}, "149": {"scene": "自分の学び方をどう変えるかを、相手の学び方の変え方を聞いて考えたいとき", "child": "「わたしは分からなくなったら早めに人に聞く学び方にする。あなたは学び方をどう変える？」と共有し、自分の学び方の変化を決める", "voice": "「学び方をどう変えるか近くの人と話して、自分の学び方の変化を決めよう」"}, "150": {"scene": "次の学習に向けて、一人一人の学び方をどう変えるかをグループで話し合う場面", "child": "班で「次はそれぞれ、分からなくなったら早めに聞こう」と学び方の変化を話し合う", "voice": "「次の学習で、一人一人の学び方をどう変えるか班で話し合おう」"}};
+const LEGACY_TEXT_TO_ID={"課題を分解し、関係・解決策を考えて正確に理解する": 0, "課題理解の仕方を他者に相談し、対話で類似点・相違点を見つける": 1, "個が理解した課題を他者と対話し、類似点・相違点を見つける": 2, "他者からの評価や助言をもとに理解を更に深める": 3, "どのように課題を理解するかを集団で協議し、理解を深める": 4, "課題の理解の仕方を集団で協議し、進捗を確認し合い深める": 5, "個が理解した課題を集団で協議し、類似点・相違点を見つける": 6, "課題をもとに身近なこと・知っていることを振り返る": 7, "課題を解決すると何ができるかを考え、前向きな気持ちを高める": 8, "この課題は大切で能力を高めると自分に言い聞かせる": 9, "課題を解決したときの自分への褒美を考え、前向きな気持ちを高める": 10, "身近なこと・知っていることを振り返るため他者と対話する": 11, "解決でわかること・できることを他者と対話し前向きさを高める": 12, "課題の意義を他者と対話し、前向きな気持ちを高める": 12, "なぜ大切か・どんな能力が高まるかを対話し言い聞かせる": 13, "解決時の自分への褒美を他者と対話し前向きさを高める": 14, "身近なこと・知っていることを振り返るため集団で協議する": 15, "解決でわかること・できることを集団で協議し前向きさを高める": 16, "課題に取り組む意義を集団で協議し、前向きな気持ちを高める": 16, "なぜ大切か・どんな能力が高まるかを集団で協議する": 17, "解決時の個人・集団への褒美を協議し、前向きな気持ちを高める": 18, "学習内容に関する目標を考える（広げる→順序立て→焦点化）": 19, "生成した目標を振り返り、優先順位を考える": 20, "目標設定の仕方（広げる・順序立て・焦点化・構造化）を他者に相談する": 21, "設定した目標の妥当性を他者と対話して深める": 22, "集団としての共通目標を協議して設定する": 24, "目標達成へ向け役割分担をどうするか集団で協議して考える": 25, "一人一人の良さを活かす役割分担を集団で協議して考える": 25, "生成した目標を集団で振り返り、協議して優先順位を考える": 26, "目標達成で自らの能力が高まると言い聞かせ、前向きさを高める": 27, "目標の構造（内容・行動・調整）を整理し、前向きさを高める": 28, "目標達成で高まる能力を他者と対話し、前向きさを高める": 29, "目標の構造を整理しながら他者と対話し、前向きさを高める": 30, "目標の構造を整理しながら集団で協議し、前向きさを高める": 32, "学習後の自分の成長を予想し、前向きな気持ちを高める": 33, "目標達成時に創り出せる考えや成果物を予想し、前向きさを高める": 34, "学習後の成長を他者と対話し、前向きさを高める": 35, "創り出せる考えや成果物を他者と対話して予想し、前向きさを高める": 36, "学習後の成長を集団で協議し、前向きさを高める": 37, "創り出せる考えや成果物を集団で協議して予想し、前向きさを高める": 38, "過去の計画を振り返り、学習計画の見通しをもつ": 39, "見本や他者の計画を参考に、長期から短期の課題・目標と活動を決める": 40, "短期目標を達成する方法・方略を決め、準備する": 41, "時間配分を決め、今後の学習の準備をする": 42, "過去の計画を振り返り、他者との対話で計画の見通しをもつ": 43, "長期から短期の課題・目標と学習活動を他者と対話して決める": 44, "短期目標と方法・方略・時間配分を他者と対話して決める": 45, "短期課題・目標の時間配分を他者と対話して決め、準備する": 46, "過去の計画を振り返り、集団との協議で計画の見通しをもつ": 47, "長期から短期の課題・目標と学習活動を集団で協議して決める": 48, "短期課題・目標の方法・方略を集団で協議して決め、準備する": 50, "共通の計画・方法・時間配分・役割分担を協議して立案する": 50, "立案した計画でうまく実行できそうかを考える（自己効力）": 52, "計画をもとにうまく実行できそうかを他者と対話し、前向きさを高める": 53, "計画でうまく実行できそうかを集団で協議し、前向きさを高める": 54, "学習に適切な環境（物的・人的）を整える": 55, "学習に適切な環境（物的・人的）について他者と対話し、整える": 56, "集団で学習を進める上で適切な環境について協議し、整える": 57, "個の強みを活かす役割分担や人数構成を考え、学習環境を整える": 58, "情報を収集して理解を深める（精緻化）": 59, "情報を関連付け、カテゴリーを生成しラベルを付ける（精緻化）": 60, "情報を多面的に見て吟味し、視点や見方・考え方で再整理する": 61, "情報を構造化し、考えをつくる（体制化）": 62, "新たな価値を創造することを通して理解を深める": 63, "創造した価値を発信することを通して理解を深める（転移）": 64, "大切な情報をくり返し言ったり書いたりして理解を深める（リハーサル）": 65, "他者と情報収集について対話し、理解を深める": 66, "情報の関連付けについて他者と対話し、理解を深める": 67, "情報を多面的に見ることについて他者と対話し、理解を深める": 68, "情報を構造化し考えをつくることについて他者と対話する": 69, "新たな価値を創造することについて他者と対話し、理解を深める": 70, "創造した価値を発信することについて他者と対話し、理解を深める": 71, "大切な情報をくり返し言う・書くことについて他者と対話する": 72, "共通目標を確認し、個または集団で情報を収集し共有して深める": 73, "共通目標を確認し、個または集団で情報を関連付け共有する": 74, "共通目標を確認し、個または集団で情報を多面的に吟味し共有する": 75, "共通目標を確認し、個または集団で情報を構造化し考えをつくり共有する": 76, "共通目標を確認し、個または集団で新たな価値を創造し共有する": 77, "共通目標を確認し、個または集団で創造した価値を他者に発信する": 78, "大切な情報をくり返し言う・書く方法を集団で協議する": 79, "学習活動が課題・目標からずれていないか自らに問いかけ確認する": 80, "方法・方略が適切かを振り返り、進捗と時間配分を確認する": 81, "計画の時間配分と進捗を比べ、予定内に達成できるか確認する": 82, "学習活動・方法が適切か他者に問いかけ、相談しながら確認する": 83, "立案した時間配分と進捗を他者に相談しながら確認する": 85, "進捗や行動・動機づけ・メタ認知を集団で確認し合う（相互モニタリング）": 86, "集団で立てた時間配分と進捗を協議し、確認する": 88, "取り組みやすい物的・人的環境になっているかを確認する（環境確認）": 89, "取り組みやすい環境かを他者に問いかけ、相談しながら確認する": 90, "学習環境や心身の状態を集団で振り返り、確認し合う": 91, "学習に向かう心や体の状態を振り返り確認する（情動・興味確認）": 92, "学習に向かう心や体の状態を他者に問いかけ、相談しながら確認する": 93, "課題・目標をもとに学習活動を修正し、調節する": 95, "より効果的・効率的な方法・方略に調節する": 96, "進捗をもとに学習活動の時間配分を変更し、調節する": 97, "他者から助言や支援を受け、活用しながら活動を調節する": 98, "他者に相談しながら学習活動を調節する": 99, "他者から助言や支援を受け、方法・方略や時間配分を調節する": 100, "他者に相談しながら方法・方略を調節する": 101, "他者に相談しながら時間配分を調節する": 103, "集団で協議しながら学習活動・方法・時間配分を調節する": 104, "これまでより学習が進みやすい物的・人的環境に調節する": 107, "他者から助言や支援を受け、物的・人的環境を調節する": 108, "物的環境について集団で協議し調節する": 110, "人数構成や役割分担など人的環境を集団で協議し調節する": 111, "不快な感情の原因・意味を考え、調節する（情動調節）": 112, "不快な感情の解決法（一旦離れる等）を考え、調節する": 113, "感情の原因や解決法を他者と対話し、調節する": 114, "感情の解決法（離れる時間や過ごし方）を他者と対話し調節する": 115, "感情の原因や解決法を集団で協議し調節する": 116, "感情の解決法（離れる時間や過ごし方）を集団で協議し調節する": 117, "困難な課題をやりがいある挑戦と捉え、前向きさを高める（興味促進）": 118, "行き詰まった際の向き合い方・解決法を考え、前向きさを高める": 119, "課題をやりがいある挑戦と捉える見方を他者と対話し高める": 120, "行き詰まったときの向き合い方・解決法を他者と対話し高める": 121, "課題をやりがいある挑戦と捉える見方を集団で協議し高める": 122, "行き詰まったときの向き合い方・解決法を集団で協議し高める": 123, "目標と結果を比較し、成果と課題を自己評価する": 124, "効果的・効率的な方法で学べたかを考え、自己評価する": 125, "時間配分や物的・人的環境の成果と課題を考え、自己評価する": 126, "学習中の自らの気持ちの変化を振り返り、自己評価する": 128, "成果と課題を他者と対話し、得た評価をもとに自己評価する": 129, "効果的・効率的な方法で学べたかを他者と対話し自己評価する": 130, "時間配分の成果と課題を他者と対話し自己評価する": 131, "効果的な物的・人的環境だったかを他者と対話し自己評価する": 132, "学習中の気持ちの変化を他者と対話し自己評価する": 133, "成果と課題を集団で協議し、相互評価する": 134, "効果的・効率的な方法で学べたかを集団で協議し相互評価する": 135, "時間配分の成果と課題を集団で協議し相互評価する": 136, "効果的な物的・人的環境だったかを集団で協議し相互評価する": 137, "学習中の気持ちの変化を集団で協議し相互評価する": 138, "自己評価の成果・課題の原因や理由を考え振り返る": 139, "成果・課題の原因や理由について他者と対話し振り返る": 140, "成果・課題の原因や理由について集団で協議し振り返る": 141, "満足できるところを見つけ、前向きな気持ちを高める": 142, "満足できるところを他者と対話し、前向きな気持ちを高める": 143, "集団の学習で満足できるところを協議し、前向きさを高める": 144, "次の学習に活かすことを決め、学び方の変化を考える": 145, "次の学習への活かし方を他者と対話して考える": 146, "次の学習への活かし方・学び方の変化を集団で協議する": 147, "次の学習へ向け、自らの学び方をどう変えるかを考える": 148};
+const LV_SHORT={1:"低学年〜",2:"中学年〜",3:"高学年〜"};const LV_LABEL={1:"低学年〜",2:"中学年〜",3:"高学年〜中学・高校"};
+function infoTitle(i){const d=STRATEGY_INFO[i];return d?("使う場面："+d.scene+"\n子どもの姿："+d.child+"\n声かけの例："+d.voice):"";}
 
 /* 旧コードとの互換：layer別の参照を残す（AI提案重複チェック等で使用） */
 const STRATEGIES = {
@@ -1116,7 +943,9 @@ function saveInputs(){
     if(ph)st.phase=ph.value;
     st.periods.forEach((pd,pi)=>{
       const lb=document.querySelector(`input[data-plabel="${st.id}"][data-pi="${pi}"]`);
-      if(lb)pd.label=lb.value;
+      if(lb)pd.label=isAutoLabel(lb.value)?"":lb.value;
+      const hh=document.querySelector(`input[data-phours="${st.id}"][data-pi="${pi}"]`);
+      if(hh){const h=parseInt(hh.value,10);pd.hours=(h>=1&&h<=9)?h:1;}
       const pr=document.querySelector(`select[data-pprocess="${st.id}"][data-pi="${pi}"]`);
       if(pr)pd.process=pr.value;
       const gl=document.querySelector(`textarea[data-pgoal="${st.id}"][data-pi="${pi}"]`);
@@ -1128,6 +957,7 @@ function saveInputs(){
     });
   });
   const k=document.getElementById("apiKey"); if(k)state.keys[state.provider]=k.value.trim();
+  const wr=document.querySelector('input[name=aiway]:checked'); if(wr)state.way=wr.value;
   const sel=document.getElementById("apiModelSelect"); const md=document.getElementById("apiModel");
   if(sel){ state.models[state.provider]=(sel.value==="__custom__")?((md&&md.value.trim())||""):sel.value; }
   else if(md){ state.models[state.provider]=md.value.trim(); }
@@ -1142,24 +972,40 @@ function restoreInputs(){
 /* ============================================================
    単元計画表の描画（次 → 時）
    ============================================================ */
+/* 「第○時」の形のラベルは自動扱い。時間数（hours）が2以上なら「第3〜4時」 */
+const AUTO_LABEL_RE=/^\s*(第?\s*\d+\s*[〜～\-－]?\s*\d*\s*時?)?\s*$/;
+function isAutoLabel(l){return !l||AUTO_LABEL_RE.test(l);}
+function periodHours(pd){const h=parseInt(pd&&pd.hours,10);return (h>=1&&h<=9)?h:1;}
+function periodNumbering(){
+  const map={};let n=0;
+  state.stages.forEach(st=>st.periods.forEach((pd,pi)=>{const h=periodHours(pd);const start=n+1;n+=h;map[st.id+":"+pi]={start,end:n,label:h>1?`第${start}〜${n}時`:`第${start}時`};}));
+  map.__total=n;return map;
+}
+function periodLabel(st,pi){const pd=st.periods[pi];if(pd&&!isAutoLabel(pd.label))return pd.label;const m=periodNumbering()[st.id+":"+pi];return m?m.label:"";}
+function totalHoursHtml(){
+  const n=periodNumbering().__total;const want=parseInt(String(state.meta.hours||"").replace(/[^\d]/g,""),10);
+  const warn=(want&&want!==n);
+  return `<div class="hours-total${warn?" warn":""}">単元計画の合計：${n}時間${want?`（基本情報の総時数：${want}時間${warn?"　→ 合っていません":""}）`:""}</div>`;
+}
+function onHoursChange(){saveInputs();renderPhases();renderAllChips();renderPreview&&renderPreview();}
 function renderPhases(){
   const wrap=document.getElementById("phases");
   wrap.innerHTML="";
-  let periodCounter=0;
+  const numbering=periodNumbering();
   state.stages.forEach((st,si)=>{
     const block=document.createElement("div");
     block.className="card stage-block";
     let periods="";
     st.periods.forEach((pd,pi)=>{
-      periodCounter++;
       const procSel=PROCESS_OPTIONS.map(p=>`<option value="${p}" ${pd.process===p?"selected":""}>${p}</option>`).join("");
       const ex=PROCESS_EXAMPLES[pd.process]||PROCESS_EXAMPLES["課題設定"];
       periods+=`
       <div class="act-slot proc-${(pd.process||"").replace(/[・]/g,"")}">
         <div class="act-slot-head">
           <span class="period-label">
-            <input type="text" data-plabel="${st.id}" data-pi="${pi}" value="${escAttr(pd.label||("第"+periodCounter+"時"))}" class="plabel-input" placeholder="第○時">
+            <input type="text" data-plabel="${st.id}" data-pi="${pi}" value="${escAttr(periodLabel(st,pi))}" class="plabel-input" placeholder="第○時" title="番号は自動で振り直します。書き換えるとその文字が使われます">
           </span>
+          <span class="phours-wrap" title="同じ内容で2時間続きにするときは 2 に">時間数 <input type="number" min="1" max="9" data-phours="${st.id}" data-pi="${pi}" value="${periodHours(pd)}" onchange="onHoursChange()"></span>
           <span class="process-wrap">学習過程
             <select data-pprocess="${st.id}" data-pi="${pi}" class="process-sel" onchange="onProcessChange('${st.id}',${pi},this.value)">${procSel}</select>
           </span>
@@ -1174,7 +1020,7 @@ function renderPhases(){
           <textarea data-act="${st.id}" data-pi="${pi}" placeholder="${escAttr(ex.act)}">${esc(pd.text||"")}</textarea>
         </div>
         <div class="field period-sub">
-          <label>評価 <span class="hint">評価規準・評価方法</span></label>
+          <label>評価 <span class="hint">評価規準・評価方法（複数あれば改行で）</span></label>
           <textarea data-peval="${st.id}" data-pi="${pi}" class="eval-area" placeholder="${escAttr(ex.eval)}">${esc(pd.evalText||"")}</textarea>
         </div>
         <div class="chips" data-chips="${st.id}" data-chips-pi="${pi}"></div>
@@ -1198,6 +1044,7 @@ function renderPhases(){
     `;
     wrap.appendChild(block);
   });
+  const tot=document.createElement("div");tot.innerHTML=totalHoursHtml();wrap.appendChild(tot.firstChild);
   renderAllChips();
 }
 
@@ -1253,7 +1100,7 @@ function renderAllChips(){
     st.periods.forEach((pd,pi)=>{
       const c=document.querySelector(`[data-chips="${st.id}"][data-chips-pi="${pi}"]`);
       if(!c)return;
-      c.innerHTML="";
+      c.innerHTML=layerCountHtml(pd.strategies);
       pd.strategies.forEach((s,i)=>{
         const chip=document.createElement("span");
         chip.className="chip layer-"+s.layer;
@@ -1280,11 +1127,11 @@ let pickerStageId=null, pickerPeriodIdx=0;
 function openPicker(sid,pi){
   saveInputs();
   pickerStageId=sid; pickerPeriodIdx=pi; pickerChecked=new Set();
-  currentPickerLevel=1; // 開くたびに初級から
+  currentPickerLevel=3; // 全部の方略を1列で（学年帯の目安つき）
   document.querySelectorAll(".lvl-btn").forEach(b=>b.classList.toggle("active",+b.dataset.lv===1));
   const st=state.stages.find(x=>x.id===sid);
   const pd=st?st.periods[pi]:null;
-  const label=st?(st.name+" "+(pd&&pd.label?pd.label:("第"+(pi+1)+"時"))):"";
+  const label=st?(st.name+" "+periodLabel(st,pi)):"";
   document.getElementById("pickerPhase").textContent="― "+label+" に追加";
   setPickerLayer("I");
   document.getElementById("pickerBg").classList.add("open");
@@ -1298,51 +1145,18 @@ function setPickerLevel(lv){
 }
 
 /* 方略のテキストとプロセスから、PDFのサブプロセス名を判定する */
-function subProcessOf(s){
-  const t=s.text;
-  switch(s.proc){
-    case "課題":
-      // 課題理解＝理解/分解/相談、それ以外は課題興味
-      return /理解|分解|相談|類似点|相違点/.test(t)?"課題理解":"課題興味";
-    case "目標":
-      if(/予想|成果物|成長/.test(t)) return "結果予期";
-      if(/優先順位/.test(t)) return "目標設定";
-      if(/能力|構造|高まる/.test(t)) return "目標志向";
-      return "目標設定";
-    case "計画":
-      return /できそう|効力/.test(t)?"自己・集団効力":"計画立案";
-    case "推進":
-      return /環境|役割分担|人数構成/.test(t)?"環境設定":"情報活用";
-    case "確認":
-      if(/環境/.test(t)) return "環境確認";
-      if(/心や体|気持ち|情動|興味/.test(t)) return "情動・興味確認";
-      return "実行確認";
-    case "調節":
-      if(/環境/.test(t)) return "環境調節";
-      if(/感情|情動/.test(t)) return "情動調節";
-      if(/やりがい|挑戦|行き詰ま|前向き/.test(t)) return "興味促進";
-      return "実行調節";
-    case "評価":
-      return "自己・相互評価";
-    case "帰属":
-      return /満足/.test(t)?"自己・相互満足":"原因帰属";
-    case "適用":
-      if(/学び方/.test(t)) return "適応";
-      return "適用";
-  }
-  return "";
-}
+function subProcessOf(s){return s.sub||"";}
 
 function setPickerLayer(layer){
   currentPickerLayer=layer;
   document.querySelectorAll(".phase-tab").forEach(t=>t.classList.toggle("active",t.dataset.layer===layer));
-  const lvName={1:"初級",2:"中級",3:"上級"}[currentPickerLevel];
+  const lvName="全部";
   const subs={
     I:"学習者が個人で認知・行動・動機づけ・情動を調整する方略",
     You:"自己と他者(AIを含む)の間で一時的に調整を共有する方略",
     We:"集団(AIを含む)で相互に調整し、共有した目標へ向かう方略"
   };
-  document.getElementById("pickerSub").textContent="【"+lvName+"】"+subs[layer]+"（累積表示：上級ほど多くの方略が出ます）";
+  document.getElementById("pickerSub").textContent="【"+lvName+"】"+subs[layer]+"（調整方略リストと同じ151項目。ラベルは学年帯の目安）";
 
   const list=document.getElementById("stratList");
   list.innerHTML="";
@@ -1368,14 +1182,15 @@ function setPickerLayer(layer){
 
       const renderItem=({s,idx})=>{
         const key=String(idx);
-        const lvTag={1:"初",2:"中",3:"上"}[s.lv];
+        const lvTag=LV_SHORT[s.lv];
         const catHtml = showDetail ? `<span class="cat-badge">${s.type}</span>` : "";
         const row=document.createElement("label");row.className="strat-item";
         row.innerHTML=`<input type="checkbox" ${pickerChecked.has(key)?"checked":""}
           onchange="toggleCheck('${key}',this.checked)">
-          <span class="lv-badge lv${s.lv}">${lvTag}</span>
+          <span class="lv-badge lv${s.lv}" title="${LV_LABEL[s.lv]}">${lvTag}</span>
           ${catHtml}
-          <span>${s.text}</span>`;
+          <span>${s.text}<span style="font-size:.66rem;opacity:.6"> ${s.listNo||""}</span>${STRATEGY_INFO[key]?'<span class="info" onclick="event.preventDefault();this.closest(\'.strat-item\').classList.toggle(\'show\')">ⓘ</span>':""}</span>
+          ${STRATEGY_INFO[key]?`<div class="tip"><b>使う場面</b>：${STRATEGY_INFO[key].scene}<br><b>子どもの姿</b>：${STRATEGY_INFO[key].child}<br><b>声かけの例</b>：${STRATEGY_INFO[key].voice}</div>`:""}`;
         list.appendChild(row);
       };
 
@@ -1469,7 +1284,7 @@ function lessonContext(){
   state.stages.forEach((st,si)=>{
     ctx+=`■第${si+1}次「${st.name||""}」（${st.phase||""}）\n`;
     st.periods.forEach((pd,pi)=>{
-      ctx+=`  ${pd.label||("第"+(pi+1)+"時")}（学習過程:${pd.process||"未設定"}）\n`;
+      ctx+=`  [id=${st.id}-p${pi+1}] ${periodLabel(st,pi)}（学習過程:${pd.process||"未設定"}）\n`;
       if(pd.goal)ctx+=`    目標：${pd.goal}\n`;
       ctx+=`    学習活動：${pd.text||"（未記入）"}\n`;
       if(pd.evalText)ctx+=`    評価：${pd.evalText}\n`;
@@ -1484,18 +1299,19 @@ function lessonContext(){
 /* AI提案の phase 値（stage識別子）→ 実際の stage を解決する。
    AIには各次のidと番号を伝えるので "s1" や "第1次" 等で来る想定。柔軟に拾う。 */
 function resolveStage(phaseVal){
-  if(phaseVal==null)return state.stages[0];
+  if(phaseVal==null)return null;
   const v=String(phaseVal).trim();
+  const mp=v.match(/^(s\d+)-p(\d+)$/); if(mp){const st=state.stages.find(s=>s.id===mp[1]);return st||null;}
   let st=state.stages.find(s=>s.id===v);
   if(st)return st;
-  const num=v.match(/(\d+)/);
-  if(num){
-    const idx=parseInt(num[1],10)-1;
-    if(state.stages[idx])return state.stages[idx];
-  }
-  st=state.stages.find(s=>s.name&&s.name.includes(v));
-  return st||state.stages[0];
+  const num=v.match(/第?(\d+)次/);
+  if(num){const idx=parseInt(num[1],10)-1;if(state.stages[idx])return state.stages[idx];}
+  st=state.stages.find(s=>s.name&&v&&s.name.includes(v));
+  return st||null;
 }
+function resolvePeriodIdx(v){const mp=String(v||"").match(/^s\d+-p(\d+)$/);return mp?parseInt(mp[1],10)-1:null;}
+/* 追加先が読み取れないときに「どの次に入れますか」と選ばせる小さな選択肢 */
+function stageSelectHtml(cls){return `<select class="where-sel ${cls}">${state.stages.map((s,i)=>`<option value="${s.id}">第${i+1}次 ${esc(s.name||"")}</option>`).join("")}</select>`;}
 
 function appendMsg(role,text){
   const log=document.getElementById("aiLog");
@@ -1510,7 +1326,7 @@ function setMode(mode){
   aiMode=mode;
   document.querySelectorAll(".mode-tab").forEach(t=>t.classList.toggle("active",t.dataset.mode===mode));
   const isAct=mode==="activity";
-  const aiName={claude:"Claude",gemini:"Gemini"}[state.provider]||"AI";
+  const aiName=state.way!=="own"?"Kimura Edu Labの AI":({claude:"Claude",gemini:"Gemini",openai:"ChatGPT"}[state.provider]||"AI");
   document.getElementById("aiDockTitle").textContent=isAct?"単元構想アドバイザー":"調整方略アドバイザー";
   document.getElementById("aiDockSub").textContent=isAct
     ?aiName+" が単元の流れと各時の学習活動を具体化する手助けをします"
@@ -1520,7 +1336,7 @@ function setMode(mode){
     ?"例）第2次で資料を比べて考察する時間を具体的にしたい"
     :"例）第2次に共調整(You)の方略を足したい";
   const seed=document.getElementById("aiSeed");
-  const noKey=!(state.keys[state.provider]||"").trim();
+  const noKey=state.way==="own"&&!(state.keys[state.provider]||"").trim();
   if(seed)seed.textContent=noKey
     ?"AI相談を使うには準備が必要です。画面右上の⚙ボタンを押し、手順に従ってAPIキーを設定してください。"
     :(isAct
@@ -1548,7 +1364,7 @@ const SYS_ACTIVITY=`あなたは単元の構想に伴走する教育アドバイ
 各次には識別子(id)が付いています。提案するときは、どの次に対する活動かを id で指定してください。
 日本語で簡潔に、温かく対話します。具体的な活動文を提案できるときは本文の最後に次のJSONを付けてください(まだ提案段階でなければ付けない)：
 \`\`\`json
-{"activities":[{"stage":"次のid(例 s1)","text":"その時間の学習活動文(80字程度、児童・生徒の動きが分かる具体的な記述)"}]}
+{"activities":[{"stage":"次のid(例 s1)","text":"その時間の学習活動文(児童・生徒の動きが分かる具体的な記述。文末に字数は書かない)"}]}
 \`\`\`
 必ず最後は教師への問いかけで締めくくってください。`;
 
@@ -1652,9 +1468,75 @@ function setProvider(prov){
   const tr=document.getElementById("testResult"); if(tr)tr.textContent="";
 }
 
+
+
+/* ---- v4 共通 ---- */
+function cleanAIText(t){return String(t||"").replace(/\s*[（(]\s*約?\s*\d+\s*(字|文字)\s*(程度)?\s*[）)]\s*$/,"").trim();}
+function layerCounts(list){const c={I:0,You:0,We:0};(list||[]).forEach(s=>{if(c[s.layer]!=null)c[s.layer]++;});return c;}
+function layerCountHtml(list){
+  const c=layerCounts(list);const total=c.I+c.You+c.We;
+  const nudge=(c.I>=3&&c.You===0&&c.We===0)?`<span class="lc-nudge">I だけになっています。You（共調整）・We（社会的に共有された調整）も見てみましょう</span>`:"";
+  return `<div class="layer-count"><span class="lc lc-I">I ${c.I}</span><span class="lc lc-You">You ${c.You}</span><span class="lc lc-We">We ${c.We}</span>${total?"":"<span class='lc-none'>まだ方略がありません</span>"}${nudge}</div>`;
+}
+let actReplyCount=0, strategyNudgeShown=false;
+function maybeStrategyNudge(){
+  if(strategyNudgeShown||actReplyCount<2)return;
+  strategyNudgeShown=true;
+  const card=document.createElement("div");card.className="ai-activity nudge-card";
+  card.innerHTML=`<span class="ph">活動が固まってきたら</span><br>次は、各活動に合う調整方略（I / You / We）を相談しましょう。<br><button class="apply" onclick="setMode('strategy');document.getElementById('aiInput').focus()">調整方略を相談する →</button>`;
+  document.getElementById("aiLog").appendChild(card);
+}
+
+/* ============================================================
+   Kimura Edu Labの AI で相談する（無料・1日12回まで）＝中継サーバー経由・キー不要
+   ============================================================ */
+const LAB={url:"https://designer-ai-proxy.designer-ai-proxy.workers.dev",siteKey:"0x4AAAAAAFhxfG-IznPX9Fx6",perUser:12};
+if(!state.way)state.way="lab";
+let tsWidget=null;
+function turnstileToken(){
+  return new Promise((resolve,reject)=>{
+    if(!window.turnstile){reject(Object.assign(new Error("確認用の部品を読み込めませんでした。ページを再読み込みしてください。"),{code:"turnstile"}));return;}
+    let host=document.getElementById("ts-host");if(!host){host=document.createElement("div");host.id="ts-host";host.style.cssText="position:fixed;left:-9999px;bottom:0";document.body.appendChild(host);}
+    const timer=setTimeout(()=>reject(Object.assign(new Error("確認に時間がかかっています。ページを再読み込みしてもう一度お試しください。"),{code:"turnstile"})),20000);
+    const opts={sitekey:LAB.siteKey,size:"invisible",callback:t=>{clearTimeout(timer);resolve(t);},"error-callback":()=>{clearTimeout(timer);reject(Object.assign(new Error("確認に失敗しました。ページを再読み込みしてください。"),{code:"turnstile"}));}};
+    try{ if(tsWidget==null){tsWidget=turnstile.render(host,Object.assign({execution:"execute"},opts));} else {turnstile.reset(tsWidget);} turnstile.execute(tsWidget,opts); }
+    catch(e){clearTimeout(timer);reject(Object.assign(new Error("確認の部品でエラーが起きました。ページを再読み込みしてください。"),{code:"turnstile"}));}
+  });
+}
+async function callLab(kind,context,question,history,onStatus){
+  onStatus&&onStatus("確認しています…");
+  const token=await turnstileToken();
+  onStatus&&onStatus("Kimura Edu Labの AI が考えています…");
+  const body={kind,context,question,history:(history||[]).slice(-6),turnstileToken:token};
+  let resp,data;
+  try{resp=await fetch(LAB.url+"/v1/consult",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body)});data=await resp.json().catch(()=>({}));}
+  catch(e){throw Object.assign(new Error("Labのサーバーに接続できませんでした。インターネット接続を確認してください（学校のネットワークでは通信が止められることがあります）。"),{code:"network"});}
+  if(!resp.ok||data.error){const er=data.error||{};throw Object.assign(new Error(er.message||("エラー（HTTP "+resp.status+"）")),{code:er.code||"upstream_error",lab:true});}
+  if(data.remaining!=null)setQuota(data.remaining);
+  return data.text||"";
+}
+async function refreshQuota(){try{const r=await fetch(LAB.url+"/v1/quota");const d=await r.json();setQuota(d.globalOpen?d.remaining:0,d.globalOpen);}catch(e){}}
+function setQuota(n,open){document.querySelectorAll(".lab-quota").forEach(q=>q.textContent=open===false?"本日は混み合っています":`今日あと ${n} 回`);}
+function labFriendly(err){const m=(err&&err.message)||"";if(err&&(err.code==="upstream_busy"||err.code==="upstream_rate"))return "⏳ "+m;return m||"LabのAI相談でエラーが起きました。";}
+function setWay(w){state.way=w;renderWay();saveInputs&&saveInputs();}
+function renderWay(){
+  const lab=state.way!=="own";
+  const rl=document.querySelector('input[name=aiway][value=lab]');const ro=document.querySelector('input[name=aiway][value=own]');
+  if(rl)rl.checked=lab;if(ro)ro.checked=!lab;
+  const ol=document.getElementById("optLab"),oo=document.getElementById("optOwn");if(ol)ol.classList.toggle("on",lab);if(oo)oo.classList.toggle("on",!lab);
+  const own=document.getElementById("ownSettings");if(own)own.style.display=lab?"none":"block";
+  if(lab)refreshQuota();
+  if(typeof setMode==="function"&&typeof aiMode!=="undefined")setMode(aiMode);
+}
+/* 相談の種類→中継サーバーの kind */
+function labKind(mode){return ({activity:"unit-activity",strategy:"unit-strategy",import:"import"})[mode];}
+
 /* プロバイダ非依存でLLMを呼ぶ。system=システム文, msgs=[{role:'user'|'assistant',content}] → 返り値: 本文文字列
    混雑(503/529)・レート制限(429)・一時的なサーバエラー(500)は自動で数回リトライする。 */
-async function callLLM(system,msgs,onRetry){
+async function callLLM(system,msgs,onRetry,labOpts){
+  if(state.way!=="own"&&labOpts){
+    return await callLab(labOpts.kind,labOpts.context,labOpts.question,labOpts.history,(t)=>{ if(typeof onRetry==="function") onRetry(0,0,t); });
+  }
   const MAX_RETRY=4;
   const BASE_WAIT=2000;
   let lastErr=null;
@@ -1722,7 +1604,7 @@ async function callLLMOnce(system,msgs){
       body:JSON.stringify({
         system_instruction:{parts:[{text:system}]},
         contents,
-        generationConfig:{maxOutputTokens:8192,responseMimeType:"application/json",thinkingConfig:(/^gemini-2\./.test(model)?{thinkingBudget:0}:{thinkingLevel:"low"})}
+        generationConfig:{maxOutputTokens:8192,thinkingConfig:(/^gemini-2\./.test(model)?{thinkingBudget:0}:{thinkingLevel:"low"})}
       })
     });
     const data=await resp.json().catch(()=>({}));
@@ -1740,7 +1622,6 @@ async function callLLMOnce(system,msgs){
     const messages=[{role:"system",content:system},...msgs.map(m=>({role:m.role,content:m.content}))];
     const body={model,messages};
     if(/^gpt-5/.test(model)) body.max_completion_tokens=8192; else body.max_tokens=8192;
-    body.response_format={type:"json_object"};
     const resp=await fetch("https://api.openai.com/v1/chat/completions",{
       method:"POST",
       headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},
@@ -1849,6 +1730,7 @@ function explainError(err){
 
 async function testConnection(){
   saveInputs();
+  if(state.way!=="own"){const tr=document.getElementById("testResult");tr.style.color="#1f7a3a";tr.textContent="Kimura Edu Labの AI は設定不要です。そのまま相談できます。";return;}
   const tr=document.getElementById("testResult");
   tr.style.color="#5a4648"; tr.textContent="接続を確認しています…";
   try{
@@ -1882,7 +1764,8 @@ async function sendAI(kickoff){
   const system=aiMode==="activity"?SYS_ACTIVITY:SYS_STRATEGY;
   const history=state.ai.map(m=>({role:m.role,content:m.content}));
   const stageGuide=state.stages.map((s,i)=>`${s.id}=第${i+1}次「${s.name||""}」(${s.phase||""})`).join("、");
-  let userMsg=`現在の単元構想:\n${lessonContext()}\n\n【次のid対応】${stageGuide}\n\n相談内容: ${q}`;
+  const ctxText=`${lessonContext()}\n\n【次のid対応】${stageGuide}`;
+  let userMsg=`現在の単元構想:\n${ctxText}\n\n相談内容: ${q}`;
   if(aiMode!=="activity"){
     // 調整方略モードでは、選択可能な方略カタログを渡し、その中からid指定で選ばせる（創作禁止）
     const cat=STRATEGY_LIST.map((s,idx)=>`#${idx} [${s.phase}/${s.proc}/${s.layer}/Lv${s.lv}/${s.type}] ${s.text}`).join("\n");
@@ -1892,7 +1775,8 @@ async function sendAI(kickoff){
 
   try{
     const txt0=await callLLM(system,[...history,{role:"user",content:userMsg}],
-      (n,sec)=>{ typing.textContent=`混雑のため再試行中…（${n}回目／約${sec}秒待機）`; });
+      (n,sec,t)=>{ typing.textContent=t||`混雑のため再試行中…（${n}回目／約${sec}秒待機）`; },
+      {kind:labKind(aiMode),context:ctxText,question:q,history:state.ai.map(m=>({role:m.role,content:m.role==="user"?(m.content.split("相談内容:").pop()||"").trim():m.content}))});
     typing.remove();
     let txt=txt0;
     if(!txt){appendMsg("ai","応答を取得できませんでした。設定画面でAPIキーを確認してください。");return;}
@@ -1902,6 +1786,10 @@ async function sendAI(kickoff){
       const ex=extractAIJson(txt);
       let activities=(ex.data&&ex.data.activities)||[];
       let msg=ex.text;
+      if(!activities.length&&msg&&!kickoff){
+        // 提案のJSONがなくても、答えの文章を活動として反映できるようにする（追加ボタンが出ない不具合の対策）
+        activities=[{stage:null,phase:null,text:cleanAIText(msg.replace(/\s+/g," ").slice(0,300)),loose:true}];
+      }
       if(!msg){
         msg = activities.length
           ? `各時の学習活動の案を ${activities.length} 件ご用意しました。下のカードから該当の時に反映できます。`
@@ -1909,32 +1797,37 @@ async function sendAI(kickoff){
       }
       appendMsg("ai",msg);
       state.ai.push({role:"user",content:userMsg});
-      state.ai.push({role:"assistant",content:msg});
+      state.ai.push({role:"assistant",content:(ex.text||"")+(activities.length?"\n（提案した活動："+activities.filter(a=>!a.loose).map(a=>a.text).join("／")+"）":"")});
+      if(!kickoff)actReplyCount++;
       activities.forEach(a=>{
-        const sid=a.stage!=null?a.stage:a.phase; // 後方互換
+        const sidRaw=a.period!=null?a.period:(a.stage!=null?a.stage:a.phase);
+        const st=resolveStage(sidRaw);
         const card=document.createElement("div");card.className="ai-activity";
-        card.innerHTML=`<span class="ph">${stageName(sid)} の学習活動</span><br>${esc(a.text)}<br>
-          <button class="apply">この時に反映 / 追記</button>`;
+        card.innerHTML=`<span class="ph">${st?stageName(st.id)+" の学習活動":"どの次に入れるか選んでください"}</span><br>${esc(a.text)}<br>
+          ${st?"":stageSelectHtml("stage-pick")}<button class="apply">${st?(a.loose?"この内容を活動に追記":"この時に反映 / 追記"):"選んだ次に反映"}</button>`;
         card.querySelector(".apply").onclick=()=>{
-          applyActivity(sid,a.text);
+          const sel=card.querySelector(".stage-pick");const sid=st?st.id:(sel?sel.value:null);if(!sid)return;
+          applyActivity(st?String(sidRaw):sid,a.text);
           card.querySelector(".apply").textContent="✓ 反映しました";
           card.querySelector(".apply").disabled=true;
         };
         document.getElementById("aiLog").appendChild(card);
       });
+      maybeStrategyNudge();
     }else{
       // 調整方略の提案を抽出。AIはカタログの#番号(id)で方略を指定する（創作禁止）。
       const ex=extractAIJson(txt);
-      let rawSugg=(ex.data&&ex.data.suggestions)||[];
+      let rawSugg=(ex.data&&(ex.data.suggestions||ex.data.strategies))||[];
       // idを正規の方略に解決。存在しないid・不正なものは除外。
       const resolved=[];
       rawSugg.forEach(s=>{
-        const id=parseInt(s.id,10);
+        let id=parseInt(s.id,10);
+        if(isNaN(id)&&s.text){const t=String(s.text).trim();const k=STRATEGY_LIST.findIndex(c=>c.text===t);id=k>=0?k:(LEGACY_TEXT_TO_ID[t]!=null?LEGACY_TEXT_TO_ID[t]:NaN);}
         const base=(!isNaN(id)&&STRATEGY_LIST[id])?STRATEGY_LIST[id]:null;
         if(!base) return; // カタログ外は採用しない
-        const sid=s.stage!=null?s.stage:s.phase; // 後方互換
+        const sid=s.period!=null?s.period:(s.stage!=null?s.stage:s.phase); // 後方互換
         resolved.push({
-          sid, reason:(s.reason||"").trim(),
+          sid, reason:(s.reason||"").trim(), scene:s.scene||"",
           layer:base.layer, text:base.text, proc:base.proc, lv:base.lv, type:base.type, srcPhase:base.phase
         });
       });
@@ -1947,17 +1840,18 @@ async function sendAI(kickoff){
       appendMsg("ai",msg);
       // 履歴にはカタログを除いた軽い内容を残す
       state.ai.push({role:"user",content:`現在の単元構想:\n${lessonContext()}\n\n相談内容: ${q}`});
-      state.ai.push({role:"assistant",content:msg});
+      state.ai.push({role:"assistant",content:(ex.text||"")+(resolved.length?"\n（提案した方略："+resolved.map(s=>"#"+s.text).join("／")+"）":"")});
       resolved.forEach(s=>{
+        const st=resolveStage(s.sid);const pi=resolvePeriodIdx(s.sid);
         const card=document.createElement("div");card.className="ai-suggest";
         const reasonHtml = s.reason ? `<div class="why"><span class="why-l">なぜこの活動にこの方略か</span>${esc(s.reason)}</div>` : "";
         card.innerHTML=`<b>[${s.layer}]</b> ${esc(s.text)}
-          <small>（${s.proc}・Lv${s.lv}・${s.type}）→ 「${stageName(s.sid)}」へ</small>
+          <small>（${s.proc}・${LV_SHORT[s.lv]}・${s.type}${s.scene?"・"+esc(s.scene):""}）→ 「${st?stageName(st.id)+(pi!=null?" 第"+(pi+1)+"コマ":""):"どの次に入れるか選んでください"}」へ</small>
           ${reasonHtml}
-          <button class="add">＋ 単元計画に追加</button>`;
+          ${st?"":stageSelectHtml("stage-pick")}<button class="add">＋ 単元計画に追加</button>`;
         card.querySelector(".add").onclick=()=>{
-          const st=resolveStage(s.sid);
-          if(st){ addStrategyToPhase(st.id,s.layer,s.text,"AI提案"); renderBalance(); }
+          const sel=card.querySelector(".stage-pick");const sid=st?st.id:(sel?sel.value:null);if(!sid)return;
+          addStrategyToPhase(sid,s.layer,s.text,"AI提案",pi); renderBalance();
           card.querySelector(".add").textContent="✓ 追加しました";
           card.querySelector(".add").disabled=true;
         };
@@ -1968,7 +1862,7 @@ async function sendAI(kickoff){
   }catch(err){
     typing.remove();
     const em=(err&&err.message)||"接続に失敗しました";
-    const friendly = err&&err.retryable
+    const friendly = (err&&err.lab) ? labFriendly(err) : err&&err.retryable
       ? `ただいまAIが混雑しているようです。何度か自動で試しましたがつながりませんでした。少し時間をおいて、もう一度「送信」してください。\n頻発する場合は、設定画面でモデルを変える（例: Gemini の Flash-Lite、または Claude に切替）と改善することがあります。`
       : `うまく応答を得られませんでした。\n${explainError(err).detail}\n（詳細: ${em}）`;
     appendMsg("ai",friendly);
@@ -1977,8 +1871,11 @@ async function sendAI(kickoff){
 
 /* AI提案の学習活動を該当の次へ反映：空の時(コマ)があれば埋め、なければ新しい時を追加 */
 function applyActivity(sid,text){
+  text=cleanAIText(text);
   saveInputs();
   const st=resolveStage(sid);if(!st)return;
+  const pi=resolvePeriodIdx(sid);
+  if(pi!=null&&st.periods[pi]){const p=st.periods[pi];p.text=(p.text&&p.text.trim())?(p.text.trim()+"\n"+text):text;renderPhases();return;}
   const empty=st.periods.find(p=>!p.text||!p.text.trim());
   if(empty){empty.text=text;}
   else{st.periods.push({label:"",process:"情報収集",goal:"",text,evalText:"",strategies:[]});}
@@ -2007,7 +1904,7 @@ function renderPreview(){
       const evalT=(pd.evalText&&pd.evalText.trim())?`<div class="pv-eval"><span class="pv-tag eval">評価</span>${esc(pd.evalText).replace(/\n/g,"<br>")}</div>`:"";
       const proc=pd.process?`<div class="pv-proc proc-${(pd.process||"").replace(/[・]/g,"")}">${esc(pd.process)}</div>`:"";
       rows+=`<tr>
-        <th class="pv-period-th">${esc(pd.label||("第"+periodNo+"時"))}${proc}</th>
+        <th class="pv-period-th">${esc(periodLabel(st,pi))}${proc}</th>
         <td>${goal}<div class="pv-act-body">${body}</div>${evalT}</td>
         <td class="pv-strat-cell">${pd.strategies.length?stratHtml(pd.strategies):"―"}</td>
       </tr>`;
@@ -2111,9 +2008,9 @@ async function aiSortImport(){
   const text=document.getElementById("importText").value.trim();
   const st=document.getElementById("aiSortStatus");
   if(!text){st.style.color="#a23";st.textContent="先にファイルを読み込んでください。";return;}
-  if(!(state.keys[state.provider]||"").trim()){
+  if(state.way==="own"&&!(state.keys[state.provider]||"").trim()){
     st.style.color="#a23";
-    st.textContent="AI設定が未完了です。⚙設定でAPIキーを入れてください。";
+    st.textContent="AI設定が未完了です。⚙設定でAPIキーを入れるか、「Kimura Edu Labの AI」に切り替えてください。";
     return;
   }
   st.style.color="#5a4648";st.textContent="AIが振り分けています…";
@@ -2133,7 +2030,7 @@ async function aiSortImport(){
 {"periods":[{"label":"第1時","process":"課題設定","goal":"目標文","text":"学習活動文","eval":"評価文"}]}`;
 
   try{
-    const raw=await callLLM(system,[{role:"user",content:"次のテキストを単元構成に振り分けてください:\n\n"+text}]);
+    const raw=await callLLM(system,[{role:"user",content:"次のテキストを振り分けてください:\n\n"+text}],null,{kind:"import",context:"",question:"次のテキストを振り分けてください:\n\n"+text.slice(0,11000),history:[]});
     let obj=null;
     let cleaned=raw.replace(/```json/gi,"").replace(/```/g,"").trim();
     try{obj=JSON.parse(cleaned);}catch(e){}
@@ -2193,6 +2090,7 @@ function downloadJSON(){
    「データを保存(JSON)」で保存したファイルから入力状態を復元する。
    ※APIキーはファイルに保存されていないため復元対象外（現在の設定を維持）
    ============================================================ */
+function migrateStrategyText(x){const id=LEGACY_TEXT_TO_ID[x.text];if(id!=null&&STRATEGY_LIST[id]&&!STRATEGY_LIST.some(c=>c.text===x.text))x.text=STRATEGY_LIST[id].text;return x;}
 function showLoadStatus(msg,ok){
   const el=document.getElementById("loadJsonStatus");
   if(!el){ alert(msg); return; }
@@ -2244,12 +2142,13 @@ function applyLoadedState(obj){
   // 単元計画（次→時）を検査しながら復元
   state.stages=obj.stages.map((st,i)=>{
     const periods=(Array.isArray(st.periods)&&st.periods.length?st.periods:[{}]).map(pd=>({
-      label:(pd&&typeof pd.label==="string")?pd.label:"",
+      label:(pd&&typeof pd.label==="string"&&!isAutoLabel(pd.label))?pd.label:"",
+      hours:(pd&&parseInt(pd.hours,10)>=1)?parseInt(pd.hours,10):1,
       process:(pd&&PROCESS_OPTIONS.includes(pd.process))?pd.process:"課題設定",
       goal:(pd&&typeof pd.goal==="string")?pd.goal:"",
       text:(pd&&typeof pd.text==="string")?pd.text:"",
       evalText:(pd&&typeof pd.evalText==="string")?pd.evalText:"",
-      strategies:(pd&&Array.isArray(pd.strategies))?pd.strategies.filter(s=>s&&typeof s==="object"):[]
+      strategies:(pd&&Array.isArray(pd.strategies))?pd.strategies.filter(s=>s&&typeof s==="object").map(migrateStrategyText):[]
     }));
     return {
       id:(typeof st.id==="string"&&st.id)?st.id:("s"+(i+1)),
@@ -2347,7 +2246,7 @@ function downloadWord(){
         ? pd.strategies.map(s=>`<div><span style="color:${layerColor[s.layer]||"#333"};font-weight:bold;">[${s.layer}]</span> ${E(s.text)}</div>`).join("")
         : "―";
       body+=`<tr>
-        <td style="${cellB}background:#f7f0ee;text-align:center;width:14%;">${E(pd.label||("第"+periodNo+"時"))}${procBadge}</td>
+        <td style="${cellB}background:#f7f0ee;text-align:center;width:14%;">${E(periodLabel(st,pi))}${procBadge}</td>
         <td style="${cellB}width:52%;">${goal}<div>${actBody}</div>${evalT}</td>
         <td style="${cellB}width:34%;font-size:9.5pt;">${strat}</td>
       </tr>`;
@@ -2394,6 +2293,7 @@ buildStepper();
 restoreInputs();
 renderPhases();
 setProvider(state.provider);
+renderWay();
 </script>
 <!-- Cloudflare Web Analytics --><script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "3184f28c2e314d999b3a8b48433a9075"}'></script><!-- End Cloudflare Web Analytics -->
 </body>

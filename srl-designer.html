@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>調整学習デザイナー（単元構想・指導案）｜作成：木村明憲</title>
+<style>
+  /* ---- 配色：濃いグレーを基調（既定）。☀で明るい配色に切替。印刷は常に白 ---- */
+  :root{
+    --bg:#1e2023;--panel:#2a2d31;--panel-2:#232629;--input:#1a1c1f;--line:#3f444a;--line-soft:#33373c;
+    --ink:#ecebe8;--ink-soft:#b3b0aa;--ink-faint:#8a8780;
+    --accent:#f2a93b;--accent-ink:#1a1c1f;--head:#141618;
+    --i-col:#ff7b7b;--you-col:#5cc4d8;--we-col:#f5b45a;
+    --i-wash:rgba(255,123,123,.14);--you-wash:rgba(92,196,216,.14);--we-wash:rgba(245,180,90,.16);
+    --mi:#e0565e;--ji:#2f9bb0;--fu:#e29a2e;
+    --lab:#7fd3e6;--lab-wash:rgba(92,196,216,.12);--lab-line:rgba(92,196,216,.45);
+    --warn-bg:rgba(240,166,58,.12);--warn-ink:#f3c276;--err-bg:rgba(255,123,123,.12);--err-ink:#ffb3b3;--ok:#7fd49a;
+    --tip-bg:#33311f;--tip-line:#6b6330;
+    --radius:10px;--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+  }
+  :root[data-theme="light"]{
+    --bg:#f3f1ec;--panel:#ffffff;--panel-2:#faf8f4;--input:#ffffff;--line:#d9d4cc;--line-soft:#e8e4dd;
+    --ink:#23262a;--ink-soft:#5f6469;--ink-faint:#8a8f94;
+    --accent:#d98324;--accent-ink:#fff;--head:#2b2f35;
+    --i-col:#c0392b;--you-col:#1f7a8c;--we-col:#c47512;
+    --i-wash:rgba(192,57,43,.1);--you-wash:rgba(31,122,140,.1);--we-wash:rgba(196,117,18,.12);
+    --mi:#c0392b;--ji:#1f7a8c;--fu:#c47512;
+    --lab:#145a68;--lab-wash:#eaf5f7;--lab-line:#9ccbd4;
+    --warn-bg:#fff7ef;--warn-ink:#8a3b00;--err-bg:#fdeceb;--err-ink:#7a1d1d;--ok:#1f7a3a;
+    --tip-bg:#fffdf3;--tip-line:#e3d38e;
+    --shadow:0 1px 2px rgba(36,21,22,.06),0 8px 24px rgba(36,21,22,.07);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.7;-webkit-font-smoothing:antialiased;}
+  a{color:var(--lab);}
+  header.app{position:sticky;top:0;z-index:40;background:var(--accent);color:var(--accent-ink);border-bottom:3px solid var(--head);}
+  .head-in{max-width:1240px;margin:0 auto;padding:10px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .brand{font-weight:800;font-size:1.05rem;letter-spacing:.04em;line-height:1.3;}
+  .brand small{display:block;font-weight:600;font-size:.7rem;opacity:.8;letter-spacing:.08em;}
+  .stepper{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap;align-items:center;}
+  .step-btn{background:rgba(255,255,255,.18);border:1px solid rgba(0,0,0,.25);color:var(--accent-ink);border-radius:999px;padding:5px 12px;cursor:pointer;font-size:.8rem;font-family:inherit;display:flex;align-items:center;gap:6px;transition:.15s;}
+  .step-btn .n{width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.15);display:grid;place-items:center;font-size:.7rem;font-weight:700;}
+  .step-btn:hover{background:rgba(255,255,255,.32);}
+  .step-btn.active{background:var(--head);border-color:var(--head);color:#fff;font-weight:700;}
+  .step-btn.active .n{background:rgba(255,255,255,.22);color:#fff;}
+  main{max-width:1240px;margin:0 auto;padding:22px 18px 90px;}
+  .screen{display:none;animation:fade .25s ease;}
+  .screen.active{display:block;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  h2.screen-title{font-size:1.35rem;margin:0 0 4px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+  h2.screen-title .eyebrow{font-size:.7rem;font-weight:700;letter-spacing:.18em;color:var(--accent);}
+  .lead{color:var(--ink-soft);margin:0 0 18px;font-size:.9rem;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px;margin-bottom:16px;}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-weight:700;font-size:.82rem;margin-bottom:4px;}
+  .field .hint{font-size:.74rem;color:var(--ink-soft);font-weight:400;margin-left:6px;}
+  .field .lab-right{float:right;}
+  input[type=text],input[type=number],textarea,select{width:100%;font-family:inherit;font-size:.9rem;color:var(--ink);background:var(--input);border:1px solid var(--line);border-radius:8px;padding:8px 10px;transition:.15s;}
+  input::placeholder,textarea::placeholder{color:var(--ink-faint);}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--we-wash);}
+  textarea{resize:vertical;min-height:58px;line-height:1.55;}
+  select option{background:var(--panel);color:var(--ink);}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+  @media(max-width:680px){.row,.row-3{grid-template-columns:1fr;}}
+  .btn{font-family:inherit;font-size:.88rem;font-weight:700;cursor:pointer;border-radius:8px;padding:9px 16px;border:1px solid transparent;transition:.15s;}
+  .btn-primary{background:var(--accent);color:var(--accent-ink);} .btn-primary:hover{filter:brightness(1.08);}
+  .btn-ghost{background:transparent;color:var(--ink);border-color:var(--line);} .btn-ghost:hover{background:var(--panel-2);border-color:var(--ink-soft);}
+  .btn-lab{background:var(--lab-wash);color:var(--lab);border-color:var(--lab-line);}
+  .btn-sm{font-size:.76rem;padding:4px 10px;border-radius:6px;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+  .nav-row{display:flex;justify-content:space-between;gap:12px;margin-top:10px;flex-wrap:wrap;}
+  .with-dock{display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start;}
+  .with-dock>*{min-width:0;} /* 本時の横長の表は表の中だけで横スクロールさせ、ページ全体は横に伸ばさない */
+  body{overflow-x:hidden;}
+  @media(max-width:980px){.with-dock{grid-template-columns:1fr;}}
+  @media(max-width:1380px){.screen[data-screen="2"] .with-dock{grid-template-columns:1fr 300px;}}
+  @media(max-width:1180px){.screen[data-screen="2"] .with-dock{grid-template-columns:1fr;}}
+  /* 相談欄は画面をスクロールしても付いてくる（グリッドのセルごと固定） */
+  #dockUnit,#dockLesson,#dockMeta{position:sticky;top:64px;align-self:start;}
+  .dock{background:var(--panel);border:1px solid var(--lab-line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+  .dock-head{background:var(--lab-wash);padding:10px 14px;border-bottom:1px solid var(--lab-line);}
+  .dock-head .t{font-weight:800;color:var(--lab);display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .dock-head .s{font-size:.74rem;color:var(--ink-soft);}
+  .quota{font-size:.72rem;background:var(--panel);border:1px solid var(--lab-line);border-radius:999px;padding:1px 9px;color:var(--lab);white-space:nowrap;}
+  .mode-tabs{display:flex;gap:4px;padding:8px 10px 0;}
+  .mode-tab{flex:1;font-family:inherit;font-size:.78rem;font-weight:700;padding:6px;border:1px solid var(--line);border-bottom:none;border-radius:8px 8px 0 0;background:var(--panel-2);color:var(--ink-soft);cursor:pointer;}
+  .mode-tab.active{background:var(--panel);color:var(--accent);}
+  .ai-log{padding:12px;max-height:46vh;overflow:auto;display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line);}
+  .msg{padding:9px 12px;border-radius:10px;font-size:.86rem;white-space:pre-wrap;line-height:1.6;}
+  .msg.me{background:var(--we-wash);align-self:flex-end;max-width:92%;}
+  .msg.ai{background:var(--panel-2);border:1px solid var(--line);}
+  .msg.sys{background:var(--warn-bg);font-size:.8rem;color:var(--ink-soft);}
+  .msg.err{background:var(--err-bg);border:1px solid var(--i-col);color:var(--err-ink);}
+  .typing{font-size:.8rem;color:var(--ink-soft);padding:4px 8px;}
+  .ai-card{border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:.84rem;background:var(--panel-2);}
+  .ai-card .where{font-size:.72rem;color:var(--ink-soft);}
+  .ai-card .why{font-size:.78rem;color:var(--ink-soft);margin-top:4px;border-left:3px solid var(--accent);padding-left:8px;}
+  .ai-card .act{margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+  .ai-input{padding:10px;border-top:1px solid var(--line);display:flex;gap:6px;flex-wrap:wrap;}
+  .ai-input textarea{flex:1;min-height:44px;font-size:.86rem;}
+  .notice{font-size:.72rem;color:var(--warn-ink);background:var(--warn-bg);border-top:1px solid var(--line);padding:6px 12px;}
+  .img-chip{font-size:.72rem;background:var(--lab-wash);border:1px solid var(--lab-line);border-radius:999px;padding:1px 8px;display:inline-flex;gap:6px;align-items:center;}
+  .stage-block{border-left:6px solid var(--ji);}
+  .stage-block.ph-見通す{border-left-color:var(--mi);} .stage-block.ph-振り返る{border-left-color:var(--fu);}
+  .stage-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
+  .stage-no{font-weight:800;color:var(--accent);white-space:nowrap;}
+  .stage-head select{width:auto;padding:4px 8px;font-size:.82rem;}
+  .stage-head input{flex:1;min-width:160px;}
+  .period{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:8px 0;background:var(--panel-2);}
+  .period.current{outline:2px solid var(--accent);}
+  .ai-card.nudge{border-style:dashed;}
+  .p-head{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px;}
+  .p-head input.plabel{width:90px;padding:4px 8px;font-size:.84rem;font-weight:700;}
+  .p-head select{width:auto;padding:4px 8px;font-size:.8rem;}
+  .p-head .phours{font-size:.76rem;color:var(--ink-soft);} .p-head .phours input{width:46px;padding:3px 4px;font-size:.8rem;}
+  .hours-total{font-size:.8rem;color:var(--ink-soft);margin:6px 0 4px;} .hours-total.warn{color:#b45309;}
+  .min-total{font-size:.8rem;color:var(--ink-soft);margin:6px 0 4px;} .min-total.warn{color:#b45309;}
+  .p-head .sp{flex:1;}
+  .p-grid{display:grid;grid-template-columns:1fr 1.6fr 1fr;gap:8px;}
+  @media(max-width:820px){.p-grid{grid-template-columns:1fr;}}
+  .p-grid textarea{min-height:60px;font-size:.84rem;}
+  .p-grid label{font-size:.74rem;font-weight:700;color:var(--ink-soft);}
+  .scenes{margin-top:8px;display:grid;gap:4px;}
+  .scene{display:grid;grid-template-columns:74px 1fr;gap:6px;align-items:start;}
+  .scene .k{font-size:.72rem;color:#fff;border-radius:5px;text-align:center;padding:2px 4px;margin-top:2px;}
+  .k.mi{background:var(--mi);} .k.ji{background:var(--ji);} .k.fu{background:var(--fu);}
+  .chips{display:flex;flex-wrap:wrap;gap:4px;align-items:center;min-height:24px;}
+  .chip{font-size:.74rem;border-radius:999px;padding:1px 9px;border:1px solid;display:inline-flex;align-items:center;gap:5px;cursor:default;position:relative;}
+  .chip.I{color:var(--i-col);border-color:var(--i-col);background:var(--i-wash);}
+  .chip.You{color:var(--you-col);border-color:var(--you-col);background:var(--you-wash);}
+  .chip.We{color:var(--we-col);border-color:var(--we-col);background:var(--we-wash);}
+  .chip .x{cursor:pointer;opacity:.6;font-weight:700;} .chip .x:hover{opacity:1;}
+  .chip .src{font-size:.62rem;opacity:.7;}
+  .add-chip{font-family:inherit;font-size:.76rem;font-weight:700;border:1px solid var(--accent);background:transparent;border-radius:999px;padding:2px 10px;cursor:pointer;color:var(--accent);}
+  .dev td.strat .add-chip{display:block;margin-top:4px;}
+  .add-chip:hover{border-color:var(--accent);color:var(--accent);}
+  .mini{font-family:inherit;font-size:.74rem;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:6px;padding:2px 8px;cursor:pointer;white-space:nowrap;}
+  .mini.ai{background:var(--lab-wash);border-color:var(--lab-line);color:var(--lab);font-weight:700;}
+  .mini.danger{color:var(--i-col);}
+  .mini:hover{filter:brightness(1.1);}
+  .balance{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:8px 0;}
+  .bal{border:1px solid var(--line);border-radius:8px;padding:6px;text-align:center;background:var(--panel-2);}
+  .bal .num{font-size:1.3rem;font-weight:800;} .bal .lab{font-size:.68rem;color:var(--ink-soft);}
+  .bal.I .num{color:var(--i-col);} .bal.You .num{color:var(--you-col);} .bal.We .num{color:var(--we-col);}
+  .bal.mi .num{color:var(--mi);} .bal.ji .num{color:var(--ji);} .bal.fu .num{color:var(--fu);}
+  @media(max-width:680px){.balance{grid-template-columns:repeat(3,1fr);}}
+  .handoff{background:var(--lab-wash);border:1px solid var(--lab-line);border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:.86rem;}
+  .handoff .nb{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:.8rem;color:var(--ink-soft);}
+  @media(max-width:680px){.handoff .nb{grid-template-columns:1fr;}}
+  .dev-wrap{overflow-x:auto;}
+  table.dev{border-collapse:collapse;width:100%;min-width:820px;font-size:.82rem;background:var(--panel);table-layout:fixed;}
+  table.dev th,table.dev td{border:1px solid var(--line);padding:5px;vertical-align:top;}
+  table.dev th{background:var(--panel-2);font-size:.76rem;white-space:nowrap;}
+  table.dev td.stage{background:var(--panel-2);font-weight:700;}
+  table.dev td.stage input{width:52px;padding:2px 4px;font-size:.78rem;text-align:center;}
+  table.dev textarea{min-height:70px;font-size:.82rem;padding:6px 8px;}
+  table.dev td.ops{text-align:center;padding:5px 2px;}
+  table.dev .chip{border-radius:8px;white-space:normal;line-height:1.4;padding:3px 8px;}
+  table.dev .chips{flex-direction:column;align-items:stretch;}
+  table.dev th{white-space:normal;}
+  table.dev td.ops .mini{padding:2px 5px;font-size:.7rem;}
+  .out-tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center;}
+  .out-tab{font-family:inherit;font-size:.8rem;font-weight:700;padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;}
+  .out-tab.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
+  /* 出力シートは常に白（画面でも印刷でも同じ見え方） */
+  .preview-sheet{background:#fff;color:#222;border:1px solid var(--line);border-radius:8px;padding:24px;overflow-x:auto;}
+  .preview-sheet h1{font-size:1.25rem;margin:0 0 8px;text-align:center;}
+  .pv-table{border-collapse:collapse;width:100%;font-size:.84rem;margin-bottom:10px;table-layout:fixed;}
+  .pv-table th,.pv-table td{border:1px solid #888;padding:5px 7px;vertical-align:top;text-align:left;word-break:break-word;}
+  .pv-table th{background:#efece7;font-weight:700;}
+  .pv-table th.c1{width:96px;} .pv-table .c1{width:96px;}
+  .pv-stage-th{background:#f5e6e3!important;color:#7e1419;}
+  .pv-meta b{margin-right:4px;color:#555;font-weight:700;}
+  .pv-meta span{margin-right:16px;white-space:nowrap;}
+  .lbl{display:inline-block;font-size:.68rem;font-weight:800;border-radius:4px;padding:0 5px;color:#fff;margin-right:3px;}
+  .lbl.I{background:#c0392b;} .lbl.You{background:#1f7a8c;} .lbl.We{background:#c47512;}
+  .lbl.sc{background:#888;}
+  .preview-sheet .small{color:#666;}
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:flex-start;justify-content:center;padding:30px 12px;overflow:auto;z-index:60;}
+  .modal-bg.open{display:flex;}
+  .modal{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:14px;width:min(860px,100%);box-shadow:0 20px 60px rgba(0,0,0,.5);overflow:hidden;}
+  .modal-head{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .modal-head h3{margin:0;font-size:1rem;}
+  .modal-head .close{margin-left:auto;background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--ink-soft);}
+  .modal-body{padding:12px 18px;max-height:64vh;overflow:auto;}
+  .modal-foot{padding:10px 18px;border-top:1px solid var(--line);display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .layer-tabs{display:flex;gap:4px;flex-wrap:wrap;}
+  .layer-tab{font-family:inherit;font-size:.8rem;font-weight:700;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;cursor:pointer;color:var(--ink-soft);}
+  .layer-tab.I.active{background:var(--i-wash);color:var(--i-col);border-color:var(--i-col);}
+  .layer-tab.You.active{background:var(--you-wash);color:var(--you-col);border-color:var(--you-col);}
+  .layer-tab.We.active{background:var(--we-wash);color:var(--we-col);border-color:var(--we-col);}
+  .picker-sub{font-size:.76rem;color:var(--ink-soft);margin:6px 0;}
+  .phase-group-head{font-weight:800;font-size:.86rem;margin:12px 0 2px;padding:4px 8px;border-radius:6px;color:#fff;}
+  .phase-group-head[data-phase="見通す"]{background:var(--mi);} .phase-group-head[data-phase="実行する"]{background:var(--ji);} .phase-group-head[data-phase="振り返る"]{background:var(--fu);}
+  .proc-head{font-size:.76rem;font-weight:700;color:var(--ink-soft);margin:6px 0 2px 4px;}
+  .strat-item{display:grid;grid-template-columns:22px 92px 1fr 56px;gap:6px;align-items:center;padding:4px 4px;border-bottom:1px dashed var(--line-soft);font-size:.84rem;cursor:pointer;position:relative;}
+  .strat-item:hover{background:var(--panel-2);}
+  .strat-item.dim{opacity:.45;}
+  .lv{font-size:.66rem;border-radius:4px;padding:1px 4px;color:#fff;text-align:center;white-space:nowrap;}
+  .lv1{background:#3a8a4a;} .lv2{background:#2f9bb0;} .lv3{background:#7f63c9;}
+  .type{font-size:.66rem;color:var(--ink-soft);text-align:right;}
+  .info{font-size:.7rem;color:var(--lab);border:1px solid var(--lab-line);border-radius:50%;width:16px;height:16px;display:inline-grid;place-items:center;margin-left:4px;cursor:pointer;}
+  .tip{display:none;grid-column:1/-1;background:var(--tip-bg);border:1px solid var(--tip-line);border-radius:8px;padding:6px 10px;font-size:.76rem;color:var(--ink);}
+  .strat-item.show .tip{display:block;}
+  @media(hover:hover){.strat-item:hover .tip{display:block;}}
+  .pick-search{width:100%;margin:6px 0;}
+  .menu-btn{display:block;width:100%;text-align:left;margin:4px 0;}
+  .opt{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px;cursor:pointer;display:flex;gap:10px;align-items:flex-start;}
+  .opt.on{border-color:var(--lab);background:var(--lab-wash);}
+  .opt input{margin-top:4px;}
+  .opt b{display:block;}
+  .opt .d{font-size:.8rem;color:var(--ink-soft);}
+  .prov-tabs{display:flex;gap:4px;margin:8px 0;flex-wrap:wrap;}
+  .prov-tab{font-family:inherit;font-size:.8rem;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;}
+  .prov-tab.active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
+  .guide{font-size:.8rem;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:8px 0;}
+  .guide a{color:var(--lab);font-weight:700;}
+  .status{font-size:.8rem;margin-top:6px;min-height:1.2em;}
+  .status.ok{color:var(--ok);} .status.ng{color:var(--err-ink);}
+  .site-backbar{background:var(--head);border-bottom:1px solid #000;}
+  .site-backbar a{display:inline-flex;align-items:center;gap:5px;color:#eee;text-decoration:none;font-size:13px;font-weight:700;padding:6px 14px;border:1px solid rgba(255,255,255,.25);border-radius:999px;background:rgba(255,255,255,.06);margin:8px 14px;}
+  .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--accent);color:var(--accent-ink);padding:8px 16px;border-radius:999px;font-size:.84rem;font-weight:700;opacity:0;transition:.25s;z-index:80;pointer-events:none;}
+  .toast.show{opacity:.97;}
+  .small{font-size:.8rem;color:var(--ink-soft);}
+  .tag-lesson{font-size:.7rem;background:var(--we-wash);color:var(--we-col);border-radius:4px;padding:0 5px;}
+  .lc{font-size:.7rem;color:var(--ink-soft);white-space:nowrap;display:inline-flex;gap:5px;align-items:center;}
+  .lc b{font-weight:800;} .lc b.I{color:var(--i-col);} .lc b.You{color:var(--you-col);} .lc b.We{color:var(--we-col);}
+  .nudge{font-size:.72rem;color:var(--you-col);background:var(--you-wash);border:1px dashed var(--you-col);border-radius:999px;padding:1px 9px;cursor:pointer;white-space:nowrap;}
+  .nudge:hover{filter:brightness(1.1);}
+  details.imp summary{cursor:pointer;font-weight:700;}
+  @media print{
+    @page{size:A4 landscape;margin:10mm;}
+    html,body{background:#fff!important;color:#222!important;}
+    .site-backbar,header.app,.nav-row,.out-tabs,.dock,.no-print,.toast{display:none!important;}
+    main{padding:0;max-width:none;}
+    .screen{display:none!important;} .screen[data-screen="3"]{display:block!important;}
+    .preview-sheet{border:none;padding:0;overflow:visible;}
+    .pv-table{font-size:9pt;} .pv-table th,.pv-table td{padding:3px 5px;}
+    .pv-table tr{break-inside:auto;} .pv-table td,.pv-table th{break-inside:avoid;}
+    .pv-table thead{display:table-header-group;}
+  }
+</style>
+</head>
+<body>
+<nav class="site-backbar no-print" aria-label="サイト内ナビゲーション"><a href="index.html">🏠 ホームへ戻る</a></nav>
+<header class="app">
+  <div class="head-in">
+    <div class="brand">調整学習デザイナー<small>自己調整学習の単元構想・指導案づくり ／ 作成：木村明憲 <span id="verTag"></span></small></div>
+    <nav class="stepper" id="stepper"></nav>
+  </div>
+</header>
+
+<main>
+<!-- ===== STEP 1 基本情報 ===== -->
+<section class="screen active" data-screen="0">
+  <h2 class="screen-title"><span class="eyebrow">STEP 1</span>単元の基本情報</h2>
+  <p class="lead">教科・学年・単元名・目標を入れます。すべてあとから直せます。本時だけ作りたいときは、下の「本時だけ作る」から始められます。</p>
+  <div class="with-dock">
+  <div>
+  <div class="card">
+    <div class="row-3">
+      <div class="field"><label>教科・領域</label><input type="text" data-bind="subject" placeholder="例）算数"></div>
+      <div class="field"><label>学年</label><input type="text" data-bind="grade" placeholder="例）第5学年"></div>
+      <div class="field"><label>総時数</label><input type="text" data-bind="hours" placeholder="例）6"></div>
+    </div>
+    <div class="field"><label>単元名</label><input type="text" data-bind="unit" placeholder="例）分数と小数、整数の関係"></div>
+    <div class="field"><label>単元の目標<span class="hint">何ができるようになるか</span><button class="mini ai lab-right" onclick="askMeta('goal')">💬 AI相談（目標の案）</button></label><textarea data-bind="unitGoal" placeholder="例）分数・小数・整数の関係を理解し、大きさを比べたり表し方を選んだりできる。"></textarea></div>
+    <div class="field"><label>評価規準<span class="hint">任意</span><button class="mini ai lab-right" onclick="askMeta('assessment')">💬 AI相談（評価規準の案）</button></label><textarea data-bind="assessment" placeholder="例）【知】…／【思】…／【主】…"></textarea></div>
+    <div class="row"><div class="field"><label>人数</label><input type="text" data-bind="students" placeholder="例）32"></div><div class="field"><label>1時間の分数</label><input type="text" data-bind="minutes" placeholder="例）45"></div></div>
+  </div>
+  <div class="card">
+    <b>保存したデータから続きを作る</b>
+    <p class="small" style="margin:4px 0 8px">このアプリで保存したJSONのほか、「単元構想デザイナー」「指導案デザイナー」で保存したJSONも読み込めます。</p>
+    <input type="file" id="loadJson" accept=".json,application/json" style="display:none" onchange="loadJSONFile(event)">
+    <button class="btn btn-ghost" onclick="document.getElementById('loadJson').click()">保存したデータ(JSON)を読み込む</button>
+    <span id="loadStatus" class="status"></span>
+  </div>
+  <div class="card">
+    <b>手元の指導案（Word / PDF）から単元の流れを取り込む</b>
+    <p class="small" style="margin:4px 0 8px">学習指導案や単元計画のファイルを読み込み、AIが「時」ごとに振り分けて単元構想の下書きにします（.docx／.pdf。文字の入っていないスキャンPDFは読めません）。</p>
+    <input type="file" id="importFile" accept=".docx,.pdf" style="display:none" onchange="handleImportFile(event)">
+    <button class="btn btn-ghost" onclick="document.getElementById('importFile').click()">Word / PDF を読み込む</button>
+    <span id="importStatus" class="status"></span>
+    <div id="importResult" style="display:none;margin-top:8px">
+      <textarea id="importText" style="min-height:110px;font-size:.82rem" placeholder="読み取った文字がここに入ります。不要な部分は消してから振り分けてください。"></textarea>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px"><button class="btn btn-primary btn-sm" id="aiSortBtn" onclick="aiSortImport()">AIで「時」ごとに振り分ける</button><span class="small">本時を指定：第 <input type="number" id="importHonji" min="1" max="60" style="width:56px;display:inline-block;padding:3px 6px"> 時（指定すると、その時を本時として開けます）</span><span id="aiSortStatus" class="status"></span></div>
+    </div>
+  </div>
+  <div class="nav-row">
+    <button class="btn btn-ghost" onclick="startLessonOnly()">本時だけ作る →</button>
+    <button class="btn btn-primary" onclick="go(1)">単元構想へ →</button>
+  </div>
+  </div>
+  <div id="dockMeta"></div>
+  </div>
+</section>
+
+<!-- ===== STEP 2 単元構想 ===== -->
+<section class="screen" data-screen="1">
+  <h2 class="screen-title"><span class="eyebrow">STEP 2</span>単元構想<span class="small">次（つぐ）→ 時（1コマ）の順に組み、各時に方略を入れます</span></h2>
+  <div class="with-dock">
+    <div>
+      <div id="stages"></div><div id="hoursTotal" class="hours-total"></div>
+      <button class="btn btn-ghost" onclick="addStage()">＋ 次（つぐ）を追加する</button>
+      <div class="card" style="margin-top:14px">
+        <b>方略のバランス</b> <span class="small">目安：一斉授業 1〜2個／時、自由進度学習 4〜5個／時</span>
+        <div class="balance" id="balance"></div>
+        <button class="mini ai" onclick="askTrim(null)">多すぎる方略を絞る（AI）</button>
+      </div>
+      <div class="nav-row"><button class="btn btn-ghost" onclick="go(0)">← 基本情報</button><button class="btn btn-primary" onclick="go(3)">出力へ →</button></div>
+    </div>
+    <div id="dockUnit"></div>
+  </div>
+</section>
+
+<!-- ===== STEP 3 本時 ===== -->
+<section class="screen" data-screen="2">
+  <h2 class="screen-title"><span class="eyebrow">STEP 3</span>本時の指導案<span class="small" id="lessonTitle"></span></h2>
+  <div class="with-dock">
+    <div>
+      <div id="handoff" class="handoff"></div>
+      <div class="card">
+        <div class="row">
+          <div class="field"><label>本時の目標<span class="hint">単元から引き継ぎ。直すと単元にも反映</span></label><textarea id="lessonGoal" oninput="onLessonGoal(this.value)"></textarea></div>
+          <div class="field"><label>本時のめあて<span class="hint">子どもに示す言葉</span></label><textarea id="mearai" oninput="cur().lesson.mearai=this.value;autosave()"></textarea>
+            <select id="mearaiPhase" onchange="cur().lesson.mearaiPhase=this.value;autosave()" style="margin-top:4px"><option value="intro">本時のめあてを「導入」で提示する</option><option value="develop">本時のめあてを「展開」で提示する</option><option value="summary">本時のめあてを「まとめ」で提示する</option></select></div>
+        </div>
+        <div class="dev-wrap"><table class="dev" id="devTable"></table></div><div id="minTotal" class="min-total"></div>
+        <p class="small" style="margin-top:6px">「AI相談」＝その活動について、活動の具体化・合う方略・I／You／We の判定を相談できます。「＋ 一覧から選ぶ」＝方略一覧（151項目）から選びます。</p>
+      </div>
+      <div class="nav-row"><button class="btn btn-ghost" onclick="go(1)">← 単元構想に戻る</button><button class="btn btn-primary" onclick="go(3)">出力へ →</button></div>
+    </div>
+    <div id="dockLesson"></div>
+  </div>
+</section>
+
+<!-- ===== STEP 4 出力 ===== -->
+<section class="screen" data-screen="3">
+  <h2 class="screen-title"><span class="eyebrow">STEP 4</span>出力</h2>
+  <div class="out-tabs no-print">
+    <button class="out-tab" id="outUnitBtn" onclick="setOut('unit')">単元構想シート</button>
+    <button class="out-tab" id="outLessonBtn" onclick="setOut('lesson')">本時の指導案</button>
+    <span style="flex:1"></span>
+    <button class="btn btn-sm btn-ghost" onclick="downloadJSON()">データを保存(JSON)</button>
+    <button class="btn btn-sm btn-ghost" onclick="downloadWord()">Word(.doc)</button>
+    <button class="btn btn-sm btn-primary" onclick="window.print()">印刷 / PDF</button>
+  </div>
+  <div class="preview-sheet" id="preview"></div>
+  <div class="nav-row no-print"><button class="btn btn-ghost" onclick="go(1)">← 単元構想</button><button class="btn btn-ghost" onclick="go(2)">← 本時</button></div>
+</section>
+
+<!-- ===== 設定 ===== -->
+<section class="screen" data-screen="4">
+  <h2 class="screen-title"><span class="eyebrow">設定</span>AIの使い方</h2>
+  <div class="card">
+    <label class="opt" id="optLab"><input type="radio" name="aiway" value="lab" onchange="setWay('lab')"><div><b>Kimura Edu Labの AI で相談する（無料・1日<span id="labPer">12</span>回まで）</b><div class="d">設定はいりません。Labが用意した Claude Sonnet 5.5 を使います。<span id="labQuota"></span></div></div></label>
+    <label class="opt" id="optOwn"><input type="radio" name="aiway" value="own" onchange="setWay('own')"><div><b>自分のAPIキーで使う</b><div class="d">Gemini／ChatGPT／Claude。回数の制限はありません（各社の料金・無料枠によります）。</div></div></label>
+    <div class="notice" style="border:1px solid #f0c9a3;border-radius:8px">子どもの名前など個人情報は入力しないでください。相談内容はAI（Labの AI の場合は Anthropic社）に送信されます。Labのサーバーは相談内容を保存しません。</div>
+  </div>
+  <div class="card" id="ownCard">
+    <div class="prov-tabs" id="provTabs"></div>
+    <div class="guide" id="provGuide"></div>
+    <div class="field"><label>APIキー</label><input type="text" id="apiKey" oninput="state.keys[state.provider]=this.value.trim()" autocomplete="off"></div>
+    <div class="field"><label>モデル</label><select id="apiModel" onchange="state.models[state.provider]=this.value"></select></div>
+    <button class="btn btn-ghost btn-sm" onclick="testConnection()">接続テスト</button> <span id="testResult" class="status"></span>
+    <p class="small">キーはこのブラウザの中だけで使い、保存データ(JSON)には含めません。</p>
+  </div>
+  <div class="nav-row"><button class="btn btn-ghost" onclick="go(1)">← 単元構想へ</button></div>
+</section>
+</main>
+
+<!-- 方略ピッカー -->
+<div class="modal-bg" id="pickerBg" onclick="if(event.target===this)closePicker()">
+  <div class="modal">
+    <div class="modal-head"><h3 id="pickerTitle">方略を選ぶ</h3><div class="layer-tabs" id="layerTabs"></div><button class="close" onclick="closePicker()">×</button></div>
+    <div class="modal-body">
+      <div class="picker-sub" id="pickerSub"></div>
+      <input type="text" class="pick-search" id="pickSearch" placeholder="ことばで探す（例：役割分担、振り返り）" oninput="renderPicker()">
+      <div id="stratList"></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-primary" onclick="commitPicker()">選んだ方略を追加</button><span class="small" id="pickCount"></span><span class="small" style="margin-left:auto">目安：<span class="lv lv1">低学年〜</span> <span class="lv lv2">中学年〜</span> <span class="lv lv3">高学年〜中学・高校</span>　ⓘで使う場面の例</span></div>
+  </div>
+</div>
+
+<!-- どの時に入れるか（AIの提案先が読み取れなかったとき） -->
+<div class="modal-bg" id="whereBg" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal" style="width:min(520px,100%)">
+    <div class="modal-head"><h3>どの時に入れますか</h3><button class="close" onclick="document.getElementById('whereBg').classList.remove('open')">×</button></div>
+    <div class="modal-body" id="whereBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer onload="pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'"></script>
+<script>
+/* ============================================================
+   調整学習デザイナー v0.1（骨組み）
+   - 単元構想（次→時）と本時指導案を1つのデータで往復する
+   - 各時に「見通す・実行する・振り返る」の方略枠
+   - AI相談：Kimura Edu Labの AI（中継サーバー）／自分のキー
+   ============================================================ */
+const APP_VERSION="1.0";
+const LAB={ url:"https://designer-ai-proxy.designer-ai-proxy.workers.dev", siteKey:"0x4AAAAAAFhxfG-IznPX9Fx6", perUser:12 };
+
+/* ---------- 方略カタログ（148） ---------- */
+const STRATEGY_LIST=[{"phase":"見通す","proc":"課題","sub":"課題理解","layer":"I","lv":1,"type":"認知","text":"課題を分解し、関係・解決策を考えて正確に理解する","listNo":"I1"},{"phase":"見通す","proc":"課題","sub":"課題理解","layer":"You","lv":1,"type":"認知","text":"課題理解の仕方（分解・関係・解決策）を他者に相談して理解する","listNo":"You1"},{"phase":"見通す","proc":"課題","sub":"課題理解","layer":"You","lv":3,"type":"認知","text":"個が理解した課題を他者と対話し、類似点・相違点を見つける","listNo":"You2"},{"phase":"見通す","proc":"課題","sub":"課題理解","layer":"You","lv":2,"type":"認知","text":"他者からの評価や助言をもとに課題の理解を更に深める","listNo":"You3"},{"phase":"見通す","proc":"課題","sub":"課題理解","layer":"We","lv":3,"type":"認知","text":"どのように課題を理解するかを集団で協議し、理解を深める","listNo":"We1"},{"phase":"見通す","proc":"課題","sub":"課題理解","layer":"We","lv":1,"type":"認知","text":"課題理解の進捗を互いに確認し合いながら理解を深める","listNo":"We2"},{"phase":"見通す","proc":"課題","sub":"課題理解","layer":"We","lv":3,"type":"認知","text":"個が理解した課題を集団で協議し、類似点・相違点を見つける","listNo":"We3"},{"phase":"見通す","proc":"課題","sub":"課題興味","layer":"I","lv":1,"type":"メタ認知","text":"課題をもとに身近なこと・知っていることを振り返る","listNo":"I2"},{"phase":"見通す","proc":"課題","sub":"課題興味","layer":"I","lv":1,"type":"動機づけ","text":"課題を解決すると何ができるかを考え、前向きな気持ちを高める","listNo":"I3"},{"phase":"見通す","proc":"課題","sub":"課題興味","layer":"I","lv":2,"type":"動機づけ","text":"この課題は大切で能力を高めると自分に言い聞かせる","listNo":"I4"},{"phase":"見通す","proc":"課題","sub":"課題興味","layer":"I","lv":3,"type":"動機づけ","text":"課題を解決したときの自分への褒美を考え、前向きな気持ちを高める","listNo":"I5"},{"phase":"見通す","proc":"課題","sub":"課題興味","layer":"You","lv":3,"type":"メタ認知","text":"身近なこと・知っていることを振り返るため他者と対話する","listNo":"You4"},{"phase":"見通す","proc":"課題","sub":"課題興味","layer":"You","lv":3,"type":"動機づけ","text":"解決でわかること・できることを他者と対話し前向きさを高める","listNo":"You5"},{"phase":"見通す","proc":"課題","sub":"課題興味","layer":"You","lv":3,"type":"動機づけ","text":"なぜ大切か・どんな能力が高まるかを他者と対話し、言い聞かせる","listNo":"You6"},{"phase":"見通す","proc":"課題","sub":"課題興味","layer":"You","lv":3,"type":"動機づけ","text":"解決時の自分への褒美を他者と対話し前向きさを高める","listNo":"You7"},{"phase":"見通す","proc":"課題","sub":"課題興味","layer":"We","lv":3,"type":"メタ認知","text":"身近なこと・知っていることを振り返るため集団で協議する","listNo":"We4"},{"phase":"見通す","proc":"課題","sub":"課題興味","layer":"We","lv":1,"type":"動機づけ","text":"解決でわかること・できることを集団で協議し前向きさを高める","listNo":"We5"},{"phase":"見通す","proc":"課題","sub":"課題興味","layer":"We","lv":3,"type":"動機づけ","text":"なぜ大切か・どんな能力が高まるかを集団で協議し、前向きさを高める","listNo":"We6"},{"phase":"見通す","proc":"課題","sub":"課題興味","layer":"We","lv":3,"type":"動機づけ","text":"解決時の個人・集団への褒美を協議し、前向きな気持ちを高める","listNo":"We7"},{"phase":"見通す","proc":"目標","sub":"目標設定","layer":"I","lv":1,"type":"認知","text":"学習内容に関する目標を考える（広げる→順序立て→焦点化）","listNo":"I6"},{"phase":"見通す","proc":"目標","sub":"目標設定","layer":"I","lv":1,"type":"メタ認知","text":"生成した目標を振り返り、優先順位を考える","listNo":"I7"},{"phase":"見通す","proc":"目標","sub":"目標設定","layer":"You","lv":3,"type":"認知","text":"目標設定の仕方（広げる・順序立て・焦点化・構造化）を他者に相談する","listNo":"You8"},{"phase":"見通す","proc":"目標","sub":"目標設定","layer":"You","lv":1,"type":"認知","text":"設定した目標の妥当性を他者と対話して深める","listNo":"You9"},{"phase":"見通す","proc":"目標","sub":"目標設定","layer":"You","lv":2,"type":"メタ認知","text":"生成した目標を他者と振り返り、対話しながら優先順位を考える","listNo":"You10"},{"phase":"見通す","proc":"目標","sub":"目標設定","layer":"We","lv":1,"type":"認知","text":"個の目標をもとに集団で協議し、共通の目標を考える","listNo":"We8"},{"phase":"見通す","proc":"目標","sub":"目標設定","layer":"We","lv":2,"type":"認知","text":"目標達成へ向け、一人一人の良さを活かす役割分担を集団で協議する","listNo":"We9"},{"phase":"見通す","proc":"目標","sub":"目標設定","layer":"We","lv":2,"type":"メタ認知","text":"生成した目標を集団で振り返り、協議して優先順位を考える","listNo":"We10"},{"phase":"見通す","proc":"目標","sub":"目標志向","layer":"I","lv":2,"type":"動機づけ","text":"目標達成で自らの能力が高まると言い聞かせ、前向きさを高める","listNo":"I8"},{"phase":"見通す","proc":"目標","sub":"目標志向","layer":"I","lv":3,"type":"動機づけ","text":"目標の構造（内容・行動・調整）を整理し、前向きさを高める","listNo":"I9"},{"phase":"見通す","proc":"目標","sub":"目標志向","layer":"You","lv":2,"type":"動機づけ","text":"目標達成で高まる能力を他者と対話し、前向きさを高める","listNo":"You11"},{"phase":"見通す","proc":"目標","sub":"目標志向","layer":"You","lv":3,"type":"動機づけ","text":"目標の構造を整理しながら他者と対話し、前向きさを高める","listNo":"You12"},{"phase":"見通す","proc":"目標","sub":"目標志向","layer":"We","lv":3,"type":"動機づけ","text":"目標達成で一人一人のどんな能力が高まるかを協議し、前向きさを高める","listNo":"We11"},{"phase":"見通す","proc":"目標","sub":"目標志向","layer":"We","lv":3,"type":"動機づけ","text":"目標の構造を整理しながら集団で協議し、前向きさを高める","listNo":"We12"},{"phase":"見通す","proc":"目標","sub":"結果予期","layer":"I","lv":1,"type":"動機づけ","text":"学習後の自分の成長を予想し、前向きな気持ちを高める","listNo":"I10"},{"phase":"見通す","proc":"目標","sub":"結果予期","layer":"I","lv":3,"type":"動機づけ","text":"目標達成時に創り出せる考えや成果物を予想し、前向きさを高める","listNo":"I11"},{"phase":"見通す","proc":"目標","sub":"結果予期","layer":"You","lv":3,"type":"動機づけ","text":"学習後の成長を他者と対話し、前向きさを高める","listNo":"You13"},{"phase":"見通す","proc":"目標","sub":"結果予期","layer":"You","lv":3,"type":"動機づけ","text":"創り出せる考えや成果物を他者と対話して予想し、前向きさを高める","listNo":"You14"},{"phase":"見通す","proc":"目標","sub":"結果予期","layer":"We","lv":3,"type":"動機づけ","text":"学習後の成長を集団で協議し、前向きさを高める","listNo":"We13"},{"phase":"見通す","proc":"目標","sub":"結果予期","layer":"We","lv":3,"type":"動機づけ","text":"創り出せる考えや成果物を集団で協議して予想し、前向きさを高める","listNo":"We14"},{"phase":"見通す","proc":"計画","sub":"計画立案","layer":"I","lv":1,"type":"メタ認知","text":"過去の計画を振り返り、学習計画の見通しをもつ","listNo":"I12"},{"phase":"見通す","proc":"計画","sub":"計画立案","layer":"I","lv":3,"type":"動機づけ","text":"見本や他者の計画を参考に、長期から短期の課題・目標と活動を決める","listNo":"I13"},{"phase":"見通す","proc":"計画","sub":"計画立案","layer":"I","lv":1,"type":"リソース管理","text":"短期目標を達成する方法・方略を決め、準備する","listNo":"I14"},{"phase":"見通す","proc":"計画","sub":"計画立案","layer":"I","lv":2,"type":"リソース管理","text":"時間配分を決め、今後の学習の準備をする","listNo":"I15"},{"phase":"見通す","proc":"計画","sub":"計画立案","layer":"You","lv":3,"type":"メタ認知","text":"過去の計画を振り返り、他者との対話で計画の見通しをもつ","listNo":"You15"},{"phase":"見通す","proc":"計画","sub":"計画立案","layer":"You","lv":3,"type":"動機づけ","text":"長期から短期の課題・目標と学習活動を他者と対話して決める","listNo":"You16"},{"phase":"見通す","proc":"計画","sub":"計画立案","layer":"You","lv":1,"type":"リソース管理","text":"短期目標を達成する方法・方略を他者と対話して決め、準備する","listNo":"You17"},{"phase":"見通す","proc":"計画","sub":"計画立案","layer":"You","lv":3,"type":"リソース管理","text":"短期目標の時間配分を他者と対話して決め、準備する","listNo":"You18"},{"phase":"見通す","proc":"計画","sub":"計画立案","layer":"We","lv":3,"type":"メタ認知","text":"過去の計画を振り返り、集団との協議で計画の見通しをもつ","listNo":"We15"},{"phase":"見通す","proc":"計画","sub":"計画立案","layer":"We","lv":3,"type":"動機づけ","text":"長期から短期の課題・目標と学習活動を集団で協議して決める","listNo":"We16"},{"phase":"見通す","proc":"計画","sub":"計画立案","layer":"We","lv":2,"type":"リソース管理","text":"学習活動における役割分担を決め、今後の学習の準備をする","listNo":"We17"},{"phase":"見通す","proc":"計画","sub":"計画立案","layer":"We","lv":3,"type":"リソース管理","text":"短期目標の方法・方略を集団で協議して決め、準備する","listNo":"We18"},{"phase":"見通す","proc":"計画","sub":"計画立案","layer":"We","lv":2,"type":"リソース管理","text":"時間配分を集団で協議して決め、今後の学習の準備をする","listNo":"We19"},{"phase":"見通す","proc":"計画","sub":"自己・集団効力","layer":"I","lv":3,"type":"動機づけ","text":"立案した計画でうまく実行できそうかを考える（自己効力）","listNo":"I16"},{"phase":"見通す","proc":"計画","sub":"自己・集団効力","layer":"You","lv":3,"type":"動機づけ","text":"計画をもとにうまく実行できそうかを他者と対話し、前向きさを高める","listNo":"You19"},{"phase":"見通す","proc":"計画","sub":"自己・集団効力","layer":"We","lv":3,"type":"動機づけ","text":"計画でうまく実行できそうかを集団で協議し、前向きさを高める","listNo":"We20"},{"phase":"実行する","proc":"推進","sub":"環境設定","layer":"I","lv":2,"type":"リソース管理","text":"学習に適切な環境（物的・人的）を整える","listNo":"I17"},{"phase":"実行する","proc":"推進","sub":"環境設定","layer":"You","lv":3,"type":"リソース管理","text":"学習に適切な環境（物的・人的）について他者と対話し、整える","listNo":"You20"},{"phase":"実行する","proc":"推進","sub":"環境設定","layer":"We","lv":3,"type":"リソース管理","text":"集団で学習を進める上で適切な環境について協議し、整える","listNo":"We21"},{"phase":"実行する","proc":"推進","sub":"環境設定","layer":"We","lv":3,"type":"リソース管理","text":"個の強みを活かす役割分担や人数構成を考え、学習環境を整える","listNo":"We22"},{"phase":"実行する","proc":"推進","sub":"情報活用","layer":"I","lv":1,"type":"認知","text":"情報を収集して理解を深める（精緻化）","listNo":"I18"},{"phase":"実行する","proc":"推進","sub":"情報活用","layer":"I","lv":2,"type":"認知","text":"情報を関連付け、カテゴリーを生成しラベルを付ける（精緻化）","listNo":"I19"},{"phase":"実行する","proc":"推進","sub":"情報活用","layer":"I","lv":2,"type":"認知","text":"情報を多面的に見て吟味し、様々な視点で再整理する","listNo":"I20"},{"phase":"実行する","proc":"推進","sub":"情報活用","layer":"I","lv":1,"type":"認知","text":"情報を構造化し、考えをつくる（体制化）","listNo":"I21"},{"phase":"実行する","proc":"推進","sub":"情報活用","layer":"I","lv":3,"type":"認知","text":"新たな価値を創造することを通して理解を深める","listNo":"I22"},{"phase":"実行する","proc":"推進","sub":"情報活用","layer":"I","lv":3,"type":"認知","text":"創造した価値を発信することを通して理解を深める（転移）","listNo":"I23"},{"phase":"実行する","proc":"推進","sub":"情報活用","layer":"I","lv":2,"type":"認知","text":"大切な情報をくり返し言ったり書いたりして理解を深める（リハーサル）","listNo":"I24"},{"phase":"実行する","proc":"推進","sub":"情報活用","layer":"You","lv":1,"type":"認知","text":"他者と情報収集について対話し、理解を深める","listNo":"You21"},{"phase":"実行する","proc":"推進","sub":"情報活用","layer":"You","lv":3,"type":"認知","text":"情報の関連付けについて他者と対話し、理解を深める","listNo":"You22"},{"phase":"実行する","proc":"推進","sub":"情報活用","layer":"You","lv":3,"type":"認知","text":"情報を多面的に見ることについて他者と対話し、理解を深める","listNo":"You23"},{"phase":"実行する","proc":"推進","sub":"情報活用","layer":"You","lv":3,"type":"認知","text":"情報を構造化し考えをつくることについて他者と対話する","listNo":"You24"},{"phase":"実行する","proc":"推進","sub":"情報活用","layer":"You","lv":3,"type":"認知","text":"新たな価値を創造することについて他者と対話し、理解を深める","listNo":"You25"},{"phase":"実行する","proc":"推進","sub":"情報活用","layer":"You","lv":3,"type":"認知","text":"創造した価値を発信することについて他者と対話し、理解を深める","listNo":"You26"},{"phase":"実行する","proc":"推進","sub":"情報活用","layer":"You","lv":3,"type":"認知","text":"大切な情報をくり返し言う・書くことについて他者と対話する","listNo":"You27"},{"phase":"実行する","proc":"推進","sub":"情報活用","layer":"We","lv":1,"type":"認知","text":"共通目標を確認し、個または集団で情報を収集し共有して深める","listNo":"We23"},{"phase":"実行する","proc":"推進","sub":"情報活用","layer":"We","lv":3,"type":"認知","text":"共通目標を確認し、個または集団で情報を関連付け共有する","listNo":"We24"},{"phase":"実行する","proc":"推進","sub":"情報活用","layer":"We","lv":3,"type":"認知","text":"共通目標を確認し、個または集団で情報を多面的に吟味し共有する","listNo":"We25"},{"phase":"実行する","proc":"推進","sub":"情報活用","layer":"We","lv":3,"type":"認知","text":"共通目標を確認し、個または集団で情報を構造化し考えをつくり共有する","listNo":"We26"},{"phase":"実行する","proc":"推進","sub":"情報活用","layer":"We","lv":3,"type":"認知","text":"共通目標を確認し、個または集団で新たな価値を創造し共有する","listNo":"We27"},{"phase":"実行する","proc":"推進","sub":"情報活用","layer":"We","lv":3,"type":"認知","text":"共通目標を確認し、個または集団で創造した価値を他者に発信する","listNo":"We28"},{"phase":"実行する","proc":"推進","sub":"情報活用","layer":"We","lv":3,"type":"認知","text":"大切な情報をくり返し言う・書く方法を集団で協議する","listNo":"We29"},{"phase":"実行する","proc":"確認","sub":"実行確認","layer":"I","lv":1,"type":"メタ認知","text":"学習活動が課題・目標からずれていないか自らに問いかけ確認する","listNo":"I25"},{"phase":"実行する","proc":"確認","sub":"実行確認","layer":"I","lv":1,"type":"メタ認知","text":"方法・方略が適切かを自らに問いかけ、記録しながら確認する","listNo":"I26"},{"phase":"実行する","proc":"確認","sub":"実行確認","layer":"I","lv":3,"type":"メタ認知","text":"計画の時間配分と進捗を比べ、予定内に達成できるか確認する","listNo":"I27"},{"phase":"実行する","proc":"確認","sub":"実行確認","layer":"You","lv":1,"type":"メタ認知","text":"学習活動が課題・目標からずれていないか他者に問いかけ、相談しながら確認する","listNo":"You28"},{"phase":"実行する","proc":"確認","sub":"実行確認","layer":"You","lv":2,"type":"メタ認知","text":"方法・方略が適切か他者に問いかけ、相談しながら確認する","listNo":"You29"},{"phase":"実行する","proc":"確認","sub":"実行確認","layer":"You","lv":3,"type":"メタ認知","text":"立案した時間配分と進捗を他者に相談しながら確認する","listNo":"You30"},{"phase":"実行する","proc":"確認","sub":"実行確認","layer":"We","lv":1,"type":"メタ認知","text":"学習活動が集団の課題・目標からずれていないかを協議し、確認する（相互モニタリング）","listNo":"We30"},{"phase":"実行する","proc":"確認","sub":"実行確認","layer":"We","lv":2,"type":"メタ認知","text":"方法・方略が適切かを集団で協議し、様子を記録して確認する","listNo":"We31"},{"phase":"実行する","proc":"確認","sub":"実行確認","layer":"We","lv":3,"type":"メタ認知","text":"集団で立てた時間配分と進捗を協議し、確認する","listNo":"We32"},{"phase":"実行する","proc":"確認","sub":"環境確認","layer":"I","lv":2,"type":"メタ認知","text":"取り組みやすい物的・人的環境になっているかを確認する（環境確認）","listNo":"I28"},{"phase":"実行する","proc":"確認","sub":"環境確認","layer":"You","lv":3,"type":"メタ認知","text":"取り組みやすい環境かを他者に問いかけ、相談しながら確認する","listNo":"You31"},{"phase":"実行する","proc":"確認","sub":"環境確認","layer":"We","lv":3,"type":"メタ認知","text":"取り組みやすい物的・人的環境かを集団で協議し、確認する","listNo":"We33"},{"phase":"実行する","proc":"確認","sub":"情動・興味確認","layer":"I","lv":2,"type":"メタ認知","text":"学習に向かう心や体の状態を振り返り確認する（情動・興味確認）","listNo":"I29"},{"phase":"実行する","proc":"確認","sub":"情動・興味確認","layer":"You","lv":3,"type":"メタ認知","text":"学習に向かう心や体の状態を他者に問いかけ、相談しながら確認する","listNo":"You32"},{"phase":"実行する","proc":"確認","sub":"情動・興味確認","layer":"We","lv":3,"type":"メタ認知","text":"学習に向かうそれぞれの心や体の状態を集団で振り返り、確認し合う","listNo":"We34"},{"phase":"実行する","proc":"調節","sub":"実行調節","layer":"I","lv":1,"type":"リソース管理","text":"課題・目標をもとに学習活動を修正し、調節する","listNo":"I30"},{"phase":"実行する","proc":"調節","sub":"実行調節","layer":"I","lv":1,"type":"リソース管理","text":"より効果的・効率的な方法・方略に調節する","listNo":"I31"},{"phase":"実行する","proc":"調節","sub":"実行調節","layer":"I","lv":2,"type":"リソース管理","text":"進捗をもとに学習活動の時間配分を変更し、調節する","listNo":"I32"},{"phase":"実行する","proc":"調節","sub":"実行調節","layer":"You","lv":1,"type":"リソース管理","text":"他者から助言や支援を受け、活用しながら学習活動を調節する","listNo":"You33"},{"phase":"実行する","proc":"調節","sub":"実行調節","layer":"You","lv":3,"type":"リソース管理","text":"他者に相談しながら学習活動を調節する","listNo":"You34"},{"phase":"実行する","proc":"調節","sub":"実行調節","layer":"You","lv":3,"type":"リソース管理","text":"他者から助言や支援を受け、活用しながら方法・方略を調節する","listNo":"You35"},{"phase":"実行する","proc":"調節","sub":"実行調節","layer":"You","lv":3,"type":"リソース管理","text":"他者に相談しながら方法・方略を調節する","listNo":"You36"},{"phase":"実行する","proc":"調節","sub":"実行調節","layer":"You","lv":3,"type":"リソース管理","text":"他者から助言や支援を受け、活用しながら時間配分を調節する","listNo":"You37"},{"phase":"実行する","proc":"調節","sub":"実行調節","layer":"You","lv":3,"type":"リソース管理","text":"他者に相談しながら時間配分を調節する","listNo":"You38"},{"phase":"実行する","proc":"調節","sub":"実行調節","layer":"We","lv":1,"type":"リソース管理","text":"集団で協議しながら学習活動を調節する","listNo":"We35"},{"phase":"実行する","proc":"調節","sub":"実行調節","layer":"We","lv":2,"type":"リソース管理","text":"集団で協議しながら方法・方略を調節する","listNo":"We36"},{"phase":"実行する","proc":"調節","sub":"実行調節","layer":"We","lv":2,"type":"リソース管理","text":"集団で協議しながら時間配分を調節する","listNo":"We37"},{"phase":"実行する","proc":"調節","sub":"環境調節","layer":"I","lv":3,"type":"リソース管理","text":"これまでより学習が進みやすい物的・人的環境に調節する","listNo":"I33"},{"phase":"実行する","proc":"調節","sub":"環境調節","layer":"You","lv":3,"type":"リソース管理","text":"他者から助言や支援を受け、物的・人的環境を調節する","listNo":"You39"},{"phase":"実行する","proc":"調節","sub":"環境調節","layer":"You","lv":3,"type":"リソース管理","text":"他者に相談しながら物的・人的環境を調節する","listNo":"You40"},{"phase":"実行する","proc":"調節","sub":"環境調節","layer":"We","lv":3,"type":"リソース管理","text":"物的環境について集団で協議し調節する","listNo":"We38"},{"phase":"実行する","proc":"調節","sub":"環境調節","layer":"We","lv":2,"type":"リソース管理","text":"人数構成や役割分担など人的環境を集団で協議し調節する","listNo":"We39"},{"phase":"実行する","proc":"調節","sub":"情動調節","layer":"I","lv":1,"type":"情動","text":"不快な感情の原因・意味を考え、調節する（情動調節）","listNo":"I34"},{"phase":"実行する","proc":"調節","sub":"情動調節","layer":"I","lv":3,"type":"情動","text":"不快な感情の解決法（一旦離れる等）を考え、調節する","listNo":"I35"},{"phase":"実行する","proc":"調節","sub":"情動調節","layer":"You","lv":2,"type":"情動","text":"不快な感情の原因や意味を他者と対話し、調節する","listNo":"You41"},{"phase":"実行する","proc":"調節","sub":"情動調節","layer":"You","lv":3,"type":"情動","text":"不快な感情の解決法（離れる時間や過ごし方）を他者と対話し調節する","listNo":"You42"},{"phase":"実行する","proc":"調節","sub":"情動調節","layer":"We","lv":2,"type":"情動","text":"不快な感情の原因や意味を集団で協議し、調節する","listNo":"We40"},{"phase":"実行する","proc":"調節","sub":"情動調節","layer":"We","lv":3,"type":"情動","text":"不快な感情の解決法（離れる時間や過ごし方）を集団で協議し調節する","listNo":"We41"},{"phase":"実行する","proc":"調節","sub":"興味促進","layer":"I","lv":2,"type":"動機づけ","text":"困難な課題をやりがいある挑戦と捉え、前向きさを高める（興味促進）","listNo":"I36"},{"phase":"実行する","proc":"調節","sub":"興味促進","layer":"I","lv":3,"type":"動機づけ","text":"行き詰まった際の向き合い方・解決法を考え、前向きさを高める","listNo":"I37"},{"phase":"実行する","proc":"調節","sub":"興味促進","layer":"You","lv":3,"type":"動機づけ","text":"課題をやりがいある挑戦と捉える見方を他者と対話し高める","listNo":"You43"},{"phase":"実行する","proc":"調節","sub":"興味促進","layer":"You","lv":3,"type":"動機づけ","text":"行き詰まったときの向き合い方・解決法を他者と対話し高める","listNo":"You44"},{"phase":"実行する","proc":"調節","sub":"興味促進","layer":"We","lv":3,"type":"動機づけ","text":"課題をやりがいある挑戦と捉える見方を集団で協議し高める","listNo":"We42"},{"phase":"実行する","proc":"調節","sub":"興味促進","layer":"We","lv":3,"type":"動機づけ","text":"行き詰まったときの向き合い方・解決法を集団で協議し高める","listNo":"We43"},{"phase":"振り返る","proc":"評価","sub":"自己・相互評価","layer":"I","lv":1,"type":"メタ認知","text":"目標と結果を比較し、成果と課題を自己評価する","listNo":"I38"},{"phase":"振り返る","proc":"評価","sub":"自己・相互評価","layer":"I","lv":2,"type":"メタ認知","text":"効果的・効率的な方法で学べたかを考え、自己評価する","listNo":"I39"},{"phase":"振り返る","proc":"評価","sub":"自己・相互評価","layer":"I","lv":3,"type":"メタ認知","text":"時間配分の成果と課題を考え、自己評価する","listNo":"I40"},{"phase":"振り返る","proc":"評価","sub":"自己・相互評価","layer":"I","lv":3,"type":"メタ認知","text":"効果的な物的・人的環境だったかを考え、自己評価する","listNo":"I41"},{"phase":"振り返る","proc":"評価","sub":"自己・相互評価","layer":"I","lv":3,"type":"メタ認知","text":"学習中の自らの気持ちの変化を振り返り、自己評価する","listNo":"I42"},{"phase":"振り返る","proc":"評価","sub":"自己・相互評価","layer":"You","lv":1,"type":"メタ認知","text":"成果と課題を他者と対話し、得た評価をもとに自己評価する","listNo":"You45"},{"phase":"振り返る","proc":"評価","sub":"自己・相互評価","layer":"You","lv":3,"type":"メタ認知","text":"効果的・効率的な方法で学べたかを他者と対話し自己評価する","listNo":"You46"},{"phase":"振り返る","proc":"評価","sub":"自己・相互評価","layer":"You","lv":3,"type":"メタ認知","text":"時間配分の成果と課題を他者と対話し自己評価する","listNo":"You47"},{"phase":"振り返る","proc":"評価","sub":"自己・相互評価","layer":"You","lv":3,"type":"メタ認知","text":"効果的な物的・人的環境だったかを他者と対話し自己評価する","listNo":"You48"},{"phase":"振り返る","proc":"評価","sub":"自己・相互評価","layer":"You","lv":3,"type":"メタ認知","text":"学習中の気持ちの変化を他者と対話し自己評価する","listNo":"You49"},{"phase":"振り返る","proc":"評価","sub":"自己・相互評価","layer":"We","lv":1,"type":"メタ認知","text":"成果と課題を集団で協議し、相互評価する","listNo":"We44"},{"phase":"振り返る","proc":"評価","sub":"自己・相互評価","layer":"We","lv":3,"type":"メタ認知","text":"効果的・効率的な方法で学べたかを集団で協議し相互評価する","listNo":"We45"},{"phase":"振り返る","proc":"評価","sub":"自己・相互評価","layer":"We","lv":3,"type":"メタ認知","text":"時間配分の成果と課題を集団で協議し相互評価する","listNo":"We46"},{"phase":"振り返る","proc":"評価","sub":"自己・相互評価","layer":"We","lv":3,"type":"メタ認知","text":"効果的な物的・人的環境だったかを集団で協議し相互評価する","listNo":"We47"},{"phase":"振り返る","proc":"評価","sub":"自己・相互評価","layer":"We","lv":3,"type":"メタ認知","text":"学習中の気持ちの変化を集団で協議し相互評価する","listNo":"We48"},{"phase":"振り返る","proc":"帰属","sub":"原因帰属","layer":"I","lv":1,"type":"メタ認知","text":"自己評価の成果・課題の原因や理由を考え振り返る","listNo":"I43"},{"phase":"振り返る","proc":"帰属","sub":"原因帰属","layer":"You","lv":2,"type":"メタ認知","text":"成果・課題の原因や理由について他者と対話し振り返る","listNo":"You50"},{"phase":"振り返る","proc":"帰属","sub":"原因帰属","layer":"We","lv":2,"type":"メタ認知","text":"成果・課題の原因や理由について集団で協議し振り返る","listNo":"We49"},{"phase":"振り返る","proc":"帰属","sub":"自己・相互満足","layer":"I","lv":1,"type":"動機づけ","text":"満足できるところを見つけ、前向きな気持ちを高める","listNo":"I44"},{"phase":"振り返る","proc":"帰属","sub":"自己・相互満足","layer":"You","lv":3,"type":"動機づけ","text":"満足できるところを他者と対話し、前向きな気持ちを高める","listNo":"You51"},{"phase":"振り返る","proc":"帰属","sub":"自己・相互満足","layer":"We","lv":3,"type":"動機づけ","text":"集団の学習で満足できるところを協議し、前向きさを高める","listNo":"We50"},{"phase":"振り返る","proc":"適用","sub":"適用","layer":"I","lv":1,"type":"動機づけ","text":"次の学習に活かすことを決め、前向きな気持ちを高める","listNo":"I45"},{"phase":"振り返る","proc":"適用","sub":"適用","layer":"You","lv":2,"type":"動機づけ","text":"次の学習への活かし方を他者と対話し、前向きな気持ちを高める","listNo":"You52"},{"phase":"振り返る","proc":"適用","sub":"適用","layer":"We","lv":2,"type":"動機づけ","text":"次の学習に活かすことを集団で協議し、前向きな気持ちを高める","listNo":"We51"},{"phase":"振り返る","proc":"適用","sub":"適応","layer":"I","lv":3,"type":"動機づけ","text":"次の学習へ向け、自らの学び方をどう変えるかを考える","listNo":"I46"},{"phase":"振り返る","proc":"適用","sub":"適応","layer":"You","lv":3,"type":"動機づけ","text":"次の学習へ向け、学び方をどう変えるかを他者と対話して考える","listNo":"You53"},{"phase":"振り返る","proc":"適用","sub":"適応","layer":"We","lv":3,"type":"動機づけ","text":"次の学習へ向け、それぞれの学び方をどう変えるかを集団で協議する","listNo":"We52"}];
+/* 使う場面・子どもの姿・声かけの例（id→{scene,child,voice}） */
+const STRATEGY_INFO={"0":{"scene":"単元のはじめに、問いや課題文を受け取った直後。難しそうで何を聞かれているか分からないとき","child":"「この問題は、①何を調べて、②どう比べるか、の2つに分けられるな」と課題を分けて考える","voice":"「この課題は、いくつのことをすればよさそう？分けてみよう」"},"1":{"scene":"課題の意味がつかみにくいとき。ペアや隣の人と課題の読み取りを確かめたいとき","child":"「ぼくは,課題をこう読んだけど、どう？」と相手と比べ、同じところと違うところを見つける","voice":"「隣の人と、課題をどう読んだか比べてみよう。違ったところはどこ？」"},"2":{"scene":"自分なりに課題を読み取ったあと、相手の読み取りと比べて自分の理解を確かめたいとき","child":"「わたしは『比べる』ことが課題だと読んだけど、あなたはどう読んだ？」と共有し、同じところ・違うところから自分の理解を見直す","voice":"「自分の課題の読み取りを近くの人に話して、相手の読み取りと比べてみよう」"},"3":{"scene":"課題に対する自分なりの理解を一度つくったあと、友達や教師からの意見で深めたいとき","child":"「課題にある『比べる』は大きさだけを比べるんじゃないって言われて、見方が増えた」と助言を取り入れる","voice":"「友達の意見を聞いて、課題の見方は変わった？」"},"4":{"scene":"課題の理解の仕方を、グループで話し合って深める場面","child":"班で「この課題は、こう考えると分かりやすい」と理解の仕方を出し合う","voice":"「班で、課題をどう理解すればよいか話し合おう」"},"5":{"scene":"グループや学級全体で、課題のとらえ方をそろえてから進みたいとき","child":"班で「この課題はこういうこと」と確かめ合ったり，か「課題について，今どこまで分かった？」と共有する","voice":"「班で、課題をどう理解したか確かめ合ってから進めよう」"},"6":{"scene":"一人一人が理解した課題を、グループで比べ合う場面","child":"班で「それぞれ課題をどう読んだ？」と出し合い、同じところと違うところを整理する","voice":"「班で、課題の読み取りの同じところ・違うところを見つけよう」"},"7":{"scene":"新しい課題に出会ったとき。身の回りや前に習ったことと結びつけて考えさせたいとき","child":"「これ、スーパーの値引きの表示と同じだ」と身近な経験を思い出して課題を自分ごとにする","voice":"「これと似たこと、どこかで見たことない？」"},"8":{"scene":"課題に取り組む意味が見えず、やる気が出ていないとき。導入の後半","child":"「これが分かれば、自分で安い買い方を選べるようになる」と解決後にできることを思い描く","voice":"「これができるようになったら、どんなときに役に立ちそう？」"},"9":{"scene":"面倒・苦手と感じている課題に向かうとき。自分を励ます言葉をもたせたいとき","child":"「これは大事なことだし、できたら力がつく」と心の中で自分に言い聞かせる","voice":"「この勉強は、あなたのどんな力を伸ばしてくれると思う？」"},"10":{"scene":"長い課題や自由進度学習で、自分で気持ちを保つ必要があるとき","child":"「ここまで終わったら、好きな本を読もう」と自分へのごほうびを決めて取りかかる","voice":"「やりきったときの自分へのごほうびを決めておこうか」"},"11":{"scene":"課題に出会ったとき、相手がどんな経験や知識と結びつけているかを聞いて、自分の結びつけ方を広げたいとき","child":"「ぼくは去年の理科を思い出した。あなたは何を思い出した？」と共有し、相手の結びつけ方を自分の見方に取り入れる","voice":"「この課題から思い出したことを近くの人と出し合って、自分の見方を広げよう」"},"12":{"scene":"課題の意味や価値を、相手と話すことでつかませたいとき。導入でペア対話を入れるとき","child":"「これができると、なぜ便利かを2人で出し合ったら、やる気が出てきた」と話す","voice":"「この勉強が何の役に立つか、隣の人と話してみよう」"},"13":{"scene":"課題の大切さや高まる力を、相手がどう自分に言い聞かせているかを聞いて、自分の言い聞かせ方を見つけたいとき","child":"「わたしは『考える力がつく』と自分に言っている。あなたはどう言い聞かせている？」と共有し、自分の言葉を見つける","voice":"「この課題の大切さを自分にどう言い聞かせているか、近くの人と話してみよう」"},"14":{"scene":"自分へのごほうびの決め方を、相手のやり方を参考にして決めたいとき","child":"「終わったら本を読むのがごほうび。あなたは何にする？」と共有し、相手の決め方を参考にする","voice":"「自分へのごほうびをどう決めたか、近くの人と話して参考にしよう」"},"15":{"scene":"身近なことや知っていることを、グループで出し合う場面","child":"班で「知っていること」を付せんに書いて出し合い、課題を身近にする","voice":"「班で、この課題について知っていることを出し合おう」"},"16":{"scene":"グループや学級全体で課題に向かう意味を共有したいとき。探究の立ち上げなど","child":"「みんなで取り組む価値はどこにある？」を話し合い、「自分たちの学級を良くするためだ」と共通の思いをもつ","voice":"「この課題をみんなで解く意味は、どこにあるだろう？」"},"17":{"scene":"課題がなぜ大切か・どんな力がつくかを、グループで話し合う場面","child":"班で「この学習で高まる力」を出し合い、取り組む意味を共有する","voice":"「班で、この学習で高まる力について話し合おう」"},"18":{"scene":"長期のグループ活動で、集団として気持ちを保ちたいとき","child":"「全員ができたら、発表会でみんなに見てもらおう」とごほうびを相談して決める","voice":"「やりとげたら、班でどんないいことがあるといい？」"},"19":{"scene":"単元のめあてから、自分の目標を立てる場面。目標づくりの手順を教えたいとき","child":"「知りたいこと（問い）をできる限り出して→順番をつけて→一番大事なものにしぼる」と目標を絞り込む","voice":"「知りたいことを広げて、順番をつけて、一つにしぼってみよう」"},"20":{"scene":"目標やめあてを複数出したあと、どれから取り組むか決める場面","child":"「3つ書いたけど、まず計算の仕方を先にしよう」と自分で順番を決める","voice":"「立てた目標の中で、一番先にやるのはどれ？」"},"21":{"scene":"目標の立て方（広げる・順序立てる・焦点化する・構造化する）に迷ったとき、相手の立て方を聞いて自分の立て方をつかみたいとき","child":"「目標をどうやって決めた？」と相手に聞き、「知りたいことを全部出してからしぼった」という立て方を自分にも取り入れる","voice":"「目標の立て方を近くの人に聞いて、自分の立て方に活かしてみよう」"},"22":{"scene":"立てた目標が妥当か、ペアで確かめる場面。目標の立て方を学び合うとき","child":"「その目標、1時間でできそう？」と友達に聞かれて「じゃあ半分にしよう」と見直す","voice":"「隣の人の目標を聞いて、気づいたことを伝え合おう」"},"23":{"scene":"目標を複数出したあと、相手がどんな順番で取り組むかを聞いて、自分の優先順位を考えたいとき","child":"「ぼくは計算を先にする。あなたは何から？」と共有し、相手の順番の決め方を参考に自分の順番を決める","voice":"「何から取り組むか近くの人と話して、自分の順番を決めよう」"},"24":{"scene":"グループ活動の最初に、集団としての目標を決める場面","child":"班で「わたしたちの目標は、全員が説明できるようになること」と決める","voice":"「班の目標を一つ決めよう。全員が納得できる言葉で」"},"25":{"scene":"グループの役割分担を、一人一人のよさを生かして決めたいとき","child":"「○○さんは絵が得意だからポスター担当がいいね」と良さを認め合って分担する","voice":"「班の一人一人の得意なことを生かした分担を考えよう」"},"26":{"scene":"集団で目標を複数出したあと、優先順位を話し合って決める場面","child":"「それぞれの目標を出し合って、まずこれからやろう」と班で順番を決める","voice":"「それぞれが考えた目標を出し合って、何から取り組むか決めよう」"},"27":{"scene":"目標が高くて気後れしているとき","child":"「目標まで行けたら、考える力がついている」と自分に言い聞かせて取りかかる","voice":"「この目標を達成したら、どんな力が伸びると思う？」"},"28":{"scene":"目標を「何を・どうする・どう調整する」に整理して前向きさを高めたいとき","child":"「内容は分数、行動は図にかく、うまくいかなければ友達に聞く」と目標を整理する","voice":"「目標を『何を・どうやって・困ったらどうする』に分けて整理してみよう」"},"29":{"scene":"目標に向かう気持ちを、相手との対話で高めたいとき","child":"「これができると、どんな力がつくかな」と2人で話し、「説明する力だ」と前向きになる","voice":"「目標を達成したら、どんな力が高まるか、話してみよう」"},"30":{"scene":"目標を「何を・どうやって・困ったらどうする」に整理するとき、相手の整理の仕方を参考にしたいとき","child":"「わたしは『図にかく』でやる。困ったら友達に聞く。あなたはどう整理した？」と共有し、自分の整理を見直す","voice":"「目標の中身をどう整理したか、近くの人と見せ合って自分の整理に活かそう」"},"31":{"scene":"目標を達成すると一人一人にどんな力がつくかを、グループで話し合って前向きさを高める場面","child":"班で「達成したら、わたしは説明する力、○○さんは図にする力がつく」と出し合い、取り組む気持ちを高める","voice":"「班の目標を達成したら、一人一人にどんな力がつくか話し合おう」"},"32":{"scene":"目標の整理を、グループで話し合って進める場面","child":"班で「目標の内容・やること・困ったときの手」を整理する","voice":"「班の目標を、何を・どうやって・困ったらどうするに整理しよう」"},"33":{"scene":"目標を立てたあと、学習への前向きな気持ちを高めたいとき","child":"「この単元が終わったら、分数の計算がすらすらできる自分になっている」と成長した姿を想像する","voice":"「この学習が終わったとき、自分はどんなふうになっていそう？」"},"34":{"scene":"ゴールの作品や考えが見えにくいとき。計画づくりの後半で前向きさを高めたいとき","child":"「最後には、町の魅力を伝える新聞ができているはず」と完成の姿を思い描く","voice":"「終わったとき、どんな作品や考えができあがっていそう？」"},"35":{"scene":"学習後の自分の成長の見通しを、相手の見通しを聞いて具体的にしたいとき","child":"「終わったら、わたしは発表が得意になっていたい。あなたは？」と共有し、自分の見通しを具体的にする","voice":"「学習が終わったときの自分の姿を近くの人と話して、見通しをはっきりさせよう」"},"36":{"scene":"完成の姿（考えや作品）の見通しを、相手の見通しを参考にして具体的にしたいとき","child":"「最後はポスターにするつもり。あなたはどんな形？」と共有し、相手のイメージを参考に自分の完成像をはっきりさせる","voice":"「完成したときの姿を近くの人と話して、自分のイメージをはっきりさせよう」"},"37":{"scene":"学習後の成長を、グループで話し合う場面","child":"班で「この単元が終わったときのわたしたち」を出し合い、前向きになる","voice":"「班で、学習が終わったときの自分たちの姿を話し合おう」"},"38":{"scene":"創り出せる考えや成果物を、グループで予想する場面","child":"班で「完成した新聞はこんな感じ」と絵にかいてイメージを共有する","voice":"「班で、完成イメージをかいて共有しよう」"},"39":{"scene":"単元のはじめや自由進度学習の計画づくりで、前の学習の計画表を見返すとき","child":"「前の単元では時間が足りなかったから、今度は調べる時間を多めにしよう」と計画表を見ながら考える","voice":"「前の計画表を見て、今回はどこを変える？」"},"40":{"scene":"見本や友達の計画を参考にして、長期から短期の計画を立てる場面","child":"見本の計画表を参考に、「単元の目標→今週の目標→今日やることを決めた」と計画する","voice":"「見本や友達の計画を見て、自分の計画に取り入れられるところはある？」"},"41":{"scene":"1時間や短い期間の目標に向けて、やり方と準備を決める場面","child":"「今日は教科書と地図帳で調べる。付せんを用意しよう」とやり方を決めて準備する","voice":"「今日の目標を達成するために、どんなやり方で、何を用意する？」"},"42":{"scene":"1時間の自由進度学習や単元の計画で、時間配分を決めるとき","child":"「調べるのに2時間、まとめに1時間」と計画表に時間を書き込む","voice":"「それぞれ何時間（何分）くらいかかりそう？計画表に書いてみよう」"},"43":{"scene":"前の計画の振り返り方を、相手の振り返りを聞いて自分の見通しに活かしたいとき","child":"「前は時間が足りなかったから調べる時間を増やす。あなたは前の計画から何を変える？」と共有し、自分の計画の見通しをもつ","voice":"「前の計画から何を変えるか近くの人と話して、自分の計画に活かそう」"},"44":{"scene":"単元の目標から今日の目標・活動を決めるとき、相手の決め方を参考にしたいとき","child":"「わたしは今週は調べる、今日は資料を集める、にした。あなたはどう分けた？」と共有し、自分の目標と活動を整える","voice":"「ゴールから今日やることをどう決めたか、近くの人と話して自分の計画に活かそう」"},"45":{"scene":"目標を達成するために，どのような方法・方略で学べばよいのかを共有し，学習の準備をする","child":"「わたしはこの方法で，こんなやり方で学習を進めようと思っているけれど，あなたはどうするの」と共有する","voice":"「どのように学習を進めるのかを，近くの人と話して，自分に学び方に活かしてみよう。"},"46":{"scene":"短期の目標に向けた時間配分を、ペアで確認する","child":"「わたしは調べるのに20分、まとめに15分としたよ。あなたはどう？」と調整について共有する","voice":"「今後の活動の時間配分を確認しよう」"},"47":{"scene":"過去の計画を、グループで振り返って見通しをもつ","child":"班で前回の計画表を見返し、「今回は調べる時間を増やそう」と決める","voice":"「班で、前の計画の良かったところと直すところを出し合おう」"},"48":{"scene":"長期から短期の課題・目標と活動を、グループで話し合って決める","child":"班で「最終目標→週の目標→今日の活動」の順に話し合って決める","voice":"「班で、ゴールから逆算して今日やることを決めよう」"},"49":{"scene":"グループの活動を始める前に、誰が何を担当するかを決めて準備する場面","child":"班で「記録は○○さん、発表は△△さん」と役割を決め、それぞれ必要な物を準備する","voice":"「班の役割を決めて、それぞれ何を準備するか確かめよう」"},"50":{"scene":"グループで共通の計画を立てる場面。探究やプロジェクトの立ち上げ","child":"班で「何を、どんな方法で、何時間で、誰がやるか」を一枚の計画表にまとめる","voice":"「班の計画表に、やること・やり方・時間・担当を書き込もう」"},"51":{"scene":"グループで時間配分を話し合って決め、準備する場面","child":"班で「調べるのに20分、まとめに15分」と相談して決め、計画表に書く","voice":"「班で時間の配分を決めて、計画表に書き込もう」"},"52":{"scene":"計画を立て終わったとき。実行する前に自信をもたせたいとき","child":"「この計画なら、できそうな気がする」「ここが不安だから、聞ける人を決めておこう」と見直す","voice":"「この計画で、うまくいきそう？不安なところはある？」"},"53":{"scene":"計画を立て終わったとき、相手の自信のもち方を聞いて、自分の計画への自信や不安を整理したいとき","child":"「この計画でできそうと思う。あなたは不安なところある？」と共有し、相手の見方を参考に自分の計画を見直す","voice":"「その計画でうまくいきそうか、近くの人と話して自分の計画を見直そう」"},"54":{"scene":"グループの計画が立ったあと、実行前に全員の自信を確かめたいとき","child":"「この計画でいける？」と確かめ合い、「ここは心配だから先生に聞こう」と決める","voice":"「班の計画でうまくいきそうか、みんなで確かめよう」"},"55":{"scene":"自由進度学習や調べ学習で、学ぶ場所・道具・相手を自分で選べるとき","child":"「集中したいから、窓側の静かな席で、辞書を持って始めよう」と環境を整える","voice":"「今日は、どこで、何を使って、誰と学ぶと進みやすい？」"},"56":{"scene":"ペアで学ぶとき、どんな場所や道具が合うかを相談して整えたいとき","child":"「あなたはどのような環境で学んだ方が学びやすい」と聞き，自分がどのように学ぶのかの参考にする","voice":"「どのような環境で学ぶのが学びやすいのかを共有してごらん」"},"57":{"scene":"グループ活動の前に、学びやすい環境を全員で整える場面","child":"「班で机を向かい合わせにして、資料は真ん中に置こう」と相談して整える","voice":"「班で活動しやすいように、場所と物の置き方を決めよう」"},"58":{"scene":"グループの人数や役割を、一人一人の強みに合わせて組み直したいとき","child":"「調べ係は2人、まとめ係は1人にしよう。○○さんは図が得意だから」と話し合う","voice":"「一人一人の強みが生きるように、人数と役割を考えよう」"},"59":{"scene":"調べ学習で、必要な情報を集めて理解を深める場面","child":"「教科書だけでなく、資料集と地図帳でも確かめた」と複数の資料から情報を集める","voice":"「ほかにも確かめられる資料はないかな」"},"60":{"scene":"集めた情報が増えて、整理が必要になったとき","child":"「これは『自然』、これは『産業』」と情報を仲間分けして見出しをつける","voice":"「集めた情報を、仲間分けして名前をつけてみよう」"},"61":{"scene":"一つの見方にかたよっているとき。考察で視点を増やしたいとき","child":"「売る人の立場で見るとどうなる？」と見方を変えて情報を見直す","voice":"「別の立場や視点から見ると、どう見える？」"},"62":{"scene":"集めた情報から自分の考えをつくる場面。まとめ・表現の前","child":"「主張→理由→根拠」の順に情報を並べて、自分の考えを組み立てる","voice":"「集めたことを並べ替えて、自分の考えを一つの形にしてみよう」"},"63":{"scene":"学んだことをもとに、新しいアイデアや作品を生み出す場面","child":"「学んだことを生かして、自分たちの町のためにできる提案を考えた」と新しい考えをつくる","voice":"「学んだことから、新しく生み出せることはないかな」"},"64":{"scene":"つくった考えや作品を、発表や発信で伝える場面","child":"「地域の人に発表したら質問されて、もっと調べたいことが見つかった」と発信から学ぶ","voice":"「つくった考えを、誰に、どう伝えると学びが深まるかな」"},"65":{"scene":"漢字・計算・用語など、確実に覚える必要があるとき","child":"「大事な言葉を3回書いて、声に出して確かる」などくり返して覚える","voice":"「覚えるために、くり返す方法を一つ決めよう」"},"66":{"scene":"情報の集め方について、他者のやり方を聞いて自分のやり方に取り入れたいとき","child":"「ぼくは教科書と資料集で調べた。あなたは胴のように調べた？」と共有し、相手の情報の集め方を聞き参考にする","voice":"「どうやって情報を集めたか近くの人と話して、自分の調べ方に活かそう」"},"67":{"scene":"集めた情報のつなげ方・仲間分けの仕方について、他者のやり方を参考にしたいとき","child":"「わたしは『自然』と『産業』で分けた。あなたはどう分けた？」と共有し、自分の整理の仕方を見直す","voice":"「情報をどうつなげたかを近くの人と見せ合って、自分の整理に活かそう」"},"68":{"scene":"情報を別の見方から見直すとき、相手がどんな視点で見ているかを聞いて自分の視点を増やしたいとき","child":"「ぼくは買う人の立場で見た。あなたはどの立場で見た？」と共有し、相手の視点を自分の見方に加える","voice":"「どんな視点で情報を見たか近くの人と話して、自分の見方を増やそう」"},"69":{"scene":"自分の考えの組み立て方を、相手の組み立て方を参考にして見直したいとき","child":"「わたしは主張→理由→根拠の順にした。あなたはどう組み立てた？」と共有し、自分の考えの組み立てを直す","voice":"「考えをどう組み立てたか近くの人と見せ合って、自分の組み立てに活かそう」"},"70":{"scene":"新しいアイデアのつくり方を、相手の発想の仕方を聞いて自分の発想を広げたいとき","child":"「学んだことから、わたしはこんな提案を考えた。あなたはどこからアイデアを出した？」と共有し、発想の広げ方を参考にする","voice":"「アイデアをどう生み出したか近くの人と話して、自分の発想に活かそう」"},"71":{"scene":"発信の仕方（誰に・どう伝えるか）について、他者の伝え方を聞き，自分の伝え方を見直すとき","child":"「ぼくは図を入れて伝える。あなたは何を工夫する？」と共有し、相手の工夫を自分の伝え方に取り入れる","voice":"「どのように伝える工夫をしたか近くの人と話して、自分の発信に活かそう」"},"72":{"scene":"覚え方を、相手のやり方を聞いて自分に合う覚え方を見つけたいとき","child":"「わたしは3回書いて覚える。あなたはどうやって覚える？」と共有し、相手の方法を自分の覚え方に取り入れる","voice":"「覚え方を近くの人と話して、自分に合う方法を見つけよう」"},"73":{"scene":"グループで目標を確かめてから、分担・協力して情報を集める場面","child":"「目標は町の特色を見つけること。わたしは地図、きみは統計」と分担し、集めた情報を持ち寄る","voice":"「班の目標を確かめてから、どう分担して調べるか決めよう」"},"74":{"scene":"グループで目標を確かめてから、情報を関連づけて共有する場面","child":"班で「目標は要因を見つけること」と確かめ、集めた情報を一枚の図に整理する","voice":"「班の目標に戻って、集めた情報をつなげて一枚に整理してみよう」"},"75":{"scene":"グループで目標を確かめ、情報を多面的に吟味して共有する場面","child":"班で「目標は多面的に考えること」と確かめ、立場ごとの見方を出し合って表にする","voice":"「班で、いくつの立場から見られるか出し合ってみよう」"},"76":{"scene":"グループで目標を確かめ、考えを構造化して共有する場面","child":"班で「目標は提案をつくること」と確かめ、意見を図に整理して班の考えをつくる","voice":"「班の目標に向けて、みんなの考えを一つの図に整理しよう」"},"77":{"scene":"グループで目標を確かめ、新しい価値をつくって共有する場面","child":"班で「目標は提案をつくること」と確かめ、全員のアイデアを合わせて一つの提案にする","voice":"「班の目標に向けて、みんなの考えから新しい提案をつくろう」"},"78":{"scene":"グループで目標を確かめ、つくったものを他者に発信する場面","child":"班で「目標は伝えること」と確かめ、役割を決めて発表し、質問に答える","voice":"「班でつくったものを、誰にどう届けるか決めて発信しよう」"},"79":{"scene":"グループで、覚えるための方法を話し合って決める場面","child":"班で「カルタにして覚えよう」と方法を決めて取り組む","voice":"「班で、みんなが覚えやすい方法を一つ決めよう」"},"80":{"scene":"活動の途中で、めあてからずれていないか立ち止まらせたいとき","child":"「あれ、今日のめあては『比べる』だったのに、調べるだけになっていない？」と気づく","voice":"「今やっていることは、今日のめあてに向かっているかな」"},"81":{"scene":"活動の中盤で、やり方や進み具合・時間を確かめさせたいとき","child":"「残り15分で、まだ半分。やり方を変えたほうがいいかも」と進み具合を確かめる","voice":"「今のやり方で進めて残り時間で、終わりそう？」"},"82":{"scene":"計画の時間配分と進み具合を比べて、予定内に終わるか確かめる場面","child":"「計画では今ごろまとめに入るはずなのに、まだ調べている。急ごう」と確かめる","voice":"「計画表と今の進み具合を比べてみて、どう？」"},"83":{"scene":"活動の途中で、めあてからずれていないかを、相手の確かめ方を参考にしながら確かめたいとき","child":"「わたしは『めあては比べること』と確かめた。あなたは今、何を確かめている？」と共有し、自分の確かめ方を整える","voice":"「今の活動がめあてに合っているか、近くの人と確かめ合って自分の確かめ方に活かそう」"},"84":{"scene":"自分のやり方でいいかを、相手の確かめ方や判断を聞いて見直したいとき","child":"「ぼくは表でやっているけど合っているかな。あなたはどうやって確かめている？」と共有し、自分のやり方を見直す","voice":"「今のやり方が合っているか、近くの人の確かめ方を聞いて自分のやり方を見直そう」"},"85":{"scene":"時間配分と進み具合の確かめ方を、相手の確かめ方を参考にして見直したいとき","child":"「わたしは残り15分で半分。あなたはどのくらい進んだ？」と共有し、相手のペースの見方を参考に自分の進み方を見直す","voice":"「進み具合をどう確かめているか近くの人と話して、自分の確かめ方に活かそう」"},"86":{"scene":"グループ活動の途中で、進み具合や取り組み方を確かめ合う場面","child":"班で「今どこまで？」「集中できてる？」と確かめ合い、遅れている人を助ける","voice":"「班で、今の進み具合と調子を確かめ合おう」"},"87":{"scene":"グループ活動の途中で、やり方・方略が合っているかを話し合い、記録しながら確かめる場面","child":"班で「分担して調べる方法でいい？」と確かめ合い、進み具合をホワイトボードに記録する","voice":"「班のやり方が合っているか、みんなで確かめて記録しておこう」"},"88":{"scene":"グループで立てた時間配分と進み具合を話し合って確かめる場面","child":"班で「予定より遅れている。どこを縮める？」と確かめ合う","voice":"「班の計画と今の進み具合を、みんなで確かめよう」"},"89":{"scene":"自由進度学習で、場所や相手が自分に合っているか確かめさせたいとき","child":"「ここはおしゃべりが多くて集中できない。場所を変えよう」と気づく","voice":"「今の場所や周りの人は、学びやすい状態？」"},"90":{"scene":"取り組みやすい環境かを、相手に聞いて確かめる場面","child":"「情報を集める活動を一緒に進めているけれど，あなたはどう思う？」と相手と確かめる","voice":"「今の場所や周りの様子を、2人で確かめてみよう」"},"91":{"scene":"長いグループ活動で、環境や全員の心身の状態を振り返る場面","child":"班で「場所は良い？」「疲れてない？」と確かめ合い、休憩を入れることを決める","voice":"「班の環境とみんなの調子、今のままで大丈夫？」"},"92":{"scene":"長い活動の途中で、気持ちや体の状態を確かめさせたいとき","child":"「少し疲れてきて、集中が切れている」と自分の状態に気づく","voice":"「今の自分の調子は、10点中何点？」"},"93":{"scene":"自分の心や体の状態の確かめ方を、相手の確かめ方を参考にしたいとき","child":"「わたしは少し疲れたと気づいた。あなたは自分の調子をどう確かめている？」と共有し、自分の確かめ方に取り入れる","voice":"「自分の調子をどう確かめているか、近くの人と話してみよう」"},"94":{"scene":"長いグループ活動で、一人一人の心や体の状態を振り返り、確かめ合う場面","child":"班で「疲れてない？集中できてる？」と確かめ合い、休憩を入れることを決める","voice":"「班のみんなの調子を、ひとことずつ確かめ合おう」"},"95":{"scene":"活動がめあてからずれていると気づいたあと、立て直す場面","child":"「めあては『説明すること』だから、そろそろ調べるのをやめて説明を書こう」と活動を変える","voice":"「めあてに戻るために、今の活動をどう変える？」"},"96":{"scene":"今のやり方でうまくいかないと気づいたあと、方法を変える場面","child":"「表にしても分からないから、図にかいてみよう」と別のやり方を試す","voice":"「うまくいかないなら、別のやり方を一つ試してみよう」"},"97":{"scene":"進み具合を見て、時間配分を変える場面","child":"「調べるのに時間がかかりすぎた。まとめは10分でやろう」と配分を変える","voice":"「残り時間で終えるために、時間の配分を変えてみよう」"},"98":{"scene":"助言や手助けをもとに、自分の活動を立て直す場面","child":"「友達に『順番を変えたら』と言われて、自分の活動を見直したらうまくいった」と助言を自分の調整に活かす","voice":"「もらった助言を、自分の活動の立て直しにどう活かす？」"},"99":{"scene":"活動そのものを変えるかどうかを、相手の調整の仕方を聞いて決めたいとき","child":"「ぼくは調べるのをやめて書く活動に変えた。あなたは活動をどう変えた？」と共有し、自分の活動の変え方を決める","voice":"「活動をどう変えたか近くの人と話して、自分の活動の立て直しに活かそう」"},"100":{"scene":"助言や手助けをもとに、やり方・方略を変える場面","child":"「先生に『図にしたら』と言われて、自分のやり方を変えた」と助言をうけたことを他者と交流する","voice":"「もらった助言を、自分のやり方の変更にどう活かすか共有しよう」"},"101":{"scene":"やり方・方略を変えるかどうかを、相手の変え方を聞いて決めたいとき","child":"「わたしは表から図に変えた。あなたはやり方をどう変えた？」と共有し、相手の変え方を参考に自分の方略を調節する","voice":"「やり方をどう変えたか近くの人と話して、自分の方略の調節に活かそう」"},"102":{"scene":"助言や手助けをもとに、時間配分を変える場面","child":"「先生に『まとめを先に』と言われて、自分の時間配分を組み替えた」と助言をうけたことについて他者と交流する。","voice":"「もらった助言を、自分の時間の使い方にどう活かしたか共有しよう」"},"103":{"scene":"時間配分の変え方を、相手の変え方を聞いて決めたいとき","child":"「ぼくは調べる時間を減らしてまとめを増やした。あなたはどう変えた？」と共有し、自分の時間配分を調節する","voice":"「時間の配分をどう変えたか近くの人と話して、自分の時間の使い方に活かそう」"},"104":{"scene":"グループで、活動・やり方・時間配分を話し合って変える場面","child":"班で「調べる時間を減らして、作る時間を増やそう」と相談して変える","voice":"「班で、今の進め方と時間配分を見直そう」"},"105":{"scene":"グループで、やり方・方略を話し合って変える場面","child":"班で「表にするより図にしよう」と相談してやり方を変える","voice":"「班のやり方を変えたほうがよいところはある？話し合おう」"},"106":{"scene":"グループで、時間配分を話し合って変える場面","child":"班で「調べる時間を減らして、作る時間を増やそう」と相談して変える","voice":"「残り時間で終えるために、班の時間配分を見直そう」"},"107":{"scene":"自由進度学習などで、より学びやすい場所・道具・相手に変える場面","child":"「一人では進まないから、同じ課題の人の近くに移ろう」と環境を変える","voice":"「もっと進めやすくするために、場所や相手を変えるとしたら？」"},"108":{"scene":"助言や手助けをもとに、学ぶ場所や相手を変える場面","child":"「先生に『静かな席で』と言われて、自分の学ぶ場所を変えた」ということを他者に共有する","voice":"「もらった助言を、自分の学ぶ環境の整え方にどう活かす？」"},"109":{"scene":"学ぶ場所や相手の変え方を、相手の変え方を聞いて決めたいとき","child":"「わたしは同じ課題の人の近くに移った。あなたは環境をどう変えた？」と共有し、自分の学ぶ環境を調節する","voice":"「学ぶ環境をどう変えたか近くの人と話して、自分の環境づくりに活かそう」"},"110":{"scene":"グループで、学ぶ場所や道具の置き方を話し合って変える場面","child":"班で「机をくっつけて、タブレットは真ん中に」と相談して変える","voice":"「班で、物の置き方や場所を変えたほうがいいところはある？」"},"111":{"scene":"グループの人数構成や役割がうまくいかないとき","child":"「2人で足りないから、もう1人調べ係に入ってもらおう」と班で話して変える","voice":"「班の役割や人数を変えたほうがいいところはある？」"},"112":{"scene":"いらいら・不安など、いやな気持ちが学習のじゃまをしているとき","child":"「いらいらしているのは、時間が足りないからだ」と原因に気づき、やることを減らす","voice":"「今の気持ちの原因は何だろう。どうすれば楽になる？」"},"113":{"scene":"いやな気持ちが強いとき、一旦離れるなどの解決法を自分で決める場面","child":"「いらいらしてきたから、1分だけ席を離れて水を飲もう」と決める","voice":"「気持ちが落ち着かないとき、自分に合う切りかえ方は何？」"},"114":{"scene":"いやな気持ちの原因や意味の見つけ方を、相手の向き合い方を参考にしたいとき","child":"「わたしのいらいらは時間が足りないからだった。あなたは不快な気持ちの原因をどう見つけている？」と共有し、自分の気持ちの整え方を見つける","voice":"「気持ちの原因をどう見つけているか近くの人と話して、自分の整え方に活かそう」"},"115":{"scene":"いやな気持ちの切りかえ方（離れる時間や過ごし方）を、相手の切りかえ方を参考にしたいとき","child":"「ぼくは1分だけ席を離れて水を飲む。あなたはどう切りかえている？」と共有し、自分に合う切りかえ方を見つける","voice":"「気持ちの切りかえ方を近くの人と話して、自分に合う方法を見つけよう」"},"116":{"scene":"グループの中で、気持ちのもつれやいらだちが出てきたとき","child":"班で「もめたのは、やることが多すぎたから」と原因を話し、分担を変える","voice":"「班でいやな気持ちになった原因を、みんなで考えてみよう」"},"117":{"scene":"気持ちの切りかえ方を、グループで話し合って決める場面","child":"班で「もめてきたから、一度休憩して仕切り直そう」と決める","voice":"「班の雰囲気を立て直す方法を、みんなで決めよう」"},"118":{"scene":"難しい課題に「無理」と感じているとき","child":"「難しいけど、これは挑戦だ」と捉え直して取り組む","voice":"「難しいということは、伸びるチャンスかもしれないね」"},"119":{"scene":"長く行き詰まったとき。に，自分で切り抜け方を考えさせたいとき","child":"「ここは後回しにして、できるところから進めよう」と行き詰まりへの向き合い方を考える","voice":"「行き詰まったとき、自分はどうするとまた進める？」"},"120":{"scene":"難しい課題を挑戦と捉える見方を、相手の捉え方を聞いて自分の捉え方を変えたいとき","child":"「難しいけど伸びるチャンスだと思うようにした。あなたはどう捉えている？」と共有し、自分の捉え方を前向きにする","voice":"「難しさをどう受け止めているか近くの人と話して、自分の捉え方に活かそう」"},"121":{"scene":"行き詰まったときの切り抜け方を、相手の切り抜け方を聞いて自分の方法を見つけたいとき","child":"「わたしは後回しにしてできるところから進める。あなたは行き詰まったらどうしている？」と共有し、自分の切り抜け方を増やす","voice":"「行き詰まったときの切り抜け方を近くの人と話して、自分の方法を増やそう」"},"122":{"scene":"難しい課題を挑戦と捉える見方を、グループで話し合って高める場面","child":"班で「難しいからこそやりがいがある」と話し、取り組む気持ちを高める","voice":"「班で、この難しさをどう受け止めるか話し合おう」"},"123":{"scene":"行き詰まったときの切り抜け方を、グループで話し合って決める場面","child":"班で「ここで止まっている理由」を出し合い、「順番を変えよう」と決める","voice":"「班で行き詰まったら、原因と抜け道をみんなで考えよう」"},"124":{"scene":"授業や単元の終わりに、課題と結果を比べて自己評価する場面","child":"「めあては『説明できる』だったけど、半分くらいできた」と課題と比べて評価する","voice":"「今日のめあてと比べて、うまくいったことは？うまくいかなかったことは？」"},"125":{"scene":"振り返りで、やり方が良かったかを考えさせたいとき","child":"「図にかいたら早く分かった。このやり方は良かった」とやり方を評価する","voice":"「今日のやり方で、うまくいったことは？うまくいかなかったことは？」"},"126":{"scene":"振り返りで、時間配分を評価させたいとき","child":"「時間は足りなかった」と振り返る","voice":"「時間の使い方についてうまくいったことは？うまくいかなかったことは？」"},"127":{"scene":"振り返りで、学んだ場所や相手が自分に合っていたかを評価させたいとき","child":"「静かな場所を選んだのは良かった。でも一人で調べたのは遠回りだった」と環境を評価する","voice":"「学んだ場所や相手について、うまくいったことは？うまくいかなかったことは？」"},"128":{"scene":"振り返りで、学習中の気持ちの変化に目を向けさせたいとき","child":"「最初はいやだったけど、できたときはうれしかった」と気持ちの変化を書く","voice":"「学習の中で、気持ちはどう変わっていった？」"},"129":{"scene":"成果と課題を、相手からの評価も聞いて自己評価を確かなものにしたいとき","child":"「わたしは半分できたと思う。あなたから見てどう？」と共有し、相手の評価をもとに自分の評価を見直す","voice":"「自分の成果と課題を近くの人に話して、相手の見方も入れて自己評価しよう」"},"130":{"scene":"やり方の良し悪しを、相手の評価を聞いて自己評価したいとき","child":"「図にする方法は良かったと思う。あなたから見てどうだった？」と共有し、相手の評価を自分のやり方の評価に活かす","voice":"「今日のやり方の良し悪しを近くの人と話して、相手の見方も入れて評価しよう」"},"131":{"scene":"時間の使い方の成果と課題を、相手の評価を聞いて自己評価したいとき","child":"「調べる時間が長すぎたと思う。あなたの時間の使い方はどうだった？」と共有し、相手の見方を自分の評価に活かす","voice":"「時間の使い方を近くの人と振り返って、相手の見方も入れて評価しよう」"},"132":{"scene":"学んだ場所や相手が良かったかを、相手の評価を聞いて自己評価したいとき","child":"「静かな席は良かった。あなたの学んだ環境はどうだった？」と共有し、相手の見方を自分の環境の評価に活かす","voice":"「学んだ環境について近くの人と振り返って、自分の環境の評価に活かそう」"},"133":{"scene":"学習中の気持ちの変化を、相手の気持ちの変化と比べて自己評価したいとき","child":"「最初はいやだったけど途中から楽しくなった。あなたの気持ちはどう変わった？」と共有し、自分の気持ちの動きを評価する","voice":"「学習中の気持ちの変化を近くの人と伝え合って、自分の気持ちの動きを振り返ろう」"},"134":{"scene":"グループで成果と課題を話し合い、互いに評価する場面","child":"班で「協力はできたけど、時間が足りなかった」と話し合って評価し合う","voice":"「班の成果と課題を、みんなで出し合おう」"},"135":{"scene":"やり方が効果的だったかを、グループで話し合って相互評価する場面","child":"班で「分担して調べる方法は早かった」と話し合って評価する","voice":"「班のやり方を、みんなで評価し合おう」"},"136":{"scene":"時間配分の成果と課題を、グループで話し合って相互評価する場面","child":"班で「まとめの時間が足りなかった」と話し、次回の配分を考える","voice":"「班の時間の使い方を、みんなで振り返ろう」"},"137":{"scene":"学んだ場所や相手が良かったかを、グループで話し合って相互評価する場面","child":"班で「廊下側は静かで良かった」と環境を評価し合う","voice":"「班で、学んだ環境が良かったか振り返ろう」"},"138":{"scene":"学習中の気持ちの変化を、グループで話し合って相互評価する場面","child":"班で「もめたけど最後は協力できた」と気持ちの変化を振り返る","voice":"「班の気持ちの変化を、みんなで振り返ろう」"},"139":{"scene":"自己評価のあと、なぜその結果になったかを考えさせたいとき","child":"「できたのは、最初に計画を立てたから」「できなかったのは、調べすぎたから」と原因を考える","voice":"「なぜうまくいった（いかなかった）のだと思う？」"},"140":{"scene":"成果・課題の原因の考え方を、相手の考えを聞いて自分の振り返りを深めたいとき","child":"「時間が足りなかったのは調べすぎたからだと思う。あなたはどう考える？」と共有し、相手の見方で自分の原因の考え方を深める","voice":"「結果の理由をどう考えたか近くの人と話して、自分の振り返りを深めよう」"},"141":{"scene":"グループの成果・課題の原因を、話し合って考える場面","child":"班で「うまくいったのは、分担がはっきりしていたから」と原因を話し合う","voice":"「班の結果の理由を、みんなで考えよう」"},"142":{"scene":"振り返りで、できたことに目を向けて前向きさを高めたいとき","child":"「全部はできなかったけど、図は上手にかけた」と満足できるところを見つける","voice":"「今日、自分で『よくできた』と思うところはどこ？」"},"143":{"scene":"満足できるところの見つけ方を、相手の見つけ方を参考にして前向きに振り返りたいとき","child":"「わたしは図がうまくかけたことに満足。あなたはどこに満足した？」と共有し、相手の見つけ方で自分の良さに気づく","voice":"「満足できたところを近くの人と伝え合って、自分の良さを見つけよう」"},"144":{"scene":"グループの学習で、満足できるところを話し合って前向きさを高める場面","child":"班で「協力して最後までできたのが良かった」と話し、次への意欲を高める","voice":"「班で『ここは良かった』と思うところを出し合おう」"},"145":{"scene":"振り返りの最後に、次の学習に生かすことを決める場面","child":"「次は、最初に時間配分を決めてから始めよう」と次に生かすことを書く","voice":"「次の学習で、一つ変えるとしたら何？」"},"146":{"scene":"次に活かすことの決め方を、相手の決め方を聞いて自分の次の一手を決めたいとき","child":"「次は先に計画を立てる。あなたは次に何を変える？」と共有し、相手の決め方を参考に自分の次の一手を決める","voice":"「次に活かすことを近くの人と話して、自分の次の一手を決めよう」"},"147":{"scene":"グループで次の学習への生かし方・学び方の変化を話し合う場面","child":"班で「次は役割を先に決めよう」と話し合い、学び方を変える","voice":"「班で、次の活動に生かすことを決めよう」"},"148":{"scene":"次の学習に向けて、自分の学び方をどう変えるかを考える場面","child":"「次は、分からなくなったら早めに人に聞く学び方にしよう」と学び方の変化を決める","voice":"「次の学習で、自分の学び方をどう変える？」"},"149":{"scene":"自分の学び方をどう変えるかを、相手の学び方の変え方を聞いて考えたいとき","child":"「わたしは分からなくなったら早めに人に聞く学び方にする。あなたは学び方をどう変える？」と共有し、自分の学び方の変化を決める","voice":"「学び方をどう変えるか近くの人と話して、自分の学び方の変化を決めよう」"},"150":{"scene":"次の学習に向けて、一人一人の学び方をどう変えるかをグループで話し合う場面","child":"班で「次はそれぞれ、分からなくなったら早めに聞こう」と学び方の変化を話し合う","voice":"「次の学習で、一人一人の学び方をどう変えるか班で話し合おう」"}};
+/* 旧アプリ（単元構想・指導案デザイナー）の方略の文言 → この一覧の番号（JSON読み込み用） */
+const LEGACY_TEXT_TO_ID={"課題を分解し、関係・解決策を考えて正確に理解する":0,"課題理解の仕方を他者に相談し、対話で類似点・相違点を見つける":1,"個が理解した課題を他者と対話し、類似点・相違点を見つける":2,"他者からの評価や助言をもとに理解を更に深める":3,"どのように課題を理解するかを集団で協議し、理解を深める":4,"課題の理解の仕方を集団で協議し、進捗を確認し合い深める":5,"個が理解した課題を集団で協議し、類似点・相違点を見つける":6,"課題をもとに身近なこと・知っていることを振り返る":7,"課題を解決すると何ができるかを考え、前向きな気持ちを高める":8,"この課題は大切で能力を高めると自分に言い聞かせる":9,"課題を解決したときの自分への褒美を考え、前向きな気持ちを高める":10,"身近なこと・知っていることを振り返るため他者と対話する":11,"解決でわかること・できることを他者と対話し前向きさを高める":12,"課題の意義を他者と対話し、前向きな気持ちを高める":12,"なぜ大切か・どんな能力が高まるかを対話し言い聞かせる":13,"解決時の自分への褒美を他者と対話し前向きさを高める":14,"身近なこと・知っていることを振り返るため集団で協議する":15,"解決でわかること・できることを集団で協議し前向きさを高める":16,"課題に取り組む意義を集団で協議し、前向きな気持ちを高める":16,"なぜ大切か・どんな能力が高まるかを集団で協議する":17,"解決時の個人・集団への褒美を協議し、前向きな気持ちを高める":18,"学習内容に関する目標を考える（広げる→順序立て→焦点化）":19,"生成した目標を振り返り、優先順位を考える":20,"目標設定の仕方（広げる・順序立て・焦点化・構造化）を他者に相談する":21,"設定した目標の妥当性を他者と対話して深める":22,"集団としての共通目標を協議して設定する":24,"目標達成へ向け役割分担をどうするか集団で協議して考える":25,"一人一人の良さを活かす役割分担を集団で協議して考える":25,"生成した目標を集団で振り返り、協議して優先順位を考える":26,"目標達成で自らの能力が高まると言い聞かせ、前向きさを高める":27,"目標の構造（内容・行動・調整）を整理し、前向きさを高める":28,"目標達成で高まる能力を他者と対話し、前向きさを高める":29,"目標の構造を整理しながら他者と対話し、前向きさを高める":30,"目標の構造を整理しながら集団で協議し、前向きさを高める":32,"学習後の自分の成長を予想し、前向きな気持ちを高める":33,"目標達成時に創り出せる考えや成果物を予想し、前向きさを高める":34,"学習後の成長を他者と対話し、前向きさを高める":35,"創り出せる考えや成果物を他者と対話して予想し、前向きさを高める":36,"学習後の成長を集団で協議し、前向きさを高める":37,"創り出せる考えや成果物を集団で協議して予想し、前向きさを高める":38,"過去の計画を振り返り、学習計画の見通しをもつ":39,"見本や他者の計画を参考に、長期から短期の課題・目標と活動を決める":40,"短期目標を達成する方法・方略を決め、準備する":41,"時間配分を決め、今後の学習の準備をする":42,"過去の計画を振り返り、他者との対話で計画の見通しをもつ":43,"長期から短期の課題・目標と学習活動を他者と対話して決める":44,"短期目標と方法・方略・時間配分を他者と対話して決める":45,"短期課題・目標の時間配分を他者と対話して決め、準備する":46,"過去の計画を振り返り、集団との協議で計画の見通しをもつ":47,"長期から短期の課題・目標と学習活動を集団で協議して決める":48,"短期課題・目標の方法・方略を集団で協議して決め、準備する":50,"共通の計画・方法・時間配分・役割分担を協議して立案する":50,"立案した計画でうまく実行できそうかを考える（自己効力）":52,"計画をもとにうまく実行できそうかを他者と対話し、前向きさを高める":53,"計画でうまく実行できそうかを集団で協議し、前向きさを高める":54,"学習に適切な環境（物的・人的）を整える":55,"学習に適切な環境（物的・人的）について他者と対話し、整える":56,"集団で学習を進める上で適切な環境について協議し、整える":57,"個の強みを活かす役割分担や人数構成を考え、学習環境を整える":58,"情報を収集して理解を深める（精緻化）":59,"情報を関連付け、カテゴリーを生成しラベルを付ける（精緻化）":60,"情報を多面的に見て吟味し、視点や見方・考え方で再整理する":61,"情報を構造化し、考えをつくる（体制化）":62,"新たな価値を創造することを通して理解を深める":63,"創造した価値を発信することを通して理解を深める（転移）":64,"大切な情報をくり返し言ったり書いたりして理解を深める（リハーサル）":65,"他者と情報収集について対話し、理解を深める":66,"情報の関連付けについて他者と対話し、理解を深める":67,"情報を多面的に見ることについて他者と対話し、理解を深める":68,"情報を構造化し考えをつくることについて他者と対話する":69,"新たな価値を創造することについて他者と対話し、理解を深める":70,"創造した価値を発信することについて他者と対話し、理解を深める":71,"大切な情報をくり返し言う・書くことについて他者と対話する":72,"共通目標を確認し、個または集団で情報を収集し共有して深める":73,"共通目標を確認し、個または集団で情報を関連付け共有する":74,"共通目標を確認し、個または集団で情報を多面的に吟味し共有する":75,"共通目標を確認し、個または集団で情報を構造化し考えをつくり共有する":76,"共通目標を確認し、個または集団で新たな価値を創造し共有する":77,"共通目標を確認し、個または集団で創造した価値を他者に発信する":78,"大切な情報をくり返し言う・書く方法を集団で協議する":79,"学習活動が課題・目標からずれていないか自らに問いかけ確認する":80,"方法・方略が適切かを振り返り、進捗と時間配分を確認する":81,"計画の時間配分と進捗を比べ、予定内に達成できるか確認する":82,"学習活動・方法が適切か他者に問いかけ、相談しながら確認する":83,"立案した時間配分と進捗を他者に相談しながら確認する":85,"進捗や行動・動機づけ・メタ認知を集団で確認し合う（相互モニタリング）":86,"集団で立てた時間配分と進捗を協議し、確認する":88,"取り組みやすい物的・人的環境になっているかを確認する（環境確認）":89,"取り組みやすい環境かを他者に問いかけ、相談しながら確認する":90,"学習環境や心身の状態を集団で振り返り、確認し合う":91,"学習に向かう心や体の状態を振り返り確認する（情動・興味確認）":92,"学習に向かう心や体の状態を他者に問いかけ、相談しながら確認する":93,"課題・目標をもとに学習活動を修正し、調節する":95,"より効果的・効率的な方法・方略に調節する":96,"進捗をもとに学習活動の時間配分を変更し、調節する":97,"他者から助言や支援を受け、活用しながら活動を調節する":98,"他者に相談しながら学習活動を調節する":99,"他者から助言や支援を受け、方法・方略や時間配分を調節する":100,"他者に相談しながら方法・方略を調節する":101,"他者に相談しながら時間配分を調節する":103,"集団で協議しながら学習活動・方法・時間配分を調節する":104,"これまでより学習が進みやすい物的・人的環境に調節する":107,"他者から助言や支援を受け、物的・人的環境を調節する":108,"物的環境について集団で協議し調節する":110,"人数構成や役割分担など人的環境を集団で協議し調節する":111,"不快な感情の原因・意味を考え、調節する（情動調節）":112,"不快な感情の解決法（一旦離れる等）を考え、調節する":113,"感情の原因や解決法を他者と対話し、調節する":114,"感情の解決法（離れる時間や過ごし方）を他者と対話し調節する":115,"感情の原因や解決法を集団で協議し調節する":116,"感情の解決法（離れる時間や過ごし方）を集団で協議し調節する":117,"困難な課題をやりがいある挑戦と捉え、前向きさを高める（興味促進）":118,"行き詰まった際の向き合い方・解決法を考え、前向きさを高める":119,"課題をやりがいある挑戦と捉える見方を他者と対話し高める":120,"行き詰まったときの向き合い方・解決法を他者と対話し高める":121,"課題をやりがいある挑戦と捉える見方を集団で協議し高める":122,"行き詰まったときの向き合い方・解決法を集団で協議し高める":123,"目標と結果を比較し、成果と課題を自己評価する":124,"効果的・効率的な方法で学べたかを考え、自己評価する":125,"時間配分や物的・人的環境の成果と課題を考え、自己評価する":126,"学習中の自らの気持ちの変化を振り返り、自己評価する":128,"成果と課題を他者と対話し、得た評価をもとに自己評価する":129,"効果的・効率的な方法で学べたかを他者と対話し自己評価する":130,"時間配分の成果と課題を他者と対話し自己評価する":131,"効果的な物的・人的環境だったかを他者と対話し自己評価する":132,"学習中の気持ちの変化を他者と対話し自己評価する":133,"成果と課題を集団で協議し、相互評価する":134,"効果的・効率的な方法で学べたかを集団で協議し相互評価する":135,"時間配分の成果と課題を集団で協議し相互評価する":136,"効果的な物的・人的環境だったかを集団で協議し相互評価する":137,"学習中の気持ちの変化を集団で協議し相互評価する":138,"自己評価の成果・課題の原因や理由を考え振り返る":139,"成果・課題の原因や理由について他者と対話し振り返る":140,"成果・課題の原因や理由について集団で協議し振り返る":141,"満足できるところを見つけ、前向きな気持ちを高める":142,"満足できるところを他者と対話し、前向きな気持ちを高める":143,"集団の学習で満足できるところを協議し、前向きさを高める":144,"次の学習に活かすことを決め、学び方の変化を考える":145,"次の学習への活かし方を他者と対話して考える":146,"次の学習への活かし方・学び方の変化を集団で協議する":147,"次の学習へ向け、自らの学び方をどう変えるかを考える":148};
+function findSid(text,layer){const i=STRATEGY_LIST.findIndex(c=>c.text===text&&c.layer===layer);if(i>=0)return i;const j=LEGACY_TEXT_TO_ID[text];return (j!=null&&STRATEGY_LIST[j])?j:-1;}
+const PHASES_ORDER=["見通す","実行する","振り返る"];
+const PROC_BY_PHASE={"見通す":["課題","目標","計画"],"実行する":["推進","確認","調節"],"振り返る":["評価","帰属","適用"]};
+const PROCESS_OPTIONS=["課題設定","情報収集","整理・分析","まとめ・表現","振り返り"];
+const PHASE_BY_PROCESS={"課題設定":"見通す","情報収集":"実行する","整理・分析":"実行する","まとめ・表現":"実行する","振り返り":"振り返る"};
+const SCENES=[["見通す","mi"],["実行する","ji"],["振り返る","fu"]];
+const LV_LABEL={1:"低学年〜",2:"中学年〜",3:"高学年〜中学・高校"};
+const LV_SHORT={1:"低学年〜",2:"中学年〜",3:"高学年〜"};
+
+/* ---------- データ ---------- */
+let seq=1;
+const nid=p=>p+(seq++);
+function newPeriod(){return {id:nid("p"),label:"",hours:1,process:"情報収集",goal:"",text:"",evalText:"",strategies:[],lesson:null};}
+function newActivity(){return {id:nid("a"),text:"",teach:"",reaction:"",evalText:"",strategies:[]};}
+function newLesson(){return {mearai:"",mearaiPhase:"intro",phases:[
+  {id:"intro",name:"導入",min:10,activities:[newActivity()]},
+  {id:"develop",name:"展開",min:25,activities:[newActivity(),newActivity()]},
+  {id:"summary",name:"まとめ",min:10,activities:[newActivity()]}]};}
+const state={
+  v:APP_VERSION,
+  meta:{subject:"",grade:"",hours:"",unit:"",unitGoal:"",assessment:"",students:"",minutes:"45"},
+  stages:[
+    {id:nid("s"),name:"",phase:"見通す",periods:[newPeriod()]},
+    {id:nid("s"),name:"",phase:"実行する",periods:[newPeriod(),newPeriod()]},
+    {id:nid("s"),name:"",phase:"振り返る",periods:[newPeriod()]},
+  ],
+  lessonOnly:false,
+  currentPeriod:null,
+  ai:{unit:[],lesson:{}},
+  way:"lab", provider:"gemini", keys:{claude:"",gemini:"",openai:""}, models:{claude:"",gemini:"",openai:""}
+};
+state.stages[0].periods[0].process="課題設定";
+state.stages[2].periods[0].process="振り返り";
+
+function allPeriods(){const out=[];state.stages.forEach((st,si)=>st.periods.forEach((pd,pi)=>out.push({st,si,pd,pi})));return out;}
+function periodHours(pd){const h=parseInt(pd&&pd.hours,10);return (h>=1&&h<=9)?h:1;}
+const AUTO_LABEL_RE=/^\s*(第?\s*\d+\s*[〜～\-－]?\s*\d*\s*時?)?\s*$/;
+function isAutoLabel(l){return !l||AUTO_LABEL_RE.test(l);}
+function periodNumbering(){const m={};let n=0;allPeriods().forEach(x=>{const h=periodHours(x.pd);const a=n+1;n+=h;m[x.pd.id]={start:a,end:n,label:h>1?`第${a}〜${n}時`:`第${a}時`};});m.__total=n;return m;}
+function periodNo(pd){const m=periodNumbering()[pd.id];return m?m.start:allPeriods().findIndex(x=>x.pd===pd)+1;}
+function findPeriod(id){return allPeriods().find(x=>x.pd.id===id);}
+function cur(){const f=findPeriod(state.currentPeriod);return f?f.pd:null;}
+function pLabel(pd){if(pd&&!isAutoLabel(pd.label))return pd.label;const m=periodNumbering()[pd.id];return m?m.label:"";}
+function totalHoursText(){const n=periodNumbering().__total;const want=parseInt(String(state.meta.hours||"").replace(/[^\d]/g,""),10);const warn=want&&want!==n;return {text:`単元計画の合計：${n}時間`+(want?`（基本情報の総時数：${want}時間${warn?"　→ 合っていません":""}）`:""),warn};}
+function cleanAIText(t){return String(t||"").replace(/\s*[（(]\s*約?\s*\d+\s*(字|文字)\s*(程度)?\s*[）)]\s*$/,"").trim();}
+
+/* ---------- 自動保存（このブラウザの中だけ） ---------- */
+const LS_KEY="srl-designer-autosave";
+let saveTimer=null;
+function autosave(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{try{const o=JSON.parse(JSON.stringify(state));o.keys={};localStorage.setItem(LS_KEY,JSON.stringify(o));}catch(e){}},400);}
+function restoreAutosave(){try{const s=localStorage.getItem(LS_KEY);if(!s)return false;const o=JSON.parse(s);if(!o||!o.stages)return false;applyState(o);return true;}catch(e){return false;}}
+function applyState(o){
+  state.meta=Object.assign(state.meta,o.meta||{});
+  state.stages=o.stages||state.stages;
+  state.lessonOnly=!!o.lessonOnly; state.currentPeriod=o.currentPeriod||null;
+  state.ai=o.ai||{unit:[],lesson:{}}; state.way=o.way||"lab"; state.provider=o.provider||"gemini";
+  state.models=Object.assign({claude:"",gemini:"",openai:""},o.models||{});
+  // id の通し番号を復元
+  let mx=0;const scan=id=>{const m=String(id||"").match(/(\d+)$/);if(m)mx=Math.max(mx,+m[1]);};
+  state.stages.forEach(st=>{scan(st.id);st.periods.forEach(pd=>{scan(pd.id);(pd.lesson&&pd.lesson.phases||[]).forEach(ph=>ph.activities.forEach(a=>scan(a.id)));});});
+  seq=mx+1;
+}
+
+/* ---------- 画面の切替 ---------- */
+const STEPS=["基本情報","単元構想","本時","出力"];
+let current=0;
+function buildStepper(){
+  const s=document.getElementById("stepper");s.innerHTML="";
+  STEPS.forEach((label,i)=>{const b=document.createElement("button");b.className="step-btn"+(i===current?" active":"");b.innerHTML=`<span class="n">${i+1}</span>${label}`;b.onclick=()=>go(i);s.appendChild(b);});
+  const g=document.createElement("button");g.className="step-btn"+(current===4?" active":"");g.innerHTML="⚙";g.title="AIの設定";g.onclick=()=>go(4);s.appendChild(g);
+  const t=document.createElement("button");t.className="step-btn";const light=document.documentElement.dataset.theme==="light";t.innerHTML=light?"🌙":"☀";t.title=light?"濃い配色にする":"明るい配色にする";t.onclick=toggleTheme;s.appendChild(t);
+}
+function toggleTheme(){const light=document.documentElement.dataset.theme==="light";if(light)delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme="light";try{localStorage.setItem("srl-theme",light?"dark":"light");}catch(e){}buildStepper();}
+try{if(localStorage.getItem("srl-theme")==="light")document.documentElement.dataset.theme="light";}catch(e){}
+function go(n){
+  if(n===2&&!cur()){ if(!pickCurrentPeriod())return; }
+  current=n;
+  document.querySelectorAll(".screen").forEach(sc=>sc.classList.toggle("active",+sc.dataset.screen===n));
+  buildStepper();
+  if(n===0){restoreMeta();renderDock("meta");}
+  if(n===1){renderStages();renderBalance();renderDock("unit");}
+  if(n===2){renderLesson();renderDock("lesson");}
+  if(n===3)renderPreview();
+  if(n===4)renderSettings();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function restoreMeta(){document.querySelectorAll("[data-bind]").forEach(el=>{el.value=state.meta[el.dataset.bind]||"";});}
+document.addEventListener("input",e=>{const b=e.target&&e.target.dataset&&e.target.dataset.bind;if(b){state.meta[b]=e.target.value;autosave();}});
+function toast(t){const el=document.getElementById("toast");el.textContent=t;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),1800);}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function escAttr(s){return esc(s).replace(/"/g,"&quot;");}
+
+/* ---------- 本時だけ作る ---------- */
+function startLessonOnly(){
+  if(!state.lessonOnly){
+    state.lessonOnly=true;
+    const pd=newPeriod();pd.label="本時";pd.lesson=newLesson();
+    state.stages=[{id:nid("s"),name:"本時",phase:"実行する",periods:[pd]}];
+    state.currentPeriod=pd.id;
+  }
+  go(2);
+}
+/* 本時にする「時」を選ぶ（複数あるとき） */
+function pickCurrentPeriod(){
+  const ps=allPeriods();
+  if(!ps.length)return false;
+  if(ps.length===1){openLesson(ps[0].pd.id);return true;}
+  const body=document.getElementById("whereBody");
+  body.innerHTML='<p class="small">本時にする時間を選んでください。</p>'+ps.map(x=>`<button class="btn btn-ghost btn-sm" style="margin:3px" onclick="document.getElementById('whereBg').classList.remove('open');openLesson('${x.pd.id}')">${esc(pLabel(x.pd))} ${esc(x.pd.text.slice(0,24))}</button>`).join("");
+  openWhere();
+  return false;
+}
+function openLesson(pid){
+  const f=findPeriod(pid);if(!f)return;
+  if(!f.pd.lesson){
+    f.pd.lesson=newLesson();
+    // 単元の活動文を展開①の初期値に
+    if(f.pd.text)f.pd.lesson.phases[1].activities[0].text=f.pd.text;
+  }
+  state.currentPeriod=pid;autosave();
+  if(current!==2)go(2);else{renderLesson();renderDock("lesson");}
+}
+
+/* ============================================================
+   STEP 2 単元構想
+   ============================================================ */
+function renderStages(){
+  const wrap=document.getElementById("stages");wrap.innerHTML="";
+  const _tot=totalHoursText();
+  state.stages.forEach((st,si)=>{
+    const block=document.createElement("div");block.className="card stage-block ph-"+(st.phase||"");
+    let periods="";
+    st.periods.forEach(pd=>{
+      const n=periodNo(pd);
+      const hasLesson=!!pd.lesson;
+      periods+=`<div class="period ${pd.id===state.currentPeriod?"current":""}" id="pd-${pd.id}">
+        <div class="p-head">
+          <input class="plabel" type="text" value="${escAttr(pLabel(pd))}" placeholder="第${n}時" title="番号は自動で振り直します。書き換えるとその文字が使われます" oninput="P('${pd.id}').label=isAutoLabel(this.value)?'':this.value;autosave()">
+          <span class="phours" title="同じ内容で2時間続きにするときは 2 に">時間数 <input type="number" min="1" max="9" value="${periodHours(pd)}" onchange="P('${pd.id}').hours=Math.max(1,Math.min(9,parseInt(this.value,10)||1));autosave();renderStages()"></span>
+          <select onchange="P('${pd.id}').process=this.value;autosave()">${PROCESS_OPTIONS.map(p=>`<option ${pd.process===p?"selected":""}>${p}</option>`).join("")}</select>
+          ${hasLesson?'<span class="tag-lesson">本時あり</span>':""}
+          ${lcHtml(pd.strategies)} ${nudgeHtml(pd.strategies,"period",pd.id,"実行する")}
+          <span class="sp"></span>
+          <button class="mini ai" onclick="askPeriod('${pd.id}')">💬 AI相談（活動・方略）</button>
+          <button class="mini" onclick="openLesson('${pd.id}')">${hasLesson?"本時を開く":"本時を作る"} →</button>
+          ${st.periods.length>1?`<button class="mini danger" onclick="removePeriod('${pd.id}')">削除</button>`:""}
+        </div>
+        <div class="p-grid">
+          <div><label>目標</label><textarea placeholder="この時間のねらい" oninput="P('${pd.id}').goal=this.value;autosave()">${esc(pd.goal)}</textarea></div>
+          <div><label>学習活動・指導上の留意点</label><textarea placeholder="児童・生徒が何をするか" oninput="P('${pd.id}').text=this.value;autosave()">${esc(pd.text)}</textarea></div>
+          <div><label>評価<span class="hint">複数あれば改行で</span></label><textarea placeholder="評価規準・方法（複数あれば改行で）" oninput="P('${pd.id}').evalText=this.value;autosave()">${esc(pd.evalText)}</textarea></div>
+        </div>
+        <div class="scenes">${SCENES.map(([sc,k])=>`<div class="scene"><span class="k ${k}">${sc}</span><div class="chips">${chipsHtml(pd.strategies.filter(s=>s.scene===sc),"period",pd.id)}<button class="add-chip" onclick="openPicker('period','${pd.id}','${sc}')">＋ 選ぶ</button></div></div>`).join("")}</div>
+      </div>`;
+    });
+    const ph={"見通す":"例）地域をつかむ・学習計画を立てる","実行する":"例）資料を集めて調べる・整理して考える","振り返る":"例）成果をまとめ学びを振り返る"}[st.phase]||"";
+    block.innerHTML=`<div class="stage-head"><span class="stage-no">第${si+1}次</span>
+      <select onchange="S('${st.id}').phase=this.value;autosave();renderStages()">${PHASES_ORDER.map(p=>`<option ${st.phase===p?"selected":""}>${p}</option>`).join("")}</select>
+      <input type="text" value="${escAttr(st.name)}" placeholder="${escAttr(ph)}" oninput="S('${st.id}').name=this.value;autosave()">
+      ${state.stages.length>1?`<button class="mini danger" onclick="removeStage('${st.id}')">次を削除</button>`:""}</div>
+      ${periods}
+      <button class="mini" onclick="addPeriod('${st.id}')">＋ この次に「時（1コマ）」を追加</button>`;
+    wrap.appendChild(block);
+  });
+  const ht=document.getElementById("hoursTotal");if(ht){ht.textContent=_tot.text;ht.className="hours-total"+(_tot.warn?" warn":"");}
+}
+function S(id){return state.stages.find(s=>s.id===id);}
+function P(id){const f=findPeriod(id);return f?f.pd:{};}
+function chipsHtml(list,kind,ownerId){
+  return list.map(s=>{const idx=(kind==="period"?P(ownerId).strategies:A(ownerId).strategies).indexOf(s);
+    return `<span class="chip ${s.layer}" title="${escAttr(tipText(s.sid))}"><b>${s.layer}</b> ${esc(s.text)}${s.src==="AI"?'<span class="src">AI</span>':""}<span class="x" onclick="removeStrat('${kind}','${ownerId}',${idx})">×</span></span>`;}).join("");
+}
+function tipText(sid){const i=STRATEGY_INFO[sid];if(!i)return "";return `使う場面：${i.scene||""}\n子どもの姿：${i.child||""}\n声かけ：${i.voice||""}`;}
+function layerCounts(list){const c={I:0,You:0,We:0};(list||[]).forEach(s=>{if(c[s.layer]!=null)c[s.layer]++;});return c;}
+function lcHtml(list){const c=layerCounts(list);return `<span class="lc" title="選んだ方略の内訳"><b class="I">I</b>${c.I} <b class="You">You</b>${c.You} <b class="We">We</b>${c.We}</span>`;}
+/* I だけに偏っているとき（3つ以上すべて I）に、そっと促す。先生の判断を妨げないよう押さなくてもよい */
+function nudgeHtml(list,kind,ownerId,scene){const c=layerCounts(list);const t=c.I+c.You+c.We;if(t>=3&&c.You===0&&c.We===0)return `<span class="nudge" onclick="openPicker('${kind}','${ownerId}',${scene?"'"+scene+"'":"null"},'You')" title="共調整（You）・社会的に共有された調整（We）の方略も見てみる">I だけになっています。You・We も見てみますか？</span>`;return "";}
+function addStage(){state.stages.push({id:nid("s"),name:"",phase:"実行する",periods:[newPeriod()]});autosave();renderStages();}
+function removeStage(id){if(state.stages.length<=1)return;if(!confirm("この次を削除しますか？（中の時もすべて消えます）"))return;state.stages=state.stages.filter(s=>s.id!==id);autosave();renderStages();renderBalance();}
+function addPeriod(sid){const st=S(sid);st.periods.push(newPeriod());autosave();renderStages();}
+function removePeriod(pid){const f=findPeriod(pid);if(!f||f.st.periods.length<=1)return;if(f.pd.lesson&&!confirm("この時には本時の指導案があります。削除しますか？"))return;f.st.periods.splice(f.pi,1);if(state.currentPeriod===pid)state.currentPeriod=null;autosave();renderStages();renderBalance();}
+function addStrategy(kind,ownerId,sid,scene,src){
+  const s=STRATEGY_LIST[sid];if(!s)return false;
+  const owner=kind==="period"?P(ownerId):A(ownerId);if(!owner||!owner.strategies)return false;
+  if(owner.strategies.some(x=>x.sid===sid&&x.scene===scene))return false;
+  owner.strategies.push({sid,scene,layer:s.layer,text:s.text,cat:s.phase+"／"+s.proc,src:src||"手動"});
+  autosave();return true;
+}
+function removeStrat(kind,ownerId,idx){const owner=kind==="period"?P(ownerId):A(ownerId);owner.strategies.splice(idx,1);autosave();if(kind==="period"){renderStages();renderBalance();}else renderLesson();}
+function renderBalance(){
+  const c={I:0,You:0,We:0,"見通す":0,"実行する":0,"振り返る":0};
+  allPeriods().forEach(x=>x.pd.strategies.forEach(s=>{c[s.layer]++;c[s.scene]++;}));
+  const b=document.getElementById("balance");if(!b)return;
+  b.innerHTML=[["I","自己調整 I","I"],["You","共調整 You","You"],["We","社会的共有 We","We"],["見通す","見通す","mi"],["実行する","実行する","ji"],["振り返る","振り返る","fu"]]
+    .map(([k,l,cls])=>`<div class="bal ${cls}"><div class="num">${c[k]}</div><div class="lab">${l}</div></div>`).join("");
+}
+
+/* ============================================================
+   STEP 3 本時
+   ============================================================ */
+function A(id){for(const x of allPeriods()){const L=x.pd.lesson;if(!L)continue;for(const ph of L.phases){const a=ph.activities.find(a=>a.id===id);if(a)return a;}}return {};}
+function onLessonGoal(v){const pd=cur();if(!pd)return;pd.goal=v;autosave();}
+function renderLesson(){
+  const f=findPeriod(state.currentPeriod);if(!f){go(1);return;}
+  const pd=f.pd,L=pd.lesson;
+  document.getElementById("lessonTitle").textContent=`${state.meta.unit||"（単元名未入力）"}　${pLabel(pd)}／${state.meta.hours||allPeriods().length}時間`;
+  const ps=allPeriods();const i=ps.findIndex(x=>x.pd===pd);
+  const prev=ps[i-1],next=ps[i+1];
+  const nb=x=>x?`<b>${esc(pLabel(x.pd))}</b>：${esc(x.pd.text||"（未記入）")}${x.pd.strategies.length?"　／　方略："+x.pd.strategies.map(s=>`<span class="lbl ${s.layer}">${s.layer}</span>`).join(""):""}`:"（なし）";
+  document.getElementById("handoff").innerHTML=state.lessonOnly?`<b>本時だけを作成中</b> <span class="small">単元の流れにつなげたくなったら「← 単元構想に戻る」から次と時を足せます。</span>`:
+    `<b>単元から引き継ぎ</b>　<span class="small">第${f.si+1}次「${esc(f.st.name)}」（${esc(f.st.phase)}）の ${esc(pLabel(pd))}</span>
+     <div class="nb"><div>前時：${nb(prev)}</div><div>次時：${nb(next)}</div></div>
+     <div class="small" style="margin-top:4px">単元で決めた本時の方略：${pd.strategies.length?pd.strategies.map(s=>`<span class="chip ${s.layer}" style="cursor:pointer" title="展開の活動に割り当てる" onclick="assignFromUnit(${s.sid},'${s.scene}')"><b>${s.layer}</b> ${esc(s.text)} <span class="small">→割当</span></span>`).join(" "):"（なし。下の活動に直接入れられます）"}</div>`;
+  const allActs=L.phases.flatMap(p=>p.activities);const actStr=allActs.flatMap(a=>a.strategies);
+  document.getElementById("handoff").innerHTML+=`<div class="small" style="margin-top:4px">本時の方略の内訳：${lcHtml(actStr)} ${allActs.length?nudgeHtml(actStr,"activity",allActs[0].id,null):""}</div>`;
+  document.getElementById("lessonGoal").value=pd.goal||"";
+  document.getElementById("mearai").value=L.mearai||"";
+  document.getElementById("mearaiPhase").value=L.mearaiPhase||"intro";
+  let rows="";let no=0;
+  L.phases.forEach(ph=>{
+    ph.activities.forEach((a,ai)=>{
+      no++;
+      rows+=`<tr>${ai===0?`<td class="stage" rowspan="${ph.activities.length}">${esc(ph.name)}<br><input type="number" value="${ph.min}" oninput="LP('${ph.id}').min=+this.value;autosave();updateMinTotal()">分<br><button class="mini" style="margin-top:4px" onclick="addActivity('${ph.id}')">＋活動</button></td>`:""}
+        <td><textarea placeholder="学習活動（児童・生徒が何をするか）" oninput="A('${a.id}').text=this.value;autosave()">${esc(a.text)}</textarea></td>
+        <td><textarea placeholder="教師の指導・支援" oninput="A('${a.id}').teach=this.value;autosave()">${esc(a.teach)}</textarea></td>
+        <td><textarea placeholder="予想される子どもの反応" oninput="A('${a.id}').reaction=this.value;autosave()">${esc(a.reaction)}</textarea></td>
+        <td><textarea placeholder="評価（規準・方法。複数あれば改行で）" oninput="A('${a.id}').evalText=this.value;autosave()">${esc(a.evalText||"")}</textarea></td>
+        <td class="strat"><div class="chips">${chipsHtml(a.strategies,"activity",a.id)}</div><button class="add-chip" onclick="openPicker('activity','${a.id}',null)">＋ 一覧から選ぶ</button></td>
+        <td class="ops"><button class="mini ai" title="この活動について相談（活動・方略・I/You/We）" onclick="askActivity('${a.id}')">💬 AI<br>相談</button><br>${ph.activities.length>1?`<button class="mini danger" style="margin-top:4px" onclick="removeActivity('${ph.id}','${a.id}')">削除</button>`:""}</td></tr>`;
+    });
+  });
+  document.getElementById("devTable").innerHTML=`<colgroup><col style="width:74px"><col style="width:20%"><col style="width:17%"><col style="width:15%"><col style="width:12%"><col><col style="width:60px"></colgroup><thead><tr><th>段階・分</th><th>学習活動</th><th>教師の指導・支援</th><th>予想される子どもの反応</th><th>評価<br><span class="small" style="font-weight:400">複数可</span></th><th>調整方略（I/You/We）</th><th>相談</th></tr></thead><tbody>${rows}</tbody>`;
+  updateMinTotal();
+}
+function LP(id){return cur().lesson.phases.find(p=>p.id===id);}
+function updateMinTotal(){const el=document.getElementById("minTotal");const c=cur();if(!el||!c||!c.lesson)return;const sum=c.lesson.phases.reduce((a,p)=>a+(parseInt(p.min,10)||0),0);const want=parseInt(state.meta.minutes,10)||0;const warn=want&&sum!==want;el.textContent=`段階の分数の合計：${sum}分`+(want?`（1時間の分数：${want}分${warn?"　→ 合っていません":""}）`:"");el.className="min-total"+(warn?" warn":"");}
+function addActivity(phid){LP(phid).activities.push(newActivity());autosave();renderLesson();}
+function removeActivity(phid,aid){const ph=LP(phid);if(ph.activities.length<=1)return;ph.activities=ph.activities.filter(a=>a.id!==aid);autosave();renderLesson();}
+function assignFromUnit(sid,scene){
+  const L=cur().lesson;const acts=L.phases.flatMap(p=>p.activities);
+  const body=document.getElementById("whereBody");
+  body.innerHTML='<p class="small">どの活動に入れますか。</p>'+acts.map((a,i)=>`<button class="btn btn-ghost btn-sm" style="margin:3px" onclick="document.getElementById('whereBg').classList.remove('open');addStrategy('activity','${a.id}',${sid},'${scene}','単元');renderLesson()">活動${i+1} ${esc((a.text||"（未記入）").slice(0,22))}</button>`).join("");
+  openWhere();
+}
+
+/* ============================================================
+   方略ピッカー（1列・学年帯の目安・ⓘで使う場面）
+   ============================================================ */
+let pick={kind:null,owner:null,scene:null,layer:"I",checked:new Set()};
+function openPicker(kind,owner,scene,layer){
+  pick={kind,owner,scene,layer:layer||"I",checked:new Set()};
+  let title;
+  if(kind==="period"){const pd=P(owner);title=`${pLabel(pd)} の「${scene}」に方略を追加`;}
+  else{const a=A(owner);title=`活動「${(a.text||"（未記入）").slice(0,20)}」に方略を追加`;}
+  document.getElementById("pickerTitle").textContent=title;
+  document.getElementById("pickSearch").value="";
+  renderLayerTabs();renderPicker();
+  document.getElementById("pickerBg").classList.add("open");
+  // 場面が決まっているときは、その場面の見出しまでスクロール
+  setTimeout(()=>{const ph=scene||null;if(!ph)return;const t=document.querySelector(`.phase-group-head[data-phase="${ph}"]`);if(t){const body=t.closest(".modal-body");body.scrollTop=t.offsetTop-body.offsetTop-6;}},30);
+}
+function closePicker(){document.getElementById("pickerBg").classList.remove("open");}
+function renderLayerTabs(){
+  const subs={I:"自己調整（個人で調整する）",You:"共調整（他者やAIと一時的に共有する）",We:"社会的に共有された調整（集団で相互に）"};
+  document.getElementById("layerTabs").innerHTML=["I","You","We"].map(l=>`<button class="layer-tab ${l} ${pick.layer===l?"active":""}" onclick="pick.layer='${l}';renderLayerTabs();renderPicker()">${l}</button>`).join("");
+  const owner=pick.kind==="period"?P(pick.owner):A(pick.owner);const c=layerCounts(owner&&owner.strategies);
+  document.getElementById("pickerSub").innerHTML=`【${pick.layer}】${esc(subs[pick.layer])}　— ラベルは学年帯の目安。　いま入っている方略：${lcHtml(owner&&owner.strategies)}`;
+}
+function renderPicker(){
+  const q=document.getElementById("pickSearch").value.trim();
+  const list=document.getElementById("stratList");list.innerHTML="";
+  PHASES_ORDER.forEach(ph=>{
+    const items=STRATEGY_LIST.map((s,idx)=>({s,idx})).filter(o=>o.s.phase===ph&&o.s.layer===pick.layer&&(!q||o.s.text.includes(q)||(STRATEGY_INFO[o.idx]&&JSON.stringify(STRATEGY_INFO[o.idx]).includes(q))));
+    if(!items.length)return;
+    const h=document.createElement("div");h.className="phase-group-head";h.dataset.phase=ph;h.textContent=ph;list.appendChild(h);
+    PROC_BY_PHASE[ph].forEach(proc=>{
+      const its=items.filter(o=>o.s.proc===proc);if(!its.length)return;
+      const ph2=document.createElement("div");ph2.className="proc-head";ph2.textContent=proc;list.appendChild(ph2);
+      its.forEach(({s,idx})=>{
+        const info=STRATEGY_INFO[idx];
+        const dim=pick.scene&&s.phase!==pick.scene; // 選んだ場面と違う場面の方略は薄く（選べる）
+        const row=document.createElement("label");row.className="strat-item"+(dim?" dim":"");
+        row.innerHTML=`<input type="checkbox" ${pick.checked.has(idx)?"checked":""} onchange="pick.checked[this.checked?'add':'delete'](${idx});document.getElementById('pickCount').textContent=pick.checked.size+' 件選択中'">
+          <span class="lv lv${s.lv}" title="${LV_LABEL[s.lv]}">${LV_SHORT[s.lv]}</span>
+          <span>${esc(s.text)}<span class="small" style="font-size:.66rem;opacity:.6"> ${s.listNo||""}</span>${info?`<span class="info" onclick="event.preventDefault();this.closest('.strat-item').classList.toggle('show')">ⓘ</span>`:""}</span>
+          <span class="type">${s.type}</span>
+          ${info?`<div class="tip"><b>使う場面</b>：${esc(info.scene)}<br><b>子どもの姿</b>：${esc(info.child)}<br><b>声かけの例</b>：${esc(info.voice)}</div>`:""}`;
+        list.appendChild(row);
+      });
+    });
+  });
+  document.getElementById("pickCount").textContent=pick.checked.size?pick.checked.size+" 件選択中":"";
+}
+function commitPicker(){
+  let n=0;
+  pick.checked.forEach(idx=>{const s=STRATEGY_LIST[idx];const scene=pick.scene||s.phase;if(addStrategy(pick.kind,pick.owner,idx,scene,"手動"))n++;});
+  closePicker();
+  if(pick.kind==="period"){renderStages();renderBalance();}else renderLesson();
+  if(n)toast(n+" 件追加しました");
+}
+
+/* ============================================================
+   AI相談
+   ============================================================ */
+let dockMode={unit:"activity",lesson:"activity"};
+let pendingImage=null;
+function renderDock(scope){
+  const el=document.getElementById({unit:"dockUnit",lesson:"dockLesson",meta:"dockMeta"}[scope]);if(!el)return;
+  const isLab=state.way==="lab";
+  const name=isLab?"Kimura Edu Labの AI":({claude:"Claude",gemini:"Gemini",openai:"ChatGPT"}[state.provider]||"AI");
+  const mode=dockMode[scope];
+  el.innerHTML=`<div class="dock">
+    <div class="dock-head"><div class="t"><span>💬 AIに相談</span><span class="quota" id="quota-${scope}">${isLab?"今日あと … 回":"自分のキー"}</span></div>
+      <div class="s">${isLab?"Kimura Edu Labの AI で相談する（無料・1日"+LAB.perUser+"回まで）":name+"（自分のAPIキー）"}　<a href="#" onclick="go(4);return false;" style="color:var(--lab)">⚙変更</a></div></div>
+    ${scope==="meta"?'<div class="mode-tabs"><span class="mode-tab active">目標・評価規準の相談</span></div>':`<div class="mode-tabs"><button class="mode-tab ${mode==="activity"?"active":""}" onclick="dockMode.${scope}='activity';renderDock('${scope}')">学習活動の相談</button><button class="mode-tab ${mode==="strategy"?"active":""}" onclick="dockMode.${scope}='strategy';renderDock('${scope}')">調整方略の相談</button></div>`}
+    <div class="ai-log" id="log-${scope}"></div>
+    <div class="ai-input"><textarea id="q-${scope}" placeholder="${scope==="meta"?"例）この単元の目標に合う評価規準を3観点で":mode==="activity"?(scope==="unit"?"例）第2次で資料を比べて考察する時間を具体的にしたい":"例）展開の2番目の活動をペアで説明し合う形にしたい"):(scope==="unit"?"例）第3時に共調整(You)の方略を足したい":"例）まとめの活動に合う方略を1つ選んで")}" onkeydown="if(event.key==='Enter'&&(event.metaKey||event.ctrlKey))sendAI('${scope}')"></textarea>
+      <div style="display:flex;flex-direction:column;gap:4px"><button class="btn btn-primary btn-sm" onclick="sendAI('${scope}')">送信</button>${isLab?`<label class="mini" style="text-align:center;line-height:1.3">📷 画像等を<br>添えて相談<input type="file" accept="image/*" style="display:none" onchange="pickImage(event,'${scope}')"></label>`:""}</div>
+      <div id="img-${scope}" style="width:100%"></div></div>
+    <div class="notice">子どもの名前・顔など個人情報は入力しないでください。相談内容はAI（${isLab?"Anthropic社":"各社"}）に送信されます。</div>
+  </div>`;
+  rebuildLog(scope);
+  if(isLab)refreshQuota();
+}
+function logEl(scope){return document.getElementById("log-"+scope);}
+function appendMsg(scope,role,text){const log=logEl(scope);if(!log)return;const d=document.createElement("div");d.className="msg "+role;d.textContent=text;log.appendChild(d);log.scrollTop=log.scrollHeight;return d;}
+function historyOf(scope){if(scope==="unit")return state.ai.unit;if(scope==="meta"){if(!state.ai.meta)state.ai.meta=[];return state.ai.meta;}const id=state.currentPeriod;if(!state.ai.lesson[id])state.ai.lesson[id]=[];return state.ai.lesson[id];}
+function rebuildLog(scope){
+  const log=logEl(scope);if(!log)return;log.innerHTML="";
+  const h=historyOf(scope);
+  if(!h.length)appendMsg(scope,"sys",scope==="unit"?"各時の「💬 AI相談」ボタンか、下の入力欄から始められます。学習活動が固まってから方略を入れると、提案が的確になります。":scope==="meta"?"「単元の目標」「評価規準」の横の💬ボタンから、案を作ってもらえます。":"各活動の「💬 AI相談」から、活動の具体化・合う方略・I／You／We の判定を相談できます。");
+  h.forEach(m=>appendMsg(scope,m.role==="user"?"me":"ai",m.content));
+}
+function pickImage(ev,scope){
+  const f=ev.target.files&&ev.target.files[0];if(!f)return;
+  if(!confirm("写真に子どもの顔や名前が写っていないことを確認しましたか？（AIに送信されます）")){ev.target.value="";return;}
+  const img=new Image();const url=URL.createObjectURL(f);
+  img.onload=()=>{const c=document.createElement("canvas");const sc=Math.min(1,1280/Math.max(img.width,img.height));c.width=img.width*sc;c.height=img.height*sc;c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+    const data=c.toDataURL("image/jpeg",.8).split(",")[1];pendingImage={media_type:"image/jpeg",data};URL.revokeObjectURL(url);
+    document.getElementById("img-"+scope).innerHTML=`<span class="img-chip">📷 画像を添付（${f.name}）<span class="x" style="cursor:pointer" onclick="pendingImage=null;this.parentElement.remove()">×</span></span>`;};
+  img.src=url;ev.target.value="";
+}
+
+/* 文脈（単元／本時）をAI向けに文章化 */
+function unitContext(){
+  const m=state.meta;
+  let ctx=`【教科】${m.subject}　【学年】${m.grade}　【単元】${m.unit}　【総時数】${m.hours}\n【単元の目標】${m.unitGoal}\n`;
+  if(m.assessment)ctx+=`【評価規準】${m.assessment}\n`;
+  ctx+=`【人数】${m.students}　【1時間】${m.minutes}分\n\n単元計画（次→時）。各時には id が付いています。提案は必ず id で指定してください：\n`;
+  state.stages.forEach((st,si)=>{ctx+=`■第${si+1}次「${st.name}」（${st.phase}）\n`;
+    st.periods.forEach(pd=>{ctx+=`  [id=${pd.id}] ${pLabel(pd)}（学習過程:${pd.process}）\n`;if(pd.goal)ctx+=`    目標：${pd.goal}\n`;ctx+=`    学習活動：${pd.text||"（未記入）"}\n`;if(pd.evalText)ctx+=`    評価：${pd.evalText}\n`;
+      ctx+=pd.strategies.length?pd.strategies.map(s=>`    ・[${s.layer}／${s.scene}] #${s.sid} ${s.text}\n`).join(""):"    （方略未設定）\n";});});
+  return ctx;
+}
+function lessonContext(){
+  const pd=cur();const L=pd.lesson;const m=state.meta;
+  const ps=allPeriods();const i=ps.findIndex(x=>x.pd===pd);const prev=ps[i-1],next=ps[i+1];
+  let ctx=`【教科】${m.subject}　【学年】${m.grade}　【単元】${m.unit}　【本時】${pLabel(pd)}／${m.hours||ps.length}時間\n【本時の目標】${pd.goal}\n【めあて】${L.mearai}\n`;
+  if(prev)ctx+=`【前時】${prev.pd.text}\n`;if(next)ctx+=`【次時】${next.pd.text}\n`;
+  if(pd.strategies.length)ctx+=`【単元で決めた本時の方略】${pd.strategies.map(s=>`#${s.sid} ${s.text}`).join("／")}\n`;
+  ctx+=`\n本時の展開。各活動には id が付いています。提案は必ず id で指定してください：\n`;
+  let no=0;L.phases.forEach(ph=>{ctx+=`■${ph.name}（${ph.min}分）\n`;ph.activities.forEach(a=>{no++;ctx+=`  [id=${a.id}] 活動${no}：${a.text||"（未記入）"}\n`;if(a.teach)ctx+=`    教師：${a.teach}\n`;if(a.reaction)ctx+=`    反応：${a.reaction}\n`;if(a.evalText)ctx+=`    評価：${a.evalText}\n`;ctx+=a.strategies.length?a.strategies.map(s=>`    ・[${s.layer}／${s.scene}] #${s.sid} ${s.text}\n`).join(""):"    （方略未設定）\n";});});
+  return ctx;
+}
+/* 各時／各活動のボタンから */
+function menu(title,items){
+  const body=document.getElementById("whereBody");
+  body.innerHTML=`<p class="small">${esc(title)}</p>`+items.map((it,i)=>`<button class="btn btn-ghost menu-btn" data-i="${i}"><b>${esc(it[0])}</b><br><span class="small">${esc(it[1])}</span></button>`).join("");
+  body.querySelectorAll("button").forEach(b=>b.onclick=()=>{document.getElementById("whereBg").classList.remove("open");items[+b.dataset.i][2]();});
+  openWhere("AIに何を相談しますか");
+}
+function askPeriod(pid){
+  const pd=P(pid);const L=pLabel(pd);
+  const run=(mode,text,kind)=>{dockMode.unit=mode;renderDock("unit");const q=document.getElementById("q-unit");q.value=text;document.getElementById("pd-"+pid).scrollIntoView({behavior:"smooth",block:"center"});sendAI("unit",kind);};
+  menu(`${L} について`,[
+    ["学習活動を具体的にしたい","この時間に子どもが何をするかを一緒に詰めます",()=>run("activity",`${L}の学習活動をもう少し具体的にしたいです。${pd.text?"":"まだ活動が決まっていないので、候補を2つほど示してください。"}`)],
+    ["合う方略を提案して（見通す・実行する・振り返る）","活動に合わせて3つの場面に1つずつ",()=>run("strategy",`${L}の活動に合う方略を、見通す・実行する・振り返るに1つずつ提案してください。`)],
+    ["この時間の活動は I／You／We のどれ？","理由つきで判定します",()=>run("strategy",`${L}の学習活動は I／You／We のどれに当たりますか？理由も教えてください。`,"classify")],
+    ["自分のことばで相談する","入力欄に書いて送信",()=>{dockMode.unit="activity";renderDock("unit");const q=document.getElementById("q-unit");q.value=`${L}について：`;q.focus();}],
+  ]);
+}
+function askActivity(aid){
+  const a=A(aid);const acts=cur().lesson.phases.flatMap(p=>p.activities);const no=acts.indexOf(a)+1;const nm=`${no}番目の活動「${(a.text||"（未記入）").slice(0,24)}」`;
+  const run=(mode,text,kind)=>{dockMode.lesson=mode;renderDock("lesson");document.getElementById("q-lesson").value=text;sendAI("lesson",kind);};
+  menu(`${nm} について`,[
+    ["この活動を具体的にしたい","学習活動・教師の支援・予想される反応を一緒に詰めます",()=>run("activity",`${nm}を具体的にしたいです。学習活動・教師の指導や支援・予想される子どもの反応の案を示してください。`)],
+    ["この活動に合う方略を提案して","活動の中身に合わせて1〜2個",()=>run("strategy",`${nm}に合う方略を1〜2個、理由つきで提案してください。`)],
+    ["この活動は I／You／We のどれ？","理由つきで判定します",()=>run("strategy",`${nm}は I／You／We のどれに当たりますか？理由も教えてください。`,"classify")],
+    ["自分のことばで相談する","入力欄に書いて送信",()=>{const q=document.getElementById("q-lesson");q.value=`${nm}について：`;q.focus();}],
+  ]);
+}
+function askMeta(what){
+  const q=document.getElementById("q-meta");if(!q)return;
+  q.value=what==="goal"?"単元の目標の案を、教科・学年・単元名から2〜3通り示してください。":"単元の目標に合う評価規準の案を、【知識・技能】【思考・判断・表現】【主体的に学習に取り組む態度】の3観点で示してください。";
+  sendAI("meta","assessment");
+}
+function askTrim(){const q=document.getElementById("q-unit");dockMode.unit="strategy";renderDock("unit");document.getElementById("q-unit").value="方略が多すぎる時があれば、残す方略と外す方略を理由つきで提案してください。";sendAI("unit","trim");}
+
+async function sendAI(scope,forceKind){
+  const inp=document.getElementById("q-"+scope);const q=(inp.value||"").trim();if(!q)return;
+  if(scope==="lesson"&&!cur())return;
+  const mode=dockMode[scope];
+  let kind=forceKind||(scope==="meta"?"assessment":scope==="unit"?(mode==="activity"?"unit-activity":"unit-strategy"):(mode==="activity"?"lesson-activity":"lesson-strategy"));
+  if(!forceKind&&/I\s*[／/]\s*You\s*[／/]\s*We\s*のどれ|どの層|分類/.test(q)&&!/提案/.test(q))kind="classify";
+  appendMsg(scope,"me",q);inp.value="";
+  const hist=historyOf(scope);
+  const context=scope==="lesson"?lessonContext():unitContext();
+  const typing=document.createElement("div");typing.className="typing";typing.textContent="考えています…";logEl(scope).appendChild(typing);
+  const image=pendingImage;pendingImage=null;document.getElementById("img-"+scope).innerHTML="";
+  try{
+    const res=state.way==="lab"?await callLab(kind,context,q,hist,image,(t)=>typing.textContent=t):await callOwn(kind,context,q,hist,(t)=>typing.textContent=t);
+    typing.remove();
+    handleReply(scope,kind,res.text);
+    hist.push({role:"user",content:q});hist.push({role:"assistant",content:stripJson(res.text)});
+    if(res.remaining!=null)setQuota(res.remaining);
+    autosave();
+  }catch(err){
+    typing.remove();
+    appendMsg(scope,"err",friendlyError(err));
+    if(err&&err.code==="user_limit")setQuota(0);
+  }
+}
+function stripJson(t){return (t||"").replace(/```(?:json)?[\s\S]*?```/gi,"").trim();}
+function extractJson(raw){
+  let text=(raw||"").trim(),data=null;
+  const m=text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if(m){try{data=JSON.parse(m[1].trim());}catch(e){}if(data)text=text.replace(/```(?:json)?[\s\S]*?```/i,"").trim();}
+  if(!data){try{data=JSON.parse(text);text="";}catch(e){}}
+  if(!data){const s=text.indexOf("{"),e=text.lastIndexOf("}");if(s>=0&&e>s){try{data=JSON.parse(text.slice(s,e+1));text=(text.slice(0,s)+text.slice(e+1)).trim();}catch(e2){}}}
+  return {data,text};
+}
+const actReplyCount={unit:0,lesson:0};const strategyNudged={unit:false,lesson:false};
+function maybeStrategyNudge(scope){
+  if(strategyNudged[scope]||actReplyCount[scope]<2)return;strategyNudged[scope]=true;
+  const log=logEl(scope);if(!log)return;const card=document.createElement("div");card.className="ai-card nudge";
+  card.innerHTML=`<div class="where">活動が固まってきたら</div>次は、${scope==="unit"?"各時":"各活動"}に合う調整方略（I / You / We）を相談しましょう。<div class="act"></div>`;
+  const b=document.createElement("button");b.className="mini ai";b.textContent="調整方略を相談する →";b.onclick=()=>{dockMode[scope]="strategy";renderDock(scope);};
+  card.querySelector(".act").appendChild(b);log.appendChild(card);log.scrollTop=log.scrollHeight;
+}
+function handleReply(scope,kind,raw){
+  const {data,text}=extractJson(raw);
+  appendMsg(scope,"ai",text||"（提案を下のカードにまとめました）");
+  if(kind==="unit-activity"||kind==="lesson-activity"){actReplyCount[scope]++;setTimeout(()=>maybeStrategyNudge(scope),0);}
+  if(!data)return;
+  const log=logEl(scope);
+  if(kind==="unit-activity"&&Array.isArray(data.activities)){
+    data.activities.forEach(a=>{const f=findPeriod(String(a.period||a.stage||""));const card=document.createElement("div");card.className="ai-card";
+      a.text=cleanAIText(a.text);
+      card.innerHTML=`<div class="where">${f?esc(pLabel(f.pd)):"（どの時か読み取れませんでした）"} の学習活動</div>${esc(a.text)}<div class="act"></div>`;
+      const act=card.querySelector(".act");const b=document.createElement("button");b.className="mini ai";b.textContent=f?"この時に反映":"時を選んで反映";
+      b.onclick=()=>{const put=pid=>{const pd=P(pid);pd.text=pd.text&&pd.text.trim()?pd.text+"\n"+a.text:a.text;autosave();renderStages();b.textContent="✓ 反映しました";b.disabled=true;};
+        if(f)put(f.pd.id);else chooseWhere(put);};
+      act.appendChild(b);log.appendChild(card);});
+  }
+  if(kind==="unit-strategy"&&Array.isArray(data.suggestions)){
+    data.suggestions.forEach(sg=>{const sid=parseInt(sg.id,10);const s=STRATEGY_LIST[sid];if(!s)return;const f=findPeriod(String(sg.period||sg.stage||""));const scene=PHASES_ORDER.includes(sg.scene)?sg.scene:s.phase;
+      const card=document.createElement("div");card.className="ai-card";
+      card.innerHTML=`<div class="where">${f?esc(pLabel(f.pd)):"（どの時か読み取れませんでした）"}・${esc(scene)}</div><span class="lbl ${s.layer}">${s.layer}</span>${esc(s.text)} <span class="small">（${s.proc}・${LV_SHORT[s.lv]}・${s.type}）</span>${sg.reason?`<div class="why">${esc(sg.reason)}</div>`:""}<div class="act"></div>`;
+      const act=card.querySelector(".act");const b=document.createElement("button");b.className="mini ai";b.textContent=f?"この時に追加":"時を選んで追加";
+      b.onclick=()=>{const put=pid=>{addStrategy("period",pid,sid,scene,"AI");renderStages();renderBalance();b.textContent="✓ 追加しました";b.disabled=true;};if(f)put(f.pd.id);else chooseWhere(put);};
+      act.appendChild(b);log.appendChild(card);});
+  }
+  if(kind==="lesson-activity"&&Array.isArray(data.activities)){
+    data.activities.forEach(a=>{a.text=cleanAIText(a.text);a.teach=cleanAIText(a.teach);a.reaction=cleanAIText(a.reaction);const tgt=A(String(a.activity||""));const ok=tgt&&tgt.id;const card=document.createElement("div");card.className="ai-card";
+      card.innerHTML=`<div class="where">${ok?"活動の案":"（どの活動か読み取れませんでした）"}</div><b>活動</b>：${esc(a.text)}${a.teach?`<br><b>教師</b>：${esc(a.teach)}`:""}${a.reaction?`<br><b>反応</b>：${esc(a.reaction)}`:""}<div class="act"></div>`;
+      const b=document.createElement("button");b.className="mini ai";b.textContent=ok?"この活動に反映":"活動を選んで反映";
+      b.onclick=()=>{const put=aid=>{const t=A(aid);if(a.text)t.text=a.text;if(a.teach)t.teach=a.teach;if(a.reaction)t.reaction=a.reaction;autosave();renderLesson();b.textContent="✓ 反映しました";b.disabled=true;};if(ok)put(tgt.id);else chooseActivity(put);};
+      card.querySelector(".act").appendChild(b);log.appendChild(card);});
+  }
+  if(kind==="lesson-strategy"&&Array.isArray(data.suggestions)){
+    data.suggestions.forEach(sg=>{const sid=parseInt(sg.id,10);const s=STRATEGY_LIST[sid];if(!s)return;const tgt=A(String(sg.activity||""));const ok=tgt&&tgt.id;const scene=PHASES_ORDER.includes(sg.scene)?sg.scene:s.phase;
+      const card=document.createElement("div");card.className="ai-card";
+      card.innerHTML=`<div class="where">${ok?"活動に入れる方略":"（どの活動か読み取れませんでした）"}・${esc(scene)}</div><span class="lbl ${s.layer}">${s.layer}</span>${esc(s.text)}${sg.reason?`<div class="why">${esc(sg.reason)}</div>`:""}<div class="act"></div>`;
+      const b=document.createElement("button");b.className="mini ai";b.textContent=ok?"この活動に追加":"活動を選んで追加";
+      b.onclick=()=>{const put=aid=>{addStrategy("activity",aid,sid,scene,"AI");renderLesson();b.textContent="✓ 追加しました";b.disabled=true;};if(ok)put(tgt.id);else chooseActivity(put);};
+      card.querySelector(".act").appendChild(b);log.appendChild(card);});
+  }
+  if(kind==="assessment"&&(data.unitGoal||data.assessment)){
+    const card=document.createElement("div");card.className="ai-card";
+    card.innerHTML=`<div class="where">案</div>${data.unitGoal?`<b>目標</b>：${esc(data.unitGoal)}<br>`:""}${data.assessment?`<b>評価規準</b>：<br>${esc(data.assessment).replace(/\n/g,"<br>")}`:""}<div class="act"></div>`;
+    const b=document.createElement("button");b.className="mini ai";b.textContent="基本情報に反映";
+    b.onclick=()=>{if(data.unitGoal)state.meta.unitGoal=data.unitGoal;if(data.assessment)state.meta.assessment=data.assessment;restoreMeta();autosave();b.textContent="✓ 反映しました";b.disabled=true;};
+    card.querySelector(".act").appendChild(b);log.appendChild(card);
+  }
+  if(kind==="trim"&&(Array.isArray(data.remove)||Array.isArray(data.keep))){
+    const rm=(data.remove||[]).map(n=>parseInt(n,10)).filter(n=>STRATEGY_LIST[n]);
+    if(rm.length){const card=document.createElement("div");card.className="ai-card";card.innerHTML=`<div class="where">外す候補 ${rm.length} 件</div>${rm.map(n=>`<span class="lbl ${STRATEGY_LIST[n].layer}">${STRATEGY_LIST[n].layer}</span>${esc(STRATEGY_LIST[n].text)}`).join("<br>")}<div class="act"></div>`;
+      const b=document.createElement("button");b.className="mini danger";b.textContent="これらを単元から外す";b.onclick=()=>{allPeriods().forEach(x=>x.pd.strategies=x.pd.strategies.filter(s=>!rm.includes(s.sid)));autosave();renderStages();renderBalance();b.textContent="✓ 外しました";b.disabled=true;};card.querySelector(".act").appendChild(b);log.appendChild(card);}
+  }
+  log.scrollTop=log.scrollHeight;
+}
+function openWhere(title){document.querySelector("#whereBg h3").textContent=title||"どこに入れますか";document.getElementById("whereBg").classList.add("open");}
+function chooseWhere(cb){const body=document.getElementById("whereBody");body.innerHTML='<p class="small">AIの答えから、どの時かを読み取れませんでした。入れる時を選んでください。</p>'+allPeriods().map(x=>`<button class="btn btn-ghost btn-sm" style="margin:3px" data-pid="${x.pd.id}">${esc(pLabel(x.pd))} ${esc((x.pd.text||"").slice(0,22))}</button>`).join("");body.querySelectorAll("button").forEach(b=>b.onclick=()=>{document.getElementById("whereBg").classList.remove("open");cb(b.dataset.pid);});openWhere();}
+function chooseActivity(cb){const acts=cur().lesson.phases.flatMap(p=>p.activities);const body=document.getElementById("whereBody");body.innerHTML='<p class="small">どの活動に入れますか。</p>'+acts.map((a,i)=>`<button class="btn btn-ghost btn-sm" style="margin:3px" data-aid="${a.id}">活動${i+1} ${esc((a.text||"（未記入）").slice(0,22))}</button>`).join("");body.querySelectorAll("button").forEach(b=>b.onclick=()=>{document.getElementById("whereBg").classList.remove("open");cb(b.dataset.aid);});openWhere();}
+
+/* ---------- Lab の AI（中継サーバー） ---------- */
+let tsWidget=null;
+function turnstileToken(){
+  return new Promise((resolve,reject)=>{
+    if(!window.turnstile){reject(Object.assign(new Error("確認用の部品を読み込めませんでした。ページを再読み込みしてください。"),{code:"turnstile"}));return;}
+    let host=document.getElementById("ts-host");if(!host){host=document.createElement("div");host.id="ts-host";host.style.cssText="position:fixed;left:-9999px;bottom:0";document.body.appendChild(host);}
+    const timer=setTimeout(()=>reject(Object.assign(new Error("確認に時間がかかっています。ページを再読み込みしてもう一度お試しください。"),{code:"turnstile"})),20000);
+    const opts={sitekey:LAB.siteKey,size:"invisible",callback:t=>{clearTimeout(timer);resolve(t);},"error-callback":()=>{clearTimeout(timer);reject(Object.assign(new Error("確認に失敗しました。ページを再読み込みしてください。"),{code:"turnstile"}));}};
+    try{ if(tsWidget==null){tsWidget=turnstile.render(host,Object.assign({execution:"execute"},opts));} else {turnstile.reset(tsWidget);} turnstile.execute(tsWidget,opts); }
+    catch(e){clearTimeout(timer);reject(Object.assign(new Error("確認の部品でエラーが起きました。ページを再読み込みしてください。"),{code:"turnstile"}));}
+  });
+}
+async function callLab(kind,context,question,history,image,onStatus){
+  onStatus&&onStatus("確認しています…");
+  const token=await turnstileToken();
+  onStatus&&onStatus("Kimura Edu Labの AI が考えています…");
+  const body={kind,context,question,history:history.slice(-6),turnstileToken:token};
+  if(image)body.image=image;
+  let resp,data;
+  try{resp=await fetch(LAB.url+"/v1/consult",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body)});data=await resp.json().catch(()=>({}));}
+  catch(e){throw Object.assign(new Error("Labのサーバーに接続できませんでした。インターネット接続を確認してください（学校のネットワークでは通信が止められることがあります）。"),{code:"network"});}
+  if(!resp.ok||data.error){const er=data.error||{};throw Object.assign(new Error(er.message||("エラー（HTTP "+resp.status+"）")),{code:er.code||"upstream_error",detail:er.detail});}
+  return {text:data.text||"",remaining:data.remaining};
+}
+async function refreshQuota(){
+  try{const r=await fetch(LAB.url+"/v1/quota");const d=await r.json();setQuota(d.globalOpen?d.remaining:0,d.globalOpen);}catch(e){document.querySelectorAll(".quota").forEach(q=>q.textContent="接続を確認中…");}
+}
+function setQuota(n,open){
+  document.querySelectorAll(".quota").forEach(q=>{if(state.way!=="lab")return;q.textContent=open===false?"本日は混み合っています":`今日あと ${n} 回`;});
+  const lq=document.getElementById("labQuota");if(lq)lq.textContent=`今日あと ${n} 回使えます。`;
+}
+function friendlyError(err){
+  const code=err&&err.code;const m=(err&&err.message)||"";
+  if(code==="user_limit"||code==="global_limit"||code==="monthly_limit"||code==="credit"||code==="config"||code==="turnstile"||code==="network"||code==="origin")return m;
+  if(code==="upstream_busy"||code==="upstream_rate")return "⏳ "+m;
+  if(state.way==="own")return "自分のAPIキーでの相談でエラーが起きました。\n"+explainOwnError(err);
+  return "うまく応答を得られませんでした。少し待ってもう一度お試しください。"+(m?"\n（詳細: "+m+"）":"");
+}
+
+/* ---------- 自分のキー ---------- */
+const PROVIDERS={
+  gemini:{label:"Google (Gemini)",prefix:"AQ. / AIza",defaultModel:"gemini-3.8-flash",models:[["gemini-3.8-flash","Gemini 3.8 Flash（無料枠あり）"],["gemini-3.5-flash-lite","Gemini 3.5 Flash-Lite（無料枠が緩い）"],["gemini-3.5-flash","Gemini 3.5 Flash"]],
+    guide:'<b>Google AI Studio</b>（<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>）で「Create API key」。無料枠があります。混雑時は「混雑しています」が出ることがあります。'},
+  claude:{label:"Anthropic (Claude)",prefix:"sk-ant-",defaultModel:"claude-sonnet-5-5",models:[["claude-sonnet-5-5","Claude Sonnet 5.5（速さと質のバランス）"],["claude-haiku-5-5","Claude Haiku 5.5（高速・低コスト）"],["claude-opus-5-5","Claude Opus 5.5（高品質）"],["claude-fable-5-1","Claude Fable 5.1（最上位・高コスト・遅め）"]],
+    guide:'<b>Claude Console</b>（<a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>）の API keys で発行。従量課金です。'},
+  openai:{label:"OpenAI (ChatGPT)",prefix:"sk-",defaultModel:"gpt-6-luna",models:[["gpt-6-luna","GPT-6 Luna（低コスト）"],["gpt-6.1-sol","GPT-6.1 Sol（バランス）"],["gpt-6-astra","GPT-6 Astra（高品質）"]],
+    guide:'<b>OpenAI Platform</b>（<a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com/api-keys</a>）で「Create new secret key」。従量課金です。'}
+};
+/* 自分のキー用の指示文：中継サーバーと同じ内容（Lab 側 prompts.js と揃える） */
+const OWN_PROMPTS={"unit-activity":"あなたは「調整学習デザイナー」（自己調整学習の単元構想・指導案づくりを支援するWebアプリ）に組み込まれた教育アドバイザーです。\n【役割の限定】答えてよいのは、単元構想・本時の指導案・学習活動・調整方略（自己調整学習）に関する相談だけです。それ以外の話題（一般的な雑談、プログラミング、文章の代筆、個人的な相談など）には「このAIは授業づくりの相談専用です。単元や本時のことでしたら何でもお聞きください。」とだけ返してください。\n【個人情報】相談文に児童・生徒の氏名などが含まれていても、答えの中で繰り返さないでください。\n【前提知識】調整方略は3つの層に分かれます：I＝自己調整（個人で調整する）、You＝共調整（他者やAIと一時的に調整を共有する）、We＝社会的に共有された調整（集団で相互に調整し、共有した目標へ向かう）。学習の場面は「見通す・実行する・振り返る」の3つで、各場面に過程（課題・目標・計画／推進・確認・調節／評価・帰属・適用）があります。\n【方略の提案数の目安】一斉授業の1時間なら1〜2個、自由進度学習の1時間なら4〜5個。これより多い提案は求められない限りしない。\n【文体】日本語で、簡潔に、あたたかく。先生を評価するのではなく、一緒に考える姿勢で。\n【この相談の目的】教師が作成中の1単元の計画を読み、単元全体の流れ（見通す→実行する→振り返る）と、各「次」「時」の学習活動を一緒に具体化します。児童・生徒が各時間に実際に何をするか（問い、資料、活動形態、思考の流れ、時間配分）が目に浮かぶレベルを目指します。この段階では調整方略の話は持ち出しません。\n【対話のしかた】未記入・あいまいな点を見つけて問いかける。一度に問うのは1〜2点まで。具体的な選択肢や例を添える。教師の答えを受けたら活動文の形に落とし込んで提案し、次に詰めるべき点を問いかけて終わる。すでに提案した内容を「もう少し具体的に」と繰り返し求めない（履歴にある提案は覚えていること）。\n各「時」には識別子（period id、例 s2-p1）が付いています。提案は必ずその id で指定します。\n【答えの形】まず文章で答え、具体的な提案があるときだけ、本文の最後に ```json ... ``` のコードブロックを1つ付けてください。提案がないときはJSONを付けません。JSONだけを返すことは禁止です（文章を必ず付ける）。\nJSONの形：{\"activities\":[{\"period\":\"時のid\",\"text\":\"その時間の学習活動文（児童生徒の動きが分かる具体的な記述。文末に字数は書かない）\"}]}\n必ず最後は教師への問いかけで締めくくってください。","unit-strategy":"あなたは「調整学習デザイナー」（自己調整学習の単元構想・指導案づくりを支援するWebアプリ）に組み込まれた教育アドバイザーです。\n【役割の限定】答えてよいのは、単元構想・本時の指導案・学習活動・調整方略（自己調整学習）に関する相談だけです。それ以外の話題（一般的な雑談、プログラミング、文章の代筆、個人的な相談など）には「このAIは授業づくりの相談専用です。単元や本時のことでしたら何でもお聞きください。」とだけ返してください。\n【個人情報】相談文に児童・生徒の氏名などが含まれていても、答えの中で繰り返さないでください。\n【前提知識】調整方略は3つの層に分かれます：I＝自己調整（個人で調整する）、You＝共調整（他者やAIと一時的に調整を共有する）、We＝社会的に共有された調整（集団で相互に調整し、共有した目標へ向かう）。学習の場面は「見通す・実行する・振り返る」の3つで、各場面に過程（課題・目標・計画／推進・確認・調節／評価・帰属・適用）があります。\n【方略の提案数の目安】一斉授業の1時間なら1〜2個、自由進度学習の1時間なら4〜5個。これより多い提案は求められない限りしない。\n【文体】日本語で、簡潔に、あたたかく。先生を評価するのではなく、一緒に考える姿勢で。\n【この相談の目的】教師が作成中の1単元の計画を読み、各「時」に調整方略を入れる手助けをします。\n【最重要ルール】方略の文章を自分で創作してはいけません。提案できるのは、ユーザーメッセージ内の「方略カタログ」に載っている方略だけです。各方略には #番号 が付いています。番号（id）で指定してください。\n【各時に3つの場面】1つの「時」の中にも見通す・実行する・振り返るの小さな流れがあります。提案は原則として、その時の活動に合わせて「見通す」「実行する」「振り返る」を1つずつ（計3つまで）。単元の何時間目かだけで場面を決めないでください（例：第1時だから見通すだけ、最終時だから振り返るだけ、という提案はしない）。\n【活動が未記入の時】その時には提案せず、「第○時の活動が決まると方略を選べます」と伝えて活動を先に聞く。\n【理由】reason には「その活動のどこに対して、この方略がどう効くか」を1文で具体的に書く。\n各「時」には識別子（period id、例 s2-p1）が付いています。stage ではなく、必ず時の id を指定してください。\n【答えの形】まず文章で答え、具体的な提案があるときだけ、本文の最後に ```json ... ``` のコードブロックを1つ付けてください。提案がないときはJSONを付けません。JSONだけを返すことは禁止です（文章を必ず付ける）。\nJSONの形：{\"suggestions\":[{\"id\":カタログの番号(整数),\"period\":\"時のid\",\"scene\":\"見通す|実行する|振り返る\",\"reason\":\"理由(1文)\"}]}\nidは必ずカタログに実在する番号にしてください。","lesson-activity":"あなたは「調整学習デザイナー」（自己調整学習の単元構想・指導案づくりを支援するWebアプリ）に組み込まれた教育アドバイザーです。\n【役割の限定】答えてよいのは、単元構想・本時の指導案・学習活動・調整方略（自己調整学習）に関する相談だけです。それ以外の話題（一般的な雑談、プログラミング、文章の代筆、個人的な相談など）には「このAIは授業づくりの相談専用です。単元や本時のことでしたら何でもお聞きください。」とだけ返してください。\n【個人情報】相談文に児童・生徒の氏名などが含まれていても、答えの中で繰り返さないでください。\n【前提知識】調整方略は3つの層に分かれます：I＝自己調整（個人で調整する）、You＝共調整（他者やAIと一時的に調整を共有する）、We＝社会的に共有された調整（集団で相互に調整し、共有した目標へ向かう）。学習の場面は「見通す・実行する・振り返る」の3つで、各場面に過程（課題・目標・計画／推進・確認・調節／評価・帰属・適用）があります。\n【方略の提案数の目安】一斉授業の1時間なら1〜2個、自由進度学習の1時間なら4〜5個。これより多い提案は求められない限りしない。\n【文体】日本語で、簡潔に、あたたかく。先生を評価するのではなく、一緒に考える姿勢で。\n【この相談の目的】本時（1時間）の指導案の、導入・展開・まとめの各活動を具体化します。前時・次時の情報があれば、本時がその流れのどこに位置するかを踏まえます。活動ごとに「学習活動」「教師の指導・支援」「予想される子どもの反応」を書けるレベルを目指します。この段階では調整方略の話は持ち出しません。\n【対話のしかた】一度に問うのは1〜2点まで。具体例を添える。すでに提案した内容を繰り返し「もう少し具体的に」と求めない。\n各活動には識別子（activity id、例 develop-2）が付いています。提案は必ずその id で指定します。\n【答えの形】まず文章で答え、具体的な提案があるときだけ、本文の最後に ```json ... ``` のコードブロックを1つ付けてください。提案がないときはJSONを付けません。JSONだけを返すことは禁止です（文章を必ず付ける）。\nJSONの形：{\"activities\":[{\"activity\":\"活動のid\",\"text\":\"学習活動\",\"teach\":\"教師の指導・支援\",\"reaction\":\"予想される子どもの反応\"}]}\n必ず最後は教師への問いかけで締めくくってください。","lesson-strategy":"あなたは「調整学習デザイナー」（自己調整学習の単元構想・指導案づくりを支援するWebアプリ）に組み込まれた教育アドバイザーです。\n【役割の限定】答えてよいのは、単元構想・本時の指導案・学習活動・調整方略（自己調整学習）に関する相談だけです。それ以外の話題（一般的な雑談、プログラミング、文章の代筆、個人的な相談など）には「このAIは授業づくりの相談専用です。単元や本時のことでしたら何でもお聞きください。」とだけ返してください。\n【個人情報】相談文に児童・生徒の氏名などが含まれていても、答えの中で繰り返さないでください。\n【前提知識】調整方略は3つの層に分かれます：I＝自己調整（個人で調整する）、You＝共調整（他者やAIと一時的に調整を共有する）、We＝社会的に共有された調整（集団で相互に調整し、共有した目標へ向かう）。学習の場面は「見通す・実行する・振り返る」の3つで、各場面に過程（課題・目標・計画／推進・確認・調節／評価・帰属・適用）があります。\n【方略の提案数の目安】一斉授業の1時間なら1〜2個、自由進度学習の1時間なら4〜5個。これより多い提案は求められない限りしない。\n【文体】日本語で、簡潔に、あたたかく。先生を評価するのではなく、一緒に考える姿勢で。\n【この相談の目的】本時の各活動に合う調整方略を、活動単位で提案します。単元構想で決めた方略があれば、それを本時のどの活動に割り当てるかも提案します。\n【最重要ルール】方略の文章を自分で創作してはいけません。提案できるのは「方略カタログ」の #番号 だけです。\n【場面】導入は見通す、まとめは振り返る、と機械的に決めず、活動の中身で場面を判断します。1つの活動に1〜2個まで。\n各活動には識別子（activity id、例 develop-2）が付いています。必ずその id で指定します。\n【答えの形】まず文章で答え、具体的な提案があるときだけ、本文の最後に ```json ... ``` のコードブロックを1つ付けてください。提案がないときはJSONを付けません。JSONだけを返すことは禁止です（文章を必ず付ける）。\nJSONの形：{\"suggestions\":[{\"id\":カタログの番号(整数),\"activity\":\"活動のid\",\"scene\":\"見通す|実行する|振り返る\",\"reason\":\"理由(1文)\"}]}","classify":"あなたは「調整学習デザイナー」（自己調整学習の単元構想・指導案づくりを支援するWebアプリ）に組み込まれた教育アドバイザーです。\n【役割の限定】答えてよいのは、単元構想・本時の指導案・学習活動・調整方略（自己調整学習）に関する相談だけです。それ以外の話題（一般的な雑談、プログラミング、文章の代筆、個人的な相談など）には「このAIは授業づくりの相談専用です。単元や本時のことでしたら何でもお聞きください。」とだけ返してください。\n【個人情報】相談文に児童・生徒の氏名などが含まれていても、答えの中で繰り返さないでください。\n【前提知識】調整方略は3つの層に分かれます：I＝自己調整（個人で調整する）、You＝共調整（他者やAIと一時的に調整を共有する）、We＝社会的に共有された調整（集団で相互に調整し、共有した目標へ向かう）。学習の場面は「見通す・実行する・振り返る」の3つで、各場面に過程（課題・目標・計画／推進・確認・調節／評価・帰属・適用）があります。\n【方略の提案数の目安】一斉授業の1時間なら1〜2個、自由進度学習の1時間なら4〜5個。これより多い提案は求められない限りしない。\n【文体】日本語で、簡潔に、あたたかく。先生を評価するのではなく、一緒に考える姿勢で。\n【この相談の目的】示された学習活動（または方略）が、I（自己調整）・You（共調整）・We（社会的に共有された調整）のどれに当たるかを判定します。\n【答え方】最初の一語で断定します（例：「You（共調整）です。」）。続けて理由を1〜2文。最後に「こう変えると別の層になる」を1文添えます（例：「説明し合う場面をなくせば I になります」）。曖昧なときも、まず最も近い層を一つ選んでから、迷う点を述べます。「どれとも言えない」とは答えません。\n【判定の目安】I＝一人で自分の学びを調整している／You＝特定の相手（ペア・AI・教師）と一時的に調整を共有している（相談・助言・比較）／We＝集団が共有した目標に向かって互いに調整し合っている（役割分担・合意形成・集団での振り返り）。\nJSONは付けません。","trim":"あなたは「調整学習デザイナー」（自己調整学習の単元構想・指導案づくりを支援するWebアプリ）に組み込まれた教育アドバイザーです。\n【役割の限定】答えてよいのは、単元構想・本時の指導案・学習活動・調整方略（自己調整学習）に関する相談だけです。それ以外の話題（一般的な雑談、プログラミング、文章の代筆、個人的な相談など）には「このAIは授業づくりの相談専用です。単元や本時のことでしたら何でもお聞きください。」とだけ返してください。\n【個人情報】相談文に児童・生徒の氏名などが含まれていても、答えの中で繰り返さないでください。\n【前提知識】調整方略は3つの層に分かれます：I＝自己調整（個人で調整する）、You＝共調整（他者やAIと一時的に調整を共有する）、We＝社会的に共有された調整（集団で相互に調整し、共有した目標へ向かう）。学習の場面は「見通す・実行する・振り返る」の3つで、各場面に過程（課題・目標・計画／推進・確認・調節／評価・帰属・適用）があります。\n【方略の提案数の目安】一斉授業の1時間なら1〜2個、自由進度学習の1時間なら4〜5個。これより多い提案は求められない限りしない。\n【文体】日本語で、簡潔に、あたたかく。先生を評価するのではなく、一緒に考える姿勢で。\n【この相談の目的】1つの時（または活動）に方略が多すぎるとき、残す方略と外す方略を理由つきで提案します。\n【基準】本時（その時）の中心となる活動に直接関わるものを優先。同じ働きの方略が重なっていれば1つに。目安（一斉1〜2、自由進度4〜5）に近づける。\n【答え方】文章で「残す理由」「外す理由」を述べ、最後にJSONを付けます。方略は、ユーザーメッセージ内に示された「現在入っている方略」の #番号 で指定します。\n【答えの形】まず文章で答え、具体的な提案があるときだけ、本文の最後に ```json ... ``` のコードブロックを1つ付けてください。提案がないときはJSONを付けません。JSONだけを返すことは禁止です（文章を必ず付ける）。\nJSONの形：{\"keep\":[番号,...],\"remove\":[番号,...],\"reason\":\"全体の方針(1〜2文)\"}","assessment":"あなたは「調整学習デザイナー」（自己調整学習の単元構想・指導案づくりを支援するWebアプリ）に組み込まれた教育アドバイザーです。\n【役割の限定】答えてよいのは、単元構想・本時の指導案・学習活動・調整方略（自己調整学習）に関する相談だけです。それ以外の話題（一般的な雑談、プログラミング、文章の代筆、個人的な相談など）には「このAIは授業づくりの相談専用です。単元や本時のことでしたら何でもお聞きください。」とだけ返してください。\n【個人情報】相談文に児童・生徒の氏名などが含まれていても、答えの中で繰り返さないでください。\n【前提知識】調整方略は3つの層に分かれます：I＝自己調整（個人で調整する）、You＝共調整（他者やAIと一時的に調整を共有する）、We＝社会的に共有された調整（集団で相互に調整し、共有した目標へ向かう）。学習の場面は「見通す・実行する・振り返る」の3つで、各場面に過程（課題・目標・計画／推進・確認・調節／評価・帰属・適用）があります。\n【方略の提案数の目安】一斉授業の1時間なら1〜2個、自由進度学習の1時間なら4〜5個。これより多い提案は求められない限りしない。\n【文体】日本語で、簡潔に、あたたかく。先生を評価するのではなく、一緒に考える姿勢で。\n【この相談の目的】教科・学年・単元名（と、あれば単元の目標や単元計画）から、単元の目標の案や、3観点（知識・技能／思考・判断・表現／主体的に学習に取り組む態度）の評価規準の案を作ります。学習指導要領の各教科の目標・内容の趣旨に沿った、現場で使われる文体（「〜している」「〜しようとしている」）で書きます。\n【答え方】文章で短く意図を述べたうえで、最後にJSONを付けます。目標を求められたら unitGoal に、評価規準を求められたら assessment に（3観点を改行で区切った1つの文字列）。求められていない方は省きます。\n【答えの形】まず文章で答え、具体的な提案があるときだけ、本文の最後に ```json ... ``` のコードブロックを1つ付けてください。提案がないときはJSONを付けません。JSONだけを返すことは禁止です（文章を必ず付ける）。\nJSONの形：{\"unitGoal\":\"単元の目標（1〜2文）\",\"assessment\":\"【知識・技能】…\n【思考・判断・表現】…\n【主体的に学習に取り組む態度】…\"}","import":"あなたは学習指導案・単元計画のテキストを読み取り、1単元の構成を構造化するアシスタントです。\n渡されたテキストから、単元を時間ごと（1時間＝1コマ）に分けてください。各時について次を抜き出します：\n- label：短い見出し（例「第1時」）\n- process：学習過程。必ず「課題設定」「情報収集」「整理・分析」「まとめ・表現」「振り返り」のいずれか一つ\n- goal：その時間の目標（書かれていなければ空文字）\n- text：学習活動・指導上の留意点\n- eval：評価（書かれていなければ空文字）\n調整方略の話は加えず、書かれている内容を忠実に抜き出します。児童・生徒の氏名が含まれていても出力に含めません。\n出力は次のJSONのみとし、前後に文章を付けないでください：\n{\"periods\":[{\"label\":\"第1時\",\"process\":\"課題設定\",\"goal\":\"目標文\",\"text\":\"学習活動文\",\"eval\":\"評価文\"}]}"};
+async function callOwn(kind,context,question,history,onStatus){
+  const prov=state.provider,key=(state.keys[prov]||"").trim();
+  if(!key)throw Object.assign(new Error("APIキーが未入力です。⚙設定で入力するか、「Kimura Edu Labの AI」に切り替えてください。"),{code:"nokey"});
+  const model=(state.models[prov]||"").trim()||PROVIDERS[prov].defaultModel;
+  let system=OWN_PROMPTS[kind]||"";
+  let user=`現在の内容:\n${context}\n\n相談内容: ${question}`;
+  if(OWN_CATALOG_KINDS.has(kind))system+=`\n\n【方略カタログ】（この中の#番号から選ぶ。文章の創作は禁止）\n`+STRATEGY_LIST.map((s,i)=>`#${i} [${s.phase}/${s.proc}/${s.layer}/Lv${s.lv}/${s.type}] ${s.text}${STRATEGY_INFO[i]?" ｜使う場面:"+STRATEGY_INFO[i].scene:""}`).join("\n");
+  const msgs=[...history.slice(-6).map(m=>({role:m.role,content:m.content})),{role:"user",content:user}];
+  const MAX=3;let last;
+  for(let i=0;i<MAX;i++){
+    try{return {text:await callOnce(prov,key,model,system,msgs)};}
+    catch(e){last=e;if(!e.retryable||i===MAX-1)throw e;onStatus&&onStatus(`混雑のため再試行中…（${i+1}回目）`);await new Promise(r=>setTimeout(r,(e.retryAfterMs||2000*Math.pow(2,i))+Math.random()*500));}
+  }
+  throw last;
+}
+const OWN_CATALOG_KINDS=new Set(["unit-strategy","lesson-strategy","trim"]);
+/* ---------- 手元の指導案（Word/PDF）の取り込み ---------- */
+let importedText="";
+async function handleImportFile(ev){
+  const file=ev.target.files&&ev.target.files[0];if(!file)return;
+  const st=document.getElementById("importStatus");st.className="status";st.textContent="読み込み中…（"+file.name+"）";
+  try{
+    let text="";const name=file.name.toLowerCase();
+    if(name.endsWith(".docx")){if(!window.mammoth)throw new Error("Word解析の部品を読み込めませんでした（ネット接続を確認してください）");const out=await window.mammoth.extractRawText({arrayBuffer:await file.arrayBuffer()});text=out.value||"";}
+    else if(name.endsWith(".pdf")){if(!window.pdfjsLib)throw new Error("PDF解析の部品を読み込めませんでした（ネット接続を確認してください）");const pdf=await window.pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;const all=[];
+      for(let i=1;i<=pdf.numPages;i++){const page=await pdf.getPage(i);const c=await page.getTextContent();let line="",lastY=null,lines=[];
+        c.items.forEach(it=>{if(it.str===""){if(it.hasEOL){lines.push(line);line="";lastY=null;}return;}const y=it.transform[5];if(lastY!==null&&Math.abs(y-lastY)>3){lines.push(line);line="";}line+=it.str;if(it.hasEOL){lines.push(line);line="";lastY=null;}else lastY=y;});
+        if(line)lines.push(line);all.push(lines.join("\n"));}
+      text=all.join("\n\n");}
+    else if(name.endsWith(".doc"))throw new Error("古い .doc 形式は読めません。Wordで .docx として保存し直してください。");
+    else throw new Error("対応していない形式です（.docx か .pdf）");
+    text=text.replace(/[ \t]+\n/g,"\n").replace(/\n{4,}/g,"\n\n\n").trim();
+    if(!text){st.className="status ng";st.textContent="文字を取り出せませんでした。画像だけのPDF（スキャン）かもしれません。";return;}
+    importedText=text;document.getElementById("importText").value=text;document.getElementById("importResult").style.display="block";
+    st.className="status ok";st.textContent="✓ 読み込みました（"+file.name+"）。内容を確認して「AIで振り分ける」を押してください。";
+  }catch(err){st.className="status ng";st.textContent="✕ "+(err&&err.message||"読み込みに失敗しました");}
+  ev.target.value="";
+}
+async function aiSortImport(){
+  const text=document.getElementById("importText").value.trim();const st=document.getElementById("aiSortStatus");const btn=document.getElementById("aiSortBtn");
+  if(!text){st.className="status ng";st.textContent="先にファイルを読み込んでください。";return;}
+  st.className="status";st.textContent="AIが振り分けています…";btn.disabled=true;
+  try{
+    const q="次のテキストを単元構成に振り分けてください:\n\n"+text.slice(0,11000);
+    const res=state.way==="lab"?await callLab("import","",q,[],null,t=>st.textContent=t):await callOwn("import","",q,[],t=>st.textContent=t);
+    const {data}=extractJson(res.text);const arr=data&&Array.isArray(data.periods)?data.periods:[];
+    const periods=arr.map(o=>{const pd=newPeriod();pd.label=String(o.label||"").trim();pd.process=PROCESS_OPTIONS.includes(o.process)?o.process:"情報収集";pd.goal=String(o.goal||"").trim();pd.text=String(o.text||"").trim();pd.evalText=String(o.eval||o.evalText||"").trim();return pd;}).filter(p=>p.text);
+    if(!periods.length)throw new Error("時ごとの内容を読み取れませんでした。テキストを整えてもう一度お試しください。");
+    // 見通す／実行する／振り返るの3つの次に、学習過程から割り振る
+    const stages=[{id:nid("s"),name:"",phase:"見通す",periods:[]},{id:nid("s"),name:"",phase:"実行する",periods:[]},{id:nid("s"),name:"",phase:"振り返る",periods:[]}];
+    periods.forEach((pd,i)=>{const ph=i===0?"見通す":(i===periods.length-1&&periods.length>2?"振り返る":PHASE_BY_PROCESS[pd.process]||"実行する");stages[PHASES_ORDER.indexOf(ph)].periods.push(pd);});
+    state.stages=stages.filter(s=>s.periods.length);state.lessonOnly=false;state.currentPeriod=null;
+    if(!state.meta.hours)state.meta.hours=String(periods.length);restoreMeta();autosave();
+    const honji=parseInt((document.getElementById("importHonji")||{}).value,10);
+    if(honji>=1&&periods[honji-1]){state.currentPeriod=periods[honji-1].id;autosave();}
+    st.className="status ok";st.textContent=`✓ ${periods.length} 時に振り分けました。「単元構想へ →」で確認・修正できます。`+(honji>=1&&periods[honji-1]?`第${honji}時を本時として「本時を開く」から進めます。`:(honji>=1?`（第${honji}時は見つかりませんでした）`:""));
+    if(res.remaining!=null)setQuota(res.remaining);
+  }catch(err){st.className="status ng";st.textContent="✕ "+friendlyError(err);}
+  finally{btn.disabled=false;}
+}
+async function callOnce(prov,key,model,system,msgs){
+  const mk=(message,status,ra)=>{const e=new Error(message||"APIエラー");const l=(message||"").toLowerCase();e.retryable=[429,500,502,503,529].includes(status)||/overloaded|high demand|temporarily|try again|rate limit|quota|unavailable/.test(l);e.status=status||0;if(ra)e.retryAfterMs=ra*1000;e.code="own";return e;};
+  if(prov==="claude"){
+    const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model,max_tokens:4000,system,messages:msgs})});
+    const ra=parseInt(r.headers.get("retry-after")||"",10);const d=await r.json().catch(()=>({}));
+    if(!r.ok||d.error)throw mk((d.error&&d.error.message)||("Claude APIエラー (HTTP "+r.status+")"),r.status,isNaN(ra)?null:ra);
+    return (d.content||[]).map(c=>c.text||"").join("\n");
+  }
+  if(prov==="gemini"){
+    // ※「JSONのみ」の設定（responseMimeType）は付けない：説明の文章が消え、答えが短く的外れになる原因だった
+    const contents=msgs.map(m=>({role:m.role==="assistant"?"model":"user",parts:[{text:m.content}]}));
+    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({system_instruction:{parts:[{text:system}]},contents,generationConfig:{maxOutputTokens:4000}})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok||d.error){const m=(d.error&&d.error.message)||("Gemini APIエラー (HTTP "+r.status+")");const rm=m.match(/retry in\s+([\d.]+)\s*s/i);throw mk(m,r.status,rm?Math.ceil(parseFloat(rm[1])):null);}
+    const c=d.candidates&&d.candidates[0];return c&&c.content&&c.content.parts?c.content.parts.map(p=>p.text||"").join("\n"):"";
+  }
+  if(prov==="openai"){
+    const messages=[{role:"system",content:system},...msgs];
+    const r=await fetch("https://api.openai.com/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},body:JSON.stringify({model,messages,max_completion_tokens:4000})});
+    const ra=parseInt(r.headers.get("retry-after")||"",10);const d=await r.json().catch(()=>({}));
+    if(!r.ok||d.error)throw mk((d.error&&d.error.message)||("OpenAI APIエラー (HTTP "+r.status+")"),r.status,isNaN(ra)?null:ra);
+    const ch=d.choices&&d.choices[0];return ch&&ch.message&&ch.message.content?ch.message.content:"";
+  }
+  throw new Error("不明なプロバイダです");
+}
+function explainOwnError(err){
+  const s=err.status||0,m=(err.message||"").toLowerCase();
+  if(s===401||s===403||/api key|unauthorized|permission|invalid authentication/.test(m))return "APIキーが正しくないか、無効になっている可能性があります。⚙設定でキーを貼り直してください。";
+  if(s===404||/not found|does not exist|unsupported/.test(m))return "指定したモデルが見つかりません。⚙設定でモデルを選び直してください。";
+  if(s===429||/quota|rate limit|exceeded/.test(m))return "一定時間に送れる回数（レート制限）か無料枠の上限に達しています。しばらく待つか、「Kimura Edu Labの AI」に切り替えてください。";
+  if(s===529||s===503||/overloaded|high demand|unavailable/.test(m))return "AIサービス側が混雑しています（自分のキー側の混雑で、Labの枠とは別です）。少し待つか、「Kimura Edu Labの AI」に切り替えてください。";
+  if(/failed to fetch|networkerror|load failed/.test(m))return "ネットワークに接続できませんでした。";
+  return "⚙設定でAIサービスとAPIキーを確認してください。（詳細: "+(err.message||"")+"）";
+}
+async function testConnection(){
+  const tr=document.getElementById("testResult");tr.style.color="#5a4648";tr.textContent="接続を確認しています…";
+  try{const prov=state.provider,key=(state.keys[prov]||"").trim();if(!key)throw new Error("APIキーが未入力です");const model=(state.models[prov]||"").trim()||PROVIDERS[prov].defaultModel;
+    const t=await callOnce(prov,key,model,"短く答えてください。",[{role:"user",content:"「接続OK」とだけ返してください。"}]);
+    tr.style.color="#1f7a3a";tr.textContent=t&&t.trim()?"✓ 接続できました（"+PROVIDERS[prov].label+"）":"応答が空でした。モデルを確認してください。";}
+  catch(e){tr.style.color="#a23";tr.textContent="✕ "+explainOwnError(e);}
+}
+
+/* ---------- 設定画面 ---------- */
+function setWay(w){state.way=w;autosave();renderSettings();}
+function setProvider(p){state.provider=p;autosave();renderSettings();}
+function renderSettings(){
+  document.getElementById("labPer").textContent=LAB.perUser;
+  document.querySelector('input[name=aiway][value=lab]').checked=state.way==="lab";
+  document.querySelector('input[name=aiway][value=own]').checked=state.way==="own";
+  document.getElementById("optLab").classList.toggle("on",state.way==="lab");
+  document.getElementById("optOwn").classList.toggle("on",state.way==="own");
+  document.getElementById("ownCard").style.display=state.way==="own"?"block":"none";
+  const P=PROVIDERS[state.provider];
+  document.getElementById("provTabs").innerHTML=Object.keys(PROVIDERS).map(k=>`<button class="prov-tab ${state.provider===k?"active":""}" onclick="setProvider('${k}')">${PROVIDERS[k].label}</button>`).join("");
+  document.getElementById("provGuide").innerHTML=P.guide;
+  const key=document.getElementById("apiKey");key.value=state.keys[state.provider]||"";key.placeholder=P.prefix+"...";
+  const sel=document.getElementById("apiModel");sel.innerHTML=P.models.map(([id,n])=>`<option value="${id}">${n}</option>`).join("");sel.value=state.models[state.provider]||P.defaultModel;
+  if(state.way==="lab")refreshQuota();
+}
+
+/* ============================================================
+   STEP 4 出力
+   ============================================================ */
+let outMode="unit";
+function setOut(m){outMode=m;renderPreview();}
+function renderPreview(){
+  if(outMode==="lesson"&&!cur())outMode="unit";
+  document.getElementById("outUnitBtn").className="out-tab"+(outMode==="unit"?" on":"");
+  document.getElementById("outLessonBtn").className="out-tab"+(outMode==="lesson"?" on":"");
+  document.getElementById("preview").innerHTML=outMode==="unit"?unitSheetHtml(false):lessonSheetHtml(false);
+}
+const NL=s=>esc(s).replace(/\n/g,"<br>");
+function stratCell(list){if(!list.length)return "―";return list.map(s=>`<div><span class="lbl sc">${s.scene}</span><span class="lbl ${s.layer}">${s.layer}</span>${esc(s.text)}</div>`).join("");}
+function metaRows(pairs){return pairs.map(([k,v])=>`<tr><th class="c1">${k}</th><td colspan="2">${v}</td></tr>`).join("");}
+function unitSheetHtml(){
+  const m=state.meta;let rows="";
+  state.stages.forEach((st,si)=>{rows+=`<tr><th colspan="3" class="pv-stage-th">第${si+1}次　${esc(st.name)}　<span class="lbl sc">${esc(st.phase)}</span></th></tr>`;
+    st.periods.forEach(pd=>{rows+=`<tr><th class="c1">${esc(pLabel(pd))}<br><span class="small">${esc(pd.process)}</span>${pd.lesson?'<br><span class="tag-lesson">本時案あり</span>':""}</th><td>${pd.goal?`<div><b>目標</b> ${NL(pd.goal)}</div>`:""}<div>${pd.text?NL(pd.text):"―"}</div>${pd.evalText?`<div><b>評価</b> ${NL(pd.evalText)}</div>`:""}</td><td>${stratCell(pd.strategies)}</td></tr>`;});});
+  const cols=`<colgroup><col style="width:96px"><col><col style="width:36%"></colgroup>`;
+  return `<h1>単元構想シート</h1>
+  <table class="pv-table">${cols}${metaRows([["教科・学年",`<span class="pv-meta"><span><b>教科</b>${esc(m.subject||"―")}</span><span><b>学年</b>${esc(m.grade||"―")}</span><span><b>総時数</b>${esc(m.hours||"―")}</span><span><b>人数</b>${esc(m.students||"―")}人</span><span><b>1時間</b>${esc(m.minutes||"―")}分</span></span>`],["単元名",esc(m.unit||"―")],["単元の目標",NL(m.unitGoal||"―")],["評価規準",NL(m.assessment||"―")]])}</table>
+  <table class="pv-table">${cols}<thead><tr><th class="c1">時 / 学習過程</th><th>目標・学習活動・評価</th><th>調整方略（<span class="lbl I">I</span>自己 <span class="lbl You">You</span>共 <span class="lbl We">We</span>社会的共有）</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+function lessonSheetHtml(){
+  const pd=cur();const L=pd.lesson;const m=state.meta;const ps=allPeriods();const i=ps.findIndex(x=>x.pd===pd);
+  let rows="";let no=0;
+  L.phases.forEach(ph=>{ph.activities.forEach((a,ai)=>{no++;rows+=`<tr>${ai===0?`<th rowspan="${ph.activities.length}" class="c1">${esc(ph.name)}<br>${ph.min}分</th>`:""}<td>${NL(a.text||"―")}${a.reaction?`<div class="small">◇ ${NL(a.reaction)}</div>`:""}</td><td>${NL(a.teach||"―")}${a.evalText?`<div class="small">【評価】${NL(a.evalText)}</div>`:""}</td><td>${stratCell(a.strategies)}</td></tr>`;});});
+  const ph={intro:"導入",develop:"展開",summary:"まとめ"}[L.mearaiPhase]||"";
+  const cols=`<colgroup><col style="width:96px"><col style="width:36%"><col><col style="width:30%"></colgroup>`;
+  const metaC=`<colgroup><col style="width:96px"><col></colgroup>`;
+  const mrow=(k,v)=>`<tr><th class="c1">${k}</th><td>${v}</td></tr>`;
+  return `<h1>本時の学習指導案</h1>
+  <table class="pv-table">${metaC}${mrow("教科・学年",`<span class="pv-meta"><span><b>教科</b>${esc(m.subject||"―")}</span><span><b>学年</b>${esc(m.grade||"―")}</span><span><b>本時</b>${esc(pLabel(pd))}／${esc(m.hours||ps.length)}時間</span><span><b>人数</b>${esc(m.students||"―")}人</span><span><b>時間</b>${esc(m.minutes||"―")}分</span></span>`)}
+  ${mrow("単元名",esc(m.unit||"―"))}${mrow("本時の目標",NL(pd.goal||"―"))}${mrow("めあて",NL(L.mearai||"―")+(ph?`<span class="small">（${ph}で提示）</span>`:""))}
+  ${!state.lessonOnly?mrow("前時／次時",[ps[i-1]?"前時："+esc(ps[i-1].pd.text||"―"):null,ps[i+1]?"次時："+esc(ps[i+1].pd.text||"―"):null].filter(Boolean).join("<br>")||"―"):""}</table>
+  <table class="pv-table">${cols}<thead><tr><th class="c1">段階</th><th>学習活動（◇予想される子どもの反応）</th><th>教師の指導・支援（【評価】）</th><th>調整方略（<span class="lbl I">I</span>自己 <span class="lbl You">You</span>共 <span class="lbl We">We</span>社会的共有）</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+function downloadWord(){
+  const body=outMode==="unit"?unitSheetHtml():lessonSheetHtml();
+  const css=`@page{size:842pt 595pt;mso-page-orientation:landscape;margin:1.6cm;} body{font-family:'Yu Gothic','Hiragino Kaku Gothic ProN','MS PGothic',sans-serif;font-size:10.5pt;color:#222;} h1{font-size:16pt;text-align:center;} table{border-collapse:collapse;width:100%;margin-bottom:8pt;} th,td{border:0.75pt solid #888;padding:4pt 6pt;vertical-align:top;font-size:10pt;} th{background:#efece7;} th.c1{width:96px;} .pv-meta b{margin-right:4pt;color:#555;} .pv-meta span{margin-right:12pt;} .pv-stage-th{background:#fbe7e6;color:#7e1419;} .lbl{font-weight:bold;margin-right:3pt;} .lbl.I{color:#b3232a;} .lbl.You{color:#1f7a8c;} .lbl.We{color:#d98324;} .lbl.sc{color:#666;font-size:8pt;} .small{font-size:8.5pt;color:#555;} .tag-lesson{font-size:8pt;color:#7a4a00;}`;
+  const html=`<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>${outMode==="unit"?"単元構想シート":"本時の学習指導案"}</title><!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View></w:WordDocument></xml><![endif]--><style>${css}</style></head><body>${body}</body></html>`;
+  const blob=new Blob(["﻿",html],{type:"application/msword"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=(state.meta.unit||"調整学習デザイナー")+(outMode==="unit"?"_単元構想.doc":"_本時指導案.doc");a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function downloadJSON(){
+  const out=JSON.parse(JSON.stringify(state));out.keys={};out.app="srl-designer";
+  const blob=new Blob([JSON.stringify(out,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=(state.meta.unit||"調整学習デザイナー")+"_調整学習デザイナー.json";a.click();
+}
+/* 読み込み：このアプリ／単元構想デザイナー／指導案デザイナーのJSON */
+async function loadJSONFile(ev){
+  const file=ev.target.files&&ev.target.files[0];if(!file)return;const st=document.getElementById("loadStatus");
+  try{
+    const o=JSON.parse(await file.text());
+    if(o.app==="srl-designer"&&o.stages){applyState(o);st.textContent="✓ 読み込みました（調整学習デザイナーのデータ）";}
+    else if(Array.isArray(o.stages)&&o.stages[0]&&Array.isArray(o.stages[0].periods)){ // 単元構想デザイナー
+      const m=o.meta||{};state.meta=Object.assign(state.meta,{subject:m.subject||"",grade:m.grade||"",hours:m.hours||"",unit:m.unit||"",unitGoal:m.unitGoal||"",assessment:m.assessment||"",students:m.students||"",minutes:m.minutes||"45"});
+      state.stages=o.stages.map(s=>({id:nid("s"),name:s.name||"",phase:PHASES_ORDER.includes(s.phase)?s.phase:"実行する",periods:(s.periods||[]).map(p=>{const pd=newPeriod();pd.label=isAutoLabel(p.label||"")?"":p.label;pd.hours=(parseInt(p.hours,10)>=1)?parseInt(p.hours,10):1;pd.process=PROCESS_OPTIONS.includes(p.process)?p.process:"情報収集";pd.goal=p.goal||"";pd.text=p.text||"";pd.evalText=p.evalText||"";
+        pd.strategies=(p.strategies||[]).map(x=>{const sid=findSid(x.text,x.layer);const base=sid>=0?STRATEGY_LIST[sid]:null;return {sid,scene:base?base.phase:"実行する",layer:x.layer,text:base?base.text:x.text,cat:x.cat||"",src:x.cat==="AI提案"?"AI":"手動"};});return pd;})}));
+      state.lessonOnly=false;state.currentPeriod=null;state.ai={unit:[],lesson:{}};
+      st.textContent="✓ 読み込みました（単元構想デザイナーのデータ）。各時の方略には、方略の種類から場面を割り当てました。";
+    }else if(Array.isArray(o.phases)&&o.phases[0]&&Array.isArray(o.phases[0].activities)){ // 指導案デザイナー
+      const m=o.meta||{};state.meta=Object.assign(state.meta,{subject:m.subject||"",grade:m.grade||"",hours:m.hours||"",unit:m.unit||"",unitGoal:m.unitGoal||"",students:m.students||"",minutes:m.minutes||"50"});
+      const pd=newPeriod();pd.label="本時";pd.goal=m.lessonGoal||"";
+      pd.lesson={mearai:m.mearai||"",mearaiPhase:m.mearaiPhase||"intro",phases:o.phases.map(ph=>({id:ph.id,name:ph.name,min:ph.min||0,activities:(ph.activities||[]).map(x=>{const a=newActivity();a.text=x.text||"";a.teach=x.teach||"";a.reaction=x.reaction||"";a.evalText=(x.eval&&typeof x.eval==="object"?(x.eval.text||""):(x.eval||""));
+        a.strategies=(x.strategies||[]).map(s=>{const sid=findSid(s.text,s.layer);const base=sid>=0?STRATEGY_LIST[sid]:null;return {sid,scene:base?base.phase:"実行する",layer:s.layer,text:base?base.text:s.text,cat:s.cat||"",src:"手動"};});return a;})}))};
+      state.stages=[{id:nid("s"),name:"本時",phase:"実行する",periods:[pd]}];state.lessonOnly=true;state.currentPeriod=pd.id;state.ai={unit:[],lesson:{}};
+      st.textContent="✓ 読み込みました（指導案デザイナーのデータ）。「本時」から続きを作れます。";
+    }else throw new Error("形式が違います");
+    st.style.color="#1f7a3a";restoreMeta();autosave();
+  }catch(e){st.style.color="#a23";st.textContent="✕ 読み込めませんでした（"+(e.message||"")+"）。このアプリ、単元構想デザイナー、指導案デザイナーで保存したJSONを選んでください。";}
+  ev.target.value="";
+}
+
+/* ---------- 起動 ---------- */
+restoreAutosave();
+restoreMeta();
+buildStepper();
+renderDock("meta");
+document.getElementById("verTag").textContent="v"+APP_VERSION;
+</script>
+<!-- Cloudflare Web Analytics --><script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "3184f28c2e314d999b3a8b48433a9075"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>
