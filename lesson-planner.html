@@ -1360,7 +1360,19 @@ function turnstileToken(){
     catch(e){clearTimeout(timer);reject(Object.assign(new Error("確認の部品でエラーが起きました。ページを再読み込みしてください。"),{code:"turnstile"}));}
   });
 }
-async function callLab(kind,context,question,history,onStatus){
+async function callLab(...args){
+  /* 確認（Turnstile）に失敗したら、新しい券を取り直して1回だけ自動でやり直す（2026-11-04） */
+  try{ return await callLabOnce(...args); }
+  catch(e){
+    if(!(e&&e.code==="turnstile")) throw e;
+    try{ if(tsWidget!=null&&window.turnstile) turnstile.remove(tsWidget); }catch(_){}
+    tsWidget=null;
+    const st=args[args.length-1]; if(typeof st==="function") st("もう一度確認しています…");
+    try{ return await callLabOnce(...args); }
+    catch(e2){ if(e2&&e2.code==="turnstile"&&e2.detail) e2.message+="\n（詳細: "+e2.detail+"）"; throw e2; }
+  }
+}
+async function callLabOnce(kind,context,question,history,onStatus){
   onStatus&&onStatus("確認しています…");
   const token=await turnstileToken();
   onStatus&&onStatus("Kimura Edu Labの AI が考えています…");
@@ -1368,7 +1380,7 @@ async function callLab(kind,context,question,history,onStatus){
   let resp,data;
   try{resp=await fetch(LAB.url+"/v1/consult",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body)});data=await resp.json().catch(()=>({}));}
   catch(e){throw Object.assign(new Error("Labのサーバーに接続できませんでした。インターネット接続を確認してください（学校のネットワークでは通信が止められることがあります）。"),{code:"network"});}
-  if(!resp.ok||data.error){const er=data.error||{};throw Object.assign(new Error(er.message||("エラー（HTTP "+resp.status+"）")),{code:er.code||"upstream_error",lab:true});}
+  if(!resp.ok||data.error){const er=data.error||{};throw Object.assign(new Error(er.message||("エラー（HTTP "+resp.status+"）")),{code:er.code||"upstream_error",lab:true,detail:er.detail});}
   if(data.remaining!=null)setQuota(data.remaining);
   return data.text||"";
 }

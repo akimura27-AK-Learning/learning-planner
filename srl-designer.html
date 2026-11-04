@@ -929,7 +929,19 @@ function turnstileToken(){
     catch(e){clearTimeout(timer);reject(Object.assign(new Error("確認の部品でエラーが起きました。ページを再読み込みしてください。"),{code:"turnstile"}));}
   });
 }
-async function callLab(kind,context,question,history,image,onStatus){
+async function callLab(...args){
+  /* 確認（Turnstile）に失敗したら、新しい券を取り直して1回だけ自動でやり直す（2026-11-04） */
+  try{ return await callLabOnce(...args); }
+  catch(e){
+    if(!(e&&e.code==="turnstile")) throw e;
+    try{ if(tsWidget!=null&&window.turnstile) turnstile.remove(tsWidget); }catch(_){}
+    tsWidget=null;
+    const st=args[args.length-1]; if(typeof st==="function") st("もう一度確認しています…");
+    try{ return await callLabOnce(...args); }
+    catch(e2){ if(e2&&e2.code==="turnstile"&&e2.detail) e2.message+="\n（詳細: "+e2.detail+"）"; throw e2; }
+  }
+}
+async function callLabOnce(kind,context,question,history,image,onStatus){
   onStatus&&onStatus("確認しています…");
   const token=await turnstileToken();
   onStatus&&onStatus("Kimura Edu Labの AI が考えています…");
